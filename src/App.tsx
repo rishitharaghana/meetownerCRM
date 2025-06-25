@@ -18,11 +18,6 @@ import LocationManager from "./pages/maps/locality";
 import { Toaster } from "react-hot-toast";
 import { lazy,   } from "react";
 
-
-
-
-
-
 import AllAdsPage from "./pages/Ads/AllAds";
 import CreateAds from "./pages/Ads/CreateAds";
 
