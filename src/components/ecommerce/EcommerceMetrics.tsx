@@ -129,9 +129,7 @@ export default function Home() {
         })}
       </div>
 
-      {/* Row 2: Total Team Members + Departments in Card Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {/* Total Team Members - Light Style (like old Project cards) */}
         <div className="group cursor-default transition-all duration-300 hover:-translate-y-2">
           <div className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${cardColors[0]} backdrop-blur-sm border shadow-lg shadow-black/5 hover:shadow-xl p-6`}>
             <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
@@ -155,7 +153,6 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Department Cards */}
         {staticOwnerEmployeesCounts.map((item, index) => {
           const IconComponent = iconMap[item.user_type] || Users;
           const isPositiveTrend = item.trend === "up";
