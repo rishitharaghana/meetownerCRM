@@ -592,7 +592,7 @@ export default function AddProject() {
                       <p className="text-sm text-gray-500 truncate">{size.floorPlan.name}</p>
                     )
                   ) : (
-                    <p className="text-sm text-gray-400">No file selected</p>
+                    <p className="text-sm text-gray-400"></p>
                   )}
                 </div>
               </div>
@@ -698,7 +698,7 @@ export default function AddProject() {
                   <p className="text-sm text-gray-500 truncate">{formData.brochure.name}</p>
                 )
               ) : (
-                <p className="text-sm text-gray-400">No file selected</p>
+                <p className="text-sm text-gray-400"></p>
               )}
             </div>
           </div>
