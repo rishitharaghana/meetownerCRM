@@ -118,7 +118,6 @@ export default function UserMetaCard() {
           </label>
         </div>
 
-        {/* Info Block */}
         <div className="flex-1 text-center xl:text-left">
           {!isEditing ? (
             <>
