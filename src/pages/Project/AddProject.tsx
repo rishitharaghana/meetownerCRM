@@ -40,6 +40,7 @@ interface FormData {
   sizes: SizeEntry[];
   aroundProperty: AroundPropertyEntry[];
   brochure: File | null;
+  priceSheet: File |null;
 }
 
 interface Errors {
@@ -53,6 +54,7 @@ interface Errors {
   sizes?: { [key: string]: { buildupArea?: string; carpetArea?: string; floorPlan?: string } };
   aroundProperty?: string;
   brochure?: string;
+  priceSheet?: string;
 }
 
 export default function AddProject() {
@@ -70,6 +72,7 @@ export default function AddProject() {
     sizes: [{ id: `${Date.now()}-1`, buildupArea: "", carpetArea: "", floorPlan: null }],
     aroundProperty: [],
     brochure: null,
+    priceSheet: null,
   });
 
   const [errors, setErrors] = useState<Errors>({});
@@ -236,6 +239,34 @@ export default function AddProject() {
       },
     }));
   };
+    const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      const validFileTypes = ["image/jpeg", "image/png", "application/pdf"];
+      if (!validFileTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          priceSheet: "Only JPEG, PNG, or PDF files are allowed",
+        }));
+        return;
+      }
+      if (file.size > 10 * 1024 * 1024) {
+        setErrors((prev) => ({
+          ...prev,
+          priceSheet: "File size must be less than 10MB",
+        }));
+        return;
+      }
+    }
+    setFormData((prev) => ({ ...prev, priceSheet: file }));
+    setErrors((prev) => ({ ...prev, priceSheet: undefined }));
+  };
+
+  const handleDeletePriceSheet = () => {
+    setFormData((prev) => ({ ...prev, priceSheet: null }));
+    setErrors((prev) => ({ ...prev, priceSheet: undefined }));
+  };
+
 
   const handleDeleteSize = (id: string) => () => {
     setFormData((prev) => ({
@@ -362,6 +393,7 @@ export default function AddProject() {
         })),
         aroundProperty: formData.aroundProperty,
         brochure: formData.brochure ? formData.brochure.name : null,
+        priceSheet: formData.priceSheet ? formData.priceSheet.name: null,
       };
 
       console.log("Property Data:", propertyData);
@@ -662,9 +694,9 @@ export default function AddProject() {
             )}
           </div>
 
-          <div className="space-y-4">
+          <div className="space-y-1">
             <Label htmlFor="brochure">Brochure</Label>
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-1">
               <input
                 type="file"
                 id="brochure"
@@ -695,6 +727,45 @@ export default function AddProject() {
                   />
                 ) : (
                   <p className="text-sm text-gray-500 truncate">{formData.brochure.name}</p>
+                )
+              ) : (
+                <p className="text-sm text-gray-400"></p>
+              )}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <Label htmlFor="priceSheet">Price Sheet</Label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="priceSheet"
+                accept="image/jpeg,image/png,application/pdf"
+                onChange={handlePriceSheetChange}
+                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
+              />
+              {formData.priceSheet && (
+                <button
+                  type="button"
+                  onClick={handleDeletePriceSheet}
+                  className="text-red-500 hover:text-red-700"
+                >
+                  Delete
+                </button>
+              )}
+            </div>
+            {errors.priceSheet && (
+              <p className="text-red-500 text-sm mt-1">{errors.priceSheet}</p>
+            )}
+            <div className="min-h-[80px] flex items-end">
+              {formData.priceSheet ? (
+                formData.priceSheet.type.startsWith("image/") ? (
+                  <img
+                    src={URL.createObjectURL(formData.priceSheet)}
+                    alt="Price Sheet Preview"
+                    className="max-w-[100px] max-h-[100px] object-contain"
+                  />
+                ) : (
+                  <p className="text-sm text-gray-500 truncate">{formData.priceSheet.name}</p>
                 )
               ) : (
                 <p className="text-sm text-gray-400"></p>
