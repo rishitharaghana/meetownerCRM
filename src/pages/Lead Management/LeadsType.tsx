@@ -13,16 +13,16 @@ import {
 import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
+import { Modal } from "../../components/ui/modal";
 
-// Define the type for the lead pull form data
+
 interface LeadPullFormData {
-  mobile: string;
-  email: string;
-  name: string;
-  sourceType: string;
+  channelPartnerName: string;
+  channelPartnerNumber: string;
+  leadPriority: string;
 }
 
-// Define the type for listing data
+
 interface Listing {
   id: number;
   unique_property_id: string;
@@ -41,22 +41,17 @@ interface Listing {
   location_id: string;
   lead_source?: string;
   status: number;
+  budget: string;
+  property_type: string;
+  lead_type: string;
 }
 
-// Updated status map based on sidebar subItems
-const statusMap: { [key: number]: string } = {
-  0: "New",
-  1: "Today",
-  2: "Site Visit Done",
-  3: "Won",
-  4: "Loss",
-  5: "Total",
-};
 
-// Sidebar subItems for mapping lead_in and status to name
+
+
 const sidebarSubItems = [
   { name: "New Leads", lead_in: "new", status: 0 },
-  { name: "Today Leads", lead_in: "Today", status: 1 },
+  { name: "Today Leads", lead_in: "today", status: 1 },
   { name: "Site Visit Done", lead_in: "site", status: 2 },
   { name: "Won Leads", lead_in: "won", status: 3 },
   { name: "Loss Leads", lead_in: "loss", status: 4 },
@@ -91,6 +86,11 @@ const userTypeOptions = [
   { value: "6", label: "Channel Partner" },
 ];
 
+const leadSourceOptions = ["Google Ads", "Meta Ads", "X Ads", "Website", "Referral", "Walk-in"];
+const leadTypeOptions = ["Contacted", "Interested"];
+const priorityOptions = ["High Priority", "Medium Priority", "Low Priority"];
+
+// Updated sample data with new fields
 const sampleListings: Listing[] = [
   {
     id: 1,
@@ -103,8 +103,11 @@ const sampleListings: Listing[] = [
     updated_date: "2025-04-12",
     updated_time: "14:45:00",
     location_id: "Downtown",
-    lead_source: "Website",
-    status: 0, // New
+    lead_source: "Google Ads",
+    status: 0,
+    budget: "50L-75L",
+    property_type: "Residential",
+    lead_type: "Contacted",
   },
   {
     id: 2,
@@ -118,121 +121,12 @@ const sampleListings: Listing[] = [
     updated_time: "11:20:00",
     location_id: "Suburbs",
     lead_source: "Referral",
-    status: 1, // Today
+    status: 1,
+    budget: "1Cr-1.5Cr",
+    property_type: "Commercial",
+    lead_type: "Interested",
   },
-  {
-    id: 3,
-    unique_property_id: "PROP003",
-    property_name: "Green Meadows",
-    sub_type: "Villa",
-    user: { user_type: 4, name: "Jane Smith", mobile: "8765432109", email: "jane.smith@example.com" },
-    created_date: "2025-04-09",
-    created_time: "09:15:00",
-    updated_date: "2025-04-11",
-    updated_time: "11:20:00",
-    location_id: "Suburbs",
-    lead_source: "Referral",
-    status: 1, // Today
-  },
-  
-  {
-    id: 4,
-    unique_property_id: "PROP004",
-    property_name: "Lakeview Towers",
-    sub_type: "Condo",
-    user: { user_type: 6, name: "Mike Johnson", mobile: "6543210987", email: "mike.j@example.com" },
-    created_date: "2025-04-07",
-    created_time: "14:20:00",
-    updated_date: "2025-04-09",
-    updated_time: "10:10:00",
-    location_id: "Lakeside",
-    lead_source: "Social Media",
-    status: 3, // Won
-  },
-  {
-    id: 5,
-    unique_property_id: "PROP005",
-    property_name: "Skyline Residency",
-    sub_type: "Apartment",
-    user: { user_type: 1, name: "Admin User", mobile: "5432109876", email: "admin@example.com" },
-    created_date: "2025-04-06",
-    created_time: "16:45:00",
-    updated_date: "2025-04-08",
-    updated_time: "12:25:00",
-    location_id: "Uptown",
-    lead_source: "Direct",
-    status: 4, // Loss
-  },
-  {
-    id: 6,
-    unique_property_id: "PROP006",
-    property_name: "Royal Gardens",
-    sub_type: "Villa",
-    user: { user_type: 5, name: "Sarah Wilson", mobile: "4321098765", email: "sarah.w@example.com" },
-    created_date: "2025-04-05",
-    created_time: "11:30:00",
-    updated_date: "2025-04-07",
-    updated_time: "15:50:00",
-    location_id: "Greenwich",
-    lead_source: "Website",
-    status: 5, // Total
-  },
-  {
-    id: 7,
-    unique_property_id: "PROP007",
-    property_name: "Urban Nest",
-    sub_type: "Apartment",
-    user: { user_type: 4, name: "Tom Brown", mobile: "3210987654", email: "tom.b@example.com" },
-    created_date: "2025-04-04",
-    created_time: "13:15:00",
-    updated_date: "2025-04-06",
-    updated_time: "09:40:00",
-    location_id: "Midtown",
-    lead_source: "Referral",
-    status: 0, // New
-  },
-  {
-    id: 8,
-    unique_property_id: "PROP008",
-    property_name: "Paradise Homes",
-    sub_type: "Condo",
-    user: { user_type: 3, name: "Elite Builders", mobile: "2109876543", email: "elite@example.com" },
-    created_date: "2025-04-03",
-    created_time: "15:00:00",
-    updated_date: "2025-04-05",
-    updated_time: "11:55:00",
-    location_id: "Westside",
-    lead_source: "Advertisement",
-    status: 5, // Total (Added for testing)
-  },
-  {
-    id: 9,
-    unique_property_id: "PROP009",
-    property_name: "Blue Horizon",
-    sub_type: "Penthouse",
-    user: { user_type: 6, name: "Lisa Davis", mobile: "1098765432", email: "lisa.d@example.com" },
-    created_date: "2025-04-02",
-    created_time: "10:45:00",
-    updated_date: "2025-04-04",
-    updated_time: "14:15:00",
-    location_id: "Eastside",
-    lead_source: "Social Media",
-    status: 5, // Total (Added for testing)
-  },
-  {
-    id: 10,
-    unique_property_id: "PROP010",
-    property_name: "Golden Residency",
-    sub_type: "Apartment",
-    user: { user_type: 2, name: "Regular User", mobile: "0987654321", email: "regular@example.com" },
-    created_date: "2025-04-01",
-    created_time: "12:30:00",
-    updated_date: "2025-04-03",
-    updated_time: "16:20:00",
-    location_id: "Northside",
-    lead_source: "Direct",
-    status: 3, // Won
-  },
+  // ... (update other entries similarly with budget, property_type, and lead_type)
 ];
 
 // Timeline Event type
@@ -251,10 +145,9 @@ const LeadsType: React.FC = () => {
   const [isTimelinePopupOpen, setIsTimelinePopupOpen] = useState<boolean>(false);
   const [selectedListing, setSelectedListing] = useState<Listing | null>(null);
   const [leadPullFormData, setLeadPullFormData] = useState<LeadPullFormData>({
-    mobile: "",
-    email: "",
-    name: "",
-    sourceType: "",
+    channelPartnerName: "",
+    channelPartnerNumber: "",
+    leadPriority: "",
   });
   const [formErrors, setFormErrors] = useState<Partial<LeadPullFormData>>({});
   const searchInputRef = useRef<HTMLInputElement>(null);
@@ -270,24 +163,19 @@ const LeadsType: React.FC = () => {
   const totalCount = sampleListings.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  // Find the sidebar item matching lead_in and status
+  // Find the sidebar item
   const sidebarItem = sidebarSubItems.find(
     (item) => item.lead_in.toLowerCase() === lead_in?.toLowerCase() && item.status === parseInt(status || "0", 10)
   );
 
-  // Filter listings based on search query, status, and user type
+  // Filter listings
   const filteredListings = sampleListings.filter((item) => {
-    // Apply status filter first
     if (parseInt(status || "0", 10) !== 5 && item.status !== parseInt(status || "0", 10)) {
       return false;
     }
-
-    // Apply user type filter only for Total Leads (status 5)
     if (parseInt(status || "0", 10) === 5 && selectedUserType && item.user.user_type.toString() !== selectedUserType) {
       return false;
     }
-
-    // Apply search query filter
     if (!searchQuery) return true;
     const userTypeKey = userTypeReverseMap[searchQuery.toLowerCase()];
     const searchValue = userTypeKey || searchQuery.toLowerCase();
@@ -299,7 +187,10 @@ const LeadsType: React.FC = () => {
       item.user.name.toLowerCase().includes(searchValue) ||
       item.user.mobile.includes(searchValue) ||
       (item.user.email?.toLowerCase().includes(searchValue) || false) ||
-      (item.lead_source?.toLowerCase().includes(searchValue) || false)
+      (item.lead_source?.toLowerCase().includes(searchValue) || false) ||
+      item.budget.toLowerCase().includes(searchValue) ||
+      item.property_type.toLowerCase().includes(searchValue) ||
+      item.lead_type.toLowerCase().includes(searchValue)
     );
   });
 
@@ -312,7 +203,7 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     const savedSearch = localStorage.getItem("searchQuery") || "";
     setInitialSearch(savedSearch);
-    handleSearch(savedSearch);
+    setSearchQuery(savedSearch);
   }, []);
 
   useEffect(() => {
@@ -337,8 +228,7 @@ const LeadsType: React.FC = () => {
     const formattedMinutes = String(dateTime.getMinutes()).padStart(2, "0");
     const ampm = formattedHours >= 12 ? "PM" : "AM";
     formattedHours = formattedHours % 12 || 12;
-    const formattedTime = `${String(formattedHours).padStart(2, "0")}:${formattedMinutes} ${ampm}`;
-    return `${formattedDay}-${formattedMonth}-${formattedYear} ${formattedTime}`;
+    return `${formattedDay}-${formattedMonth}-${formattedYear} ${String(formattedHours).padStart(2, "0")}:${formattedMinutes} ${ampm}`;
   };
 
   useEffect(() => {
@@ -376,37 +266,22 @@ const LeadsType: React.FC = () => {
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
-
-  const handleEdit = (item: Listing) => {
-    const editPath = `/leads/${lead_in}/${status}-edit`;
-    navigate(editPath, { state: { property: item } });
-    setDropdownOpen(null);
-  };
 
   const handleDelete = (unique_property_id: string) => {
     console.log(`Delete property: ${unique_property_id}`);
     setDropdownOpen(null);
   };
 
-  const handleApprove = (unique_property_id: string) => {
-    console.log(`Approve/Reject property: ${unique_property_id}`);
-    setDropdownOpen(null);
-  };
-
-  const handleLead = (item: Listing) => {
+  const handleLeadAssign = (item: Listing) => {
+    setSelectedListing(item);
     setIsModalOpen(true);
     setDropdownOpen(null);
   };
 
   const handleSearch = (value: string) => {
-    let searchValue = value.trim();
-    const userTypeKey = userTypeReverseMap[searchValue.toLowerCase()];
-    if (userTypeKey) {
-      searchValue = userTypeKey;
-    }
-    setSearchQuery(searchValue);
+    setSearchQuery(value.trim());
   };
 
   const goToPage = (page: number) => {
@@ -432,13 +307,8 @@ const LeadsType: React.FC = () => {
     return pages;
   };
 
-  const shouldShowActions = () => {
-    // Show actions for New and Today statuses
-    return parseInt(status || "0", 10) === 0 || parseInt(status || "0", 10) === 1;
-  };
-
   // Modal Form Handlers
-  const handleInputChange = (e: ChangeEvent<HTMLInputElement>) => {
+  const handleInputChange = (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setLeadPullFormData((prev) => ({ ...prev, [name]: value }));
     setFormErrors((prev) => ({ ...prev, [name]: "" }));
@@ -446,18 +316,16 @@ const LeadsType: React.FC = () => {
 
   const validateLeadPullForm = (): boolean => {
     const newErrors: Partial<LeadPullFormData> = {};
-    if (!leadPullFormData.mobile) {
-      newErrors.mobile = "Mobile number is required";
-    } else if (!/^\d{10}$/.test(leadPullFormData.mobile)) {
-      newErrors.mobile = "Mobile number must be exactly 10 digits";
+    if (!leadPullFormData.channelPartnerName) {
+      newErrors.channelPartnerName = "Channel Partner Name is required";
     }
-    if (!leadPullFormData.email) {
-      newErrors.email = "Email is required";
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(leadPullFormData.email)) {
-      newErrors.email = "Please enter a valid email address";
+    if (!leadPullFormData.channelPartnerNumber) {
+      newErrors.channelPartnerNumber = "Channel Partner Number is required";
+    } else if (!/^\d{10}$/.test(leadPullFormData.channelPartnerNumber)) {
+      newErrors.channelPartnerNumber = "Mobile number must be exactly 10 digits";
     }
-    if (!leadPullFormData.name) {
-      newErrors.name = "Name is required";
+    if (!leadPullFormData.leadPriority) {
+      newErrors.leadPriority = "Lead Priority is required";
     }
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -466,18 +334,20 @@ const LeadsType: React.FC = () => {
   const handleLeadPullSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateLeadPullForm()) {
-      console.log("Lead Pull Form Data:", leadPullFormData);
-      alert("Lead pull submitted successfully!");
+      console.log("Lead Assign Form Data:", leadPullFormData);
+      alert("Lead assigned successfully!");
       setIsModalOpen(false);
-      setLeadPullFormData({ mobile: "", email: "", name: "", sourceType: "" });
+      setLeadPullFormData({ channelPartnerName: "", channelPartnerNumber: "", leadPriority: "" });
       setFormErrors({});
+      setSelectedListing(null);
     }
   };
 
   const handleModalClose = () => {
     setIsModalOpen(false);
-    setLeadPullFormData({ mobile: "", email: "", name: "", sourceType: "" });
+    setLeadPullFormData({ channelPartnerName: "", channelPartnerNumber: "", leadPriority: "" });
     setFormErrors({});
+    setSelectedListing(null);
   };
 
   // Timeline Popup Handlers
@@ -491,9 +361,8 @@ const LeadsType: React.FC = () => {
     setSelectedListing(null);
   };
 
-  // Updated timeline events based on status
+  // Timeline events
   const getTimelineEvents = (listing: Listing): TimelineEvent[] => {
-    const status = listing.status;
     const events: TimelineEvent[] = [
       {
         date: formatDateTime(listing.created_date, listing.created_time),
@@ -501,56 +370,51 @@ const LeadsType: React.FC = () => {
         description: `Property ${listing.property_name} was created by ${listing.user.name}.`,
       },
     ];
-
-    // Add status-specific events
-    if (status >= 1) {
+    if (listing.status >= 1) {
       events.push({
         date: formatDateTime(listing.updated_date, listing.updated_time),
         title: "Today Lead",
         description: `Property ${listing.property_name} was marked as a today lead.`,
       });
     }
-    if (status >= 2) {
+    if (listing.status >= 2) {
       events.push({
         date: formatDateTime(listing.updated_date, listing.updated_time),
         title: "Site Visit Done",
         description: `Site visit completed for ${listing.property_name}.`,
       });
     }
-    if (status === 3) {
+    if (listing.status === 3) {
       events.push({
         date: formatDateTime(listing.updated_date, listing.updated_time),
         title: "Won Lead",
         description: `Lead for ${listing.property_name} was won.`,
       });
     }
-    if (status === 4) {
+    if (listing.status === 4) {
       events.push({
         date: formatDateTime(listing.updated_date, listing.updated_time),
         title: "Loss Lead",
         description: `Lead for ${listing.property_name} was lost.`,
       });
     }
-    if (status === 5) {
+    if (listing.status === 5) {
       events.push({
         date: formatDateTime(listing.updated_date, listing.updated_time),
         title: "Total Lead",
         description: `Property ${listing.property_name} is part of total leads.`,
       });
     }
-
     return events;
   };
 
   const handleAddNewLead = () => {
-    navigate('/leads/addlead');
+    navigate("/leads/addlead");
   };
 
   const handleUserTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    const value = e.target.value;
-    console.log("Selected User Type:", value); // Debug log
-    setSelectedUserType(value);
-    setLocalPage(1); // Reset to first page when user type changes
+    setSelectedUserType(e.target.value);
+    setLocalPage(1);
   };
 
   return (
@@ -558,15 +422,11 @@ const LeadsType: React.FC = () => {
       <PageMeta title={`Lead Management - ${getPageTitle()}`} />
       <PageBreadcrumb
         pageTitle={getPageTitle()}
-        pagePlacHolder="Search by Customer Name, Mobile, Email, Project, or Lead Source"
+        pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Property Type, or Lead Source"
         onFilter={handleSearch}
         inputRef={searchInputRef}
       />
-      {filteredListings.length === 0 ? (
-        <div className="min-h-screen bg-gray-50 dark:bg-dark-900 py-6 px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">No Leads Found</h2>
-        </div>
-      ) : (
+
         <>
           <div className="flex justify-between items-center gap-x-4 px-4 py-1">
             <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Search result - {filteredListings.length}</h2>
@@ -576,24 +436,23 @@ const LeadsType: React.FC = () => {
               </Button>
             )}
             {parseInt(status || "0", 10) === 5 && (
-            <div className="px-4 py-2">
-              <Label htmlFor="userTypeFilter">Filter by User Type</Label>
-              <select
-                id="userTypeFilter"
-                value={selectedUserType}
-                onChange={handleUserTypeChange}
-                className="w-48 p-2 border rounded dark:bg-dark-900"
-              >
-                {userTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
+              <div className="px-4 py-2">
+                <Label htmlFor="userTypeFilter">Filter by User Type</Label>
+                <select
+                  id="userTypeFilter"
+                  value={selectedUserType}
+                  onChange={handleUserTypeChange}
+                  className="w-48 p-2 border rounded dark:bg-dark-900 dark:text-white"
+                >
+                  {userTypeOptions.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
           </div>
-          
           <div className="space-y-6">
             <ComponentCard title={getPageTitle()}>
               <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -603,15 +462,15 @@ const LeadsType: React.FC = () => {
                       <TableRow>
                         <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sl. No</TableCell>
                         <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer Name</TableCell>
-                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Mobile</TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer Number</TableCell>
                         <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</TableCell>
                         <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Interested Project</TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Budget</TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Property Type</TableCell>
                         <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Lead Source</TableCell>
-                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created Date & Time</TableCell>
-                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Location</TableCell>
-                        {shouldShowActions() && (
-                          <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
-                        )}
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created On</TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Lead Type</TableCell>
+                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
                       </TableRow>
                     </TableHeader>
                     <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -629,36 +488,38 @@ const LeadsType: React.FC = () => {
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.user.mobile || "N/A"}</TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.user.email || "N/A"}</TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.property_name || "N/A"}</TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.budget || "N/A"}</TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.property_type || "N/A"}</TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.lead_source || "N/A"}</TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                            {formatDateTime(item.created_date, item.created_time)}
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{formatDateTime(item.created_date, item.created_time)}</TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.lead_type || "N/A"}</TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative">
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setDropdownOpen(dropdownOpen === item.id.toString() ? null : item.id.toString())}
+                            >
+                              <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
+                                <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+                              </svg>
+                            </Button>
+                            {dropdownOpen === item.id.toString() && (
+                              <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
+                                <button
+                                  onClick={() => handleLeadAssign(item)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                  Lead Assign
+                                </button>
+                                <button
+                                  onClick={() => handleDelete(item.unique_property_id)}
+                                  className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            )}
                           </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.location_id || "N/A"}</TableCell>
-                          {shouldShowActions() && (
-                            <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative">
-                              <Button
-                                variant="outline"
-                                size="sm"
-                                onClick={() => setDropdownOpen(dropdownOpen === item.id.toString() ? null : item.id.toString())}
-                              >
-                                <svg className="w-5 h-5 text-gray-500 dark:text-gray-400" fill="currentColor" viewBox="0 0 20 20" xmlns="http://www.w3.org/2000/svg">
-                                  <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                                </svg>
-                              </Button>
-                              {dropdownOpen === item.id.toString() && (
-                                <div ref={dropdownRef} className="absolute right-0 mt-2 w-40 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10">
-                                  <button onClick={() => handleEdit(item)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Edit</button>
-                                  <button onClick={() => handleDelete(item.unique_property_id)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Delete</button>
-                                  <button onClick={() => handleApprove(item.unique_property_id)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
-                                    {parseInt(status || "0", 10) === 0 ? "Approve" : "Reject"}
-                                  </button>
-                                  {parseInt(status || "0", 10) === 1 && (
-                                    <button onClick={() => handleLead(item)} className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">Lead Pull</button>
-                                  )}
-                                </div>
-                              )}
-                            </TableCell>
-                          )}
                         </TableRow>
                       ))}
                     </TableBody>
@@ -679,24 +540,16 @@ const LeadsType: React.FC = () => {
                     >
                       Previous
                     </Button>
-                    {getPaginationItems().map((page, index) => {
-                      const uniqueKey = `${page}-${index}`;
-                      return page === "..." ? (
-                        <span key={uniqueKey} className="px-3 py-1 text-gray-500 dark:text-gray-400">
-                          ...
-                        </span>
-                      ) : (
-                        <Button
-                          key={uniqueKey}
-                          variant="outline"
-                          size="sm"
-                          onClick={() => goToPage(page as number)}
-                          isActive={page === localPage}
-                        >
-                          {page}
-                        </Button>
-                      );
-                    })}
+                    {getPaginationItems().map((page, index) => (
+                      <Button
+                        key={`${page}-${index}`}
+                        variant={page === localPage ? "primary" : "outline"}
+                        size="sm"
+                        onClick={() => goToPage(page as number)}
+                      >
+                        {page}
+                      </Button>
+                    ))}
                     <Button
                       variant={localPage === totalPages ? "outline" : "primary"}
                       size="sm"
@@ -711,138 +564,111 @@ const LeadsType: React.FC = () => {
             </ComponentCard>
           </div>
         </>
-      )}
-
-      {/* Lead Pull Modal */}
-      {isModalOpen && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-none flex items-center justify-center z-10">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md p-6 relative">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Enter Lead Pull Details</h2>
-              <button
-                onClick={handleModalClose}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
+    
+     
+      <Modal
+        isOpen={isModalOpen}
+        onClose={handleModalClose}
+        className="max-w-md p-6"
+      >
+        <div className="space-y-4">
+          <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Assign Lead</h2>
+          <form onSubmit={handleLeadPullSubmit} className="space-y-4">
+            <div>
+              <Label htmlFor="channelPartnerName">Channel Partner Name</Label>
+              <Input
+                type="text"
+                id="channelPartnerName"
+                name="channelPartnerName"
+                value={leadPullFormData.channelPartnerName}
+                onChange={handleInputChange}
+                className="dark:bg-dark-900"
+                placeholder="Enter channel partner name"
+              />
+              {formErrors.channelPartnerName && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.channelPartnerName}</p>
+              )}
             </div>
-            <form onSubmit={handleLeadPullSubmit} className="space-y-4">
-              <div>
-                <Label htmlFor="name">Name</Label>
-                <Input
-                  type="text"
-                  id="name"
-                  name="name"
-                  value={leadPullFormData.name}
-                  onChange={handleInputChange}
-                  className="dark:bg-dark-900"
-                  placeholder="Enter user name"
-                />
-                {formErrors.name && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.name}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="mobile">Mobile Number</Label>
-                <Input
-                  type="text"
-                  id="mobile"
-                  name="mobile"
-                  value={leadPullFormData.mobile}
-                  onChange={handleInputChange}
-                  className="dark:bg-dark-900"
-                  placeholder="Enter 10-digit mobile number"
-                />
-                {formErrors.mobile && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.mobile}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="email">Email Address</Label>
-                <Input
-                  type="email"
-                  id="email"
-                  name="email"
-                  value={leadPullFormData.email}
-                  onChange={handleInputChange}
-                  className="dark:bg-dark-900"
-                  placeholder="Enter email address"
-                />
-                {formErrors.email && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.email}</p>
-                )}
-              </div>
-              <div>
-                <Label htmlFor="sourceType">Lead Source</Label>
-                <Input
-                  type="text"
-                  id="sourceType"
-                  name="sourceType"
-                  value={leadPullFormData.sourceType}
-                  onChange={handleInputChange}
-                  className="dark:bg-dark-900"
-                  placeholder="Enter Lead source"
-                />
-                {formErrors.sourceType && (
-                  <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.sourceType}</p>
-                )}
-              </div>
-              <div className="flex justify-end space-x-3">
-                <button
-                  type="button"
-                  onClick={handleModalClose}
-                  className="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 dark:bg-gray-700 dark:text-gray-200 dark:hover:bg-gray-600 transition-colors duration-200"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-                >
-                  Submit
-                </button>
-              </div>
-            </form>
-          </div>
+            <div>
+              <Label htmlFor="channelPartnerNumber">Channel Partner Number</Label>
+              <Input
+                type="text"
+                id="channelPartnerNumber"
+                name="channelPartnerNumber"
+                value={leadPullFormData.channelPartnerNumber}
+                onChange={handleInputChange}
+                className="dark:bg-dark-900"
+                placeholder="Enter 10-digit mobile number"
+              />
+              {formErrors.channelPartnerNumber && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.channelPartnerNumber}</p>
+              )}
+            </div>
+            <div>
+              <Label htmlFor="leadPriority">Lead Priority</Label>
+              <select
+                id="leadPriority"
+                name="leadPriority"
+                value={leadPullFormData.leadPriority}
+                onChange={handleInputChange}
+                className="w-full p-2 border rounded dark:bg-dark-900 dark:text-white"
+              >
+                <option value="">Select Priority</option>
+                {priorityOptions.map((option) => (
+                  <option key={option} value={option}>
+                    {option}
+                  </option>
+                ))}
+              </select>
+              {formErrors.leadPriority && (
+                <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.leadPriority}</p>
+              )}
+            </div>
+            <div className="flex justify-end space-x-3">
+              <Button
+               
+                variant="outline"
+                size="sm"
+                onClick={handleModalClose}
+              >
+                Cancel
+              </Button>
+              <Button
+               
+                variant="primary"
+                size="sm"
+              >
+                Submit
+              </Button>
+            </div>
+          </form>
         </div>
-      )}
+      </Modal>
 
       {/* Timeline Popup */}
       {isTimelinePopupOpen && selectedListing && (
-        <div className="fixed inset-0 bg-white/30 backdrop-blur-none flex items-center justify-center z-20">
-          <div ref={timelinePopupRef} className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg w-full max-w-md relative">
-            <div className="flex justify-between items-center mb-4">
-              <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Timeline for {selectedListing.user.name}</h2>
-              <button
-                onClick={handleTimelinePopupClose}
-                className="text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-200"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            <div className="space-y-4">
-              {getTimelineEvents(selectedListing).map((event, index, events) => (
-                <div key={index} className="flex items-start relative">
-                  {/* Dot Icon */}
-                  <div className="flex-shrink-0 w-4 h-4 bg-[#1D3A76] rounded-full z-10"></div>
-                  {/* Vertical Line (only if not the last event) */}
-                  {index < events.length - 1 && (
-                    <div className="absolute top-4 left-[7px] w-0.5 h-[calc(100%+1rem)] bg-green-500"></div>
-                  )}
-                  <div className="ml-4">
-                    <p className="text-sm text-gray-500 dark:text-gray-400">{event.date}</p>
-                    <h3 className="text-lg font-medium text-gray-800 dark:text-white">{event.title}</h3>
-                    <p className="text-sm text-gray-600 dark:text-gray-300">{event.description}</p>
-                  </div>
+        <Modal
+          isOpen={isTimelinePopupOpen}
+          onClose={handleTimelinePopupClose}
+          className="max-w-md p-6"
+        >
+          <div className="space-y-4">
+            <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Timeline for {selectedListing.user.name}</h2>
+            {getTimelineEvents(selectedListing).map((event, index, events) => (
+              <div key={index} className="flex items-start relative">
+                <div className="flex-shrink-0 w-4 h-4 bg-[#1D3A76] rounded-full z-10"></div>
+                {index < events.length - 1 && (
+                  <div className="absolute top-4 left-[7px] w-0.5 h-[calc(100%+1rem)] bg-green-500"></div>
+                )}
+                <div className="ml-4">
+                  <p className="text-sm text-gray-500 dark:text-gray-400">{event.date}</p>
+                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">{event.title}</h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-300">{event.description}</p>
                 </div>
-              ))}
-            </div>
+              </div>
+            ))}
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

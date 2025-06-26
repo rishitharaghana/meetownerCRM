@@ -8,47 +8,36 @@ import { EyeCloseIcon, EyeIcon, EnvelopeIcon } from "../../icons";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { getCities, getStates } from "../../store/slices/propertyDetails";
-import { createEmployee, clearMessages } from "../../store/slices/employee";
-import Dropdown from "../../components/form/Dropdown";
+
 
 interface FormData {
   name: string;
   mobile: string;
   email: string;
-  designation: string[];
   password: string;
   city: string[];
   state: string[];
   pincode: string;
-  reraFile: File | null;
-  gstFile: File | null;
-  bankCheque: File | null;
-  address: string;
-  gstNumber: string; // New field
-  reraNumber: string; // New field
-  bankAccountNumber: string; // New field
-  ifscCode: string; // New field
-  bankName: string; // New field
+  panCardNumber: string; 
+  companyName: string; 
+  representativeName: string;
+  companyAddress: string; 
+  companyNumber: string;
 }
 
 interface Errors {
   name?: string;
   mobile?: string;
   email?: string;
-  designation?: string;
   password?: string;
   city?: string;
   state?: string;
   pincode?: string;
-  reraFile?: string;
-  gstFile?: string;
-  bankCheque?: string;
-  address?: string;
-  gstNumber?: string; // New field
-  reraNumber?: string; // New field
-  bankAccountNumber?: string; // New field
-  ifscCode?: string; // New field
-  bankName?: string; // New field
+  panCardNumber?: string; 
+  companyName?: string;
+  representativeName?: string;
+  companyAddress?: string; 
+  companyNumber?: string; 
 }
 
 interface Option {
@@ -63,7 +52,6 @@ export default function AddChannelPartner() {
   const { createLoading, createError, createSuccess } = useSelector(
     (state: RootState) => state.employee
   );
-  const pageUserType = useSelector((state: RootState) => state.auth.user?.user_type);
 
   useEffect(() => {
     dispatch(getCities());
@@ -76,25 +64,17 @@ export default function AddChannelPartner() {
         name: "",
         mobile: "",
         email: "",
-        designation: [],
         password: "",
         city: [],
         state: [],
         pincode: "",
-        reraFile: null,
-        gstFile: null,
-        bankCheque: null,
-        address: "",
-        gstNumber: "", // New field
-        reraNumber: "", // New field
-        bankAccountNumber: "", // New field
-        ifscCode: "", // New field
-        bankName: "", // New field
+        panCardNumber: "",
+        companyName: "", 
+        representativeName: "", 
+        companyAddress: "", 
+        companyNumber: "", 
       });
-      const timer = setTimeout(() => {
-        dispatch(clearMessages());
-      }, 2000);
-      return () => clearTimeout(timer);
+      
     }
   }, [createSuccess, dispatch]);
 
@@ -102,38 +82,18 @@ export default function AddChannelPartner() {
     name: "",
     mobile: "",
     email: "",
-    designation: [],
     password: "",
     city: [],
     state: [],
     pincode: "",
-    reraFile: null,
-    gstFile: null,
-    bankCheque: null,
-    address: "",
-    gstNumber: "", // New field
-    reraNumber: "", // New field
-    bankAccountNumber: "", // New field
-    ifscCode: "", // New field
-    bankName: "", // New field
+    panCardNumber: "", 
+    companyName: "", 
+    representativeName: "",
+    companyAddress: "", 
+    companyNumber: "", 
   });
 
   const [errors, setErrors] = useState<Errors>({});
-
-  // Base designation options
-  const allDesignationOptions: Option[] = [
-    { value: "7", text: "Manager" },
-    { value: "8", text: "TeleCaller" },
-    { value: "9", text: "Marketing Executive" },
-    { value: "10", text: "Customer Support" },
-    { value: "11", text: "Customer Service" },
-  ];
-
-  // Filter out "Manager" if pageUserType === 7
-  const designationOptions: Option[] =
-    pageUserType === 7
-      ? allDesignationOptions.filter((option) => option.value !== "7")
-      : allDesignationOptions;
 
   const cityOptions: Option[] =
     cities?.map((city: any) => ({
@@ -147,18 +107,6 @@ export default function AddChannelPartner() {
       text: state.label,
     })) || [];
 
-  // Bank Name options for dropdown
-  const bankNameOptions: Option[] = [
-    { value: "sbi", text: "State Bank of India" },
-    { value: "hdfc", text: "HDFC Bank" },
-    { value: "icici", text: "ICICI Bank" },
-    { value: "axis", text: "Axis Bank" },
-    { value: "kotak", text: "Kotak Mahindra Bank" },
-    { value: "pnb", text: "Punjab National Bank" },
-    { value: "bob", text: "Bank of Baroda" },
-    { value: "union", text: "Union Bank of India" },
-  ];
-
   const countries = [{ code: "IN", label: "+91" }];
 
   const handleSingleChange =
@@ -169,12 +117,11 @@ export default function AddChannelPartner() {
         | "email"
         | "password"
         | "pincode"
-        | "address"
-        | "gstNumber" // New field
-        | "reraNumber" // New field
-        | "bankAccountNumber" // New field
-        | "ifscCode" // New field
-        | "bankName" // New field
+        | "panCardNumber" 
+        | "companyName" 
+        | "representativeName" 
+        | "companyAddress" 
+        | "companyNumber" 
     ) =>
     (value: string) => {
       setFormData({ ...formData, [field]: value });
@@ -184,49 +131,12 @@ export default function AddChannelPartner() {
     };
 
   const handleMultiSelectChange =
-    (field: "designation" | "city" | "state") => (values: string[]) => {
+    (field: "city" | "state") => (values: string[]) => {
       setFormData({ ...formData, [field]: values });
       if (errors[field]) {
         setErrors({ ...errors, [field]: undefined });
       }
     };
-
-  const handleFileChange =
-    (field: "reraFile" | "gstFile" | "bankCheque") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      const file = e.target.files?.[0] || null;
-      if (file) {
-        const validFileTypes =
-          field === "bankCheque"
-            ? ["image/jpeg", "image/png"]
-            : ["image/jpeg", "image/png", "application/pdf"];
-        if (!validFileTypes.includes(file.type)) {
-          setErrors({
-            ...errors,
-            [field]: `Only ${validFileTypes.join(", ")} files are allowed`,
-          });
-          return;
-        }
-        if (file.size > 10 * 1024 * 1024) {
-          setErrors({
-            ...errors,
-            [field]: "File size must be less than 10MB",
-          });
-          return;
-        }
-      }
-      setFormData({ ...formData, [field]: file });
-      if (errors[field]) {
-        setErrors({ ...errors, [field]: undefined });
-      }
-    };
-
-  const handleDeleteFile = (field: "reraFile" | "gstFile" | "bankCheque") => () => {
-    setFormData({ ...formData, [field]: null });
-    if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
-    }
-  };
 
   const validateForm = () => {
     let newErrors: Errors = {};
@@ -238,9 +148,6 @@ export default function AddChannelPartner() {
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    if (formData.designation.length === 0)
-      newErrors.designation = "At least one designation is required";
-
     if (!formData.password) newErrors.password = "Password is required";
     if (formData.city.length === 0)
       newErrors.city = "At least one city is required";
@@ -251,27 +158,24 @@ export default function AddChannelPartner() {
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = "Pincode must be 6 digits";
     }
-    // New validations
-    if (!formData.gstNumber.trim()) {
-      newErrors.gstNumber = "GST Number is required";
-    } else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
-      newErrors.gstNumber = "Invalid GST Number (e.g., 22AAAAA0000A1Z5)";
+    if (!formData.panCardNumber.trim()) {
+      newErrors.panCardNumber = "PAN Card Number is required";
+    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
+      newErrors.panCardNumber = "Invalid PAN Card Number (e.g., ABCDE1234F)";
     }
-    if (!formData.reraNumber.trim()) {
-      newErrors.reraNumber = "RERA Number is required";
+    if (!formData.companyName.trim()) {
+      newErrors.companyName = "Company Name is required";
     }
-    if (!formData.bankAccountNumber.trim()) {
-      newErrors.bankAccountNumber = "Bank Account Number is required";
-    } else if (!/^\d{9,18}$/.test(formData.bankAccountNumber)) {
-      newErrors.bankAccountNumber = "Bank Account Number must be 9 to 18 digits";
+    if (!formData.representativeName.trim()) {
+      newErrors.representativeName = "Representative Name is required";
     }
-    if (!formData.ifscCode.trim()) {
-      newErrors.ifscCode = "IFSC Code is required";
-    } else if (!/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
-      newErrors.ifscCode = "Invalid IFSC Code (e.g., SBIN0001234)";
+    if (!formData.companyAddress.trim()) {
+      newErrors.companyAddress = "Company Address is required";
     }
-    if (!formData.bankName) {
-      newErrors.bankName = "Bank Name is required";
+    if (!formData.companyNumber.trim()) {
+      newErrors.companyNumber = "Company Number is required";
+    } else if (!/^\d{10}$/.test(formData.companyNumber)) {
+      newErrors.companyNumber = "Company Number must be 10 digits";
     }
 
     setErrors(newErrors);
@@ -281,7 +185,7 @@ export default function AddChannelPartner() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-      const userType = localStorage.getItem("userType");
+     
       const createdBy = localStorage.getItem("name");
       const createdUserIdRaw = localStorage.getItem("userId");
 
@@ -297,42 +201,26 @@ export default function AddChannelPartner() {
         stateOptions.find((option) => option.value === selectedStateId)?.text ||
         selectedStateId;
 
-      // Map designation value to text
-      const selectedDesignationId = formData.designation[0];
-      const designationName =
-        designationOptions.find((option) => option.value === selectedDesignationId)?.text ||
-        selectedDesignationId;
-
-      // Map bank name value to text
-      const bankNameText =
-        bankNameOptions.find((option) => option.value === formData.bankName)?.text ||
-        formData.bankName;
-
       const employeeData = {
         name: formData.name,
         mobile: formData.mobile,
         email: formData.email,
-        designation: designationName,
         password: formData.password,
         city: cityName,
         state: stateName,
         pincode: formData.pincode,
-        reraFile: formData.reraFile ? formData.reraFile.name : null,
-        gstFile: formData.gstFile ? formData.gstFile.name : null,
-        bankCheque: formData.bankCheque ? formData.bankCheque.name : null,
-        address: formData.address,
-        gstNumber: formData.gstNumber, // New field
-        reraNumber: formData.reraNumber, // New field
-        bankAccountNumber: formData.bankAccountNumber, // New field
-        ifscCode: formData.ifscCode, // New field
-        bankName: bankNameText, // New field
-        user_type: parseInt(selectedDesignationId),
+        panCardNumber: formData.panCardNumber, // New field
+        companyName: formData.companyName, // New field
+        representativeName: formData.representativeName, // New field
+        companyAddress: formData.companyAddress, // New field
+        companyNumber: formData.companyNumber, // New field
+        user_type: 7, // Assuming Channel Partner user_type is 7
         created_by: createdBy || "Unknown",
         created_userID: createdUserIdRaw ? parseInt(createdUserIdRaw) : 1,
       };
 
       console.log("Employee Data:", employeeData);
-      dispatch(createEmployee(employeeData));
+      
     }
   };
 
@@ -402,17 +290,81 @@ export default function AddChannelPartner() {
             )}
           </div>
 
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="Designation"
-              options={designationOptions}
-              defaultSelected={formData.designation}
-              onChange={handleMultiSelectChange("designation")}
+          <div className="min-h-[80px]">
+            <Label htmlFor="companyName">Company Name</Label>
+            <Input
+              type="text"
+              id="companyName"
+              value={formData.companyName}
+              onChange={(e) => handleSingleChange("companyName")(e.target.value)}
+              placeholder="Enter company name"
+              className="dark:bg-gray-800"
               disabled={createLoading}
-              singleSelect={true}
             />
-            {errors.designation && (
-              <p className="text-red-500 text-sm mt-1">{errors.designation}</p>
+            {errors.companyName && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
+            )}
+          </div>
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="representativeName">Representative Name</Label>
+            <Input
+              type="text"
+              id="representativeName"
+              value={formData.representativeName}
+              onChange={(e) => handleSingleChange("representativeName")(e.target.value)}
+              placeholder="Enter representative name"
+              className="dark:bg-gray-800"
+              disabled={createLoading}
+            />
+            {errors.representativeName && (
+              <p className="text-red-500 text-sm mt-1">{errors.representativeName}</p>
+            )}
+          </div>
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="companyAddress">Company Address</Label>
+            <textarea
+              id="companyAddress"
+              value={formData.companyAddress}
+              onChange={(e) => handleSingleChange("companyAddress")(e.target.value)}
+              placeholder="Enter company address"
+              className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
+              rows={4}
+              disabled={createLoading}
+            />
+            {errors.companyAddress && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyAddress}</p>
+            )}
+          </div>
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="companyNumber">Company Number</Label>
+            <PhoneInput
+              selectPosition="start"
+              countries={countries}
+              value={formData.companyNumber}
+              placeholder="Enter company number"
+              onChange={handleSingleChange("companyNumber")}
+            />
+            {errors.companyNumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.companyNumber}</p>
+            )}
+          </div>
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="panCardNumber">PAN Card Number</Label>
+            <Input
+              type="text"
+              id="panCardNumber"
+              value={formData.panCardNumber}
+              onChange={(e) => handleSingleChange("panCardNumber")(e.target.value)}
+              placeholder="Enter PAN Card Number (e.g., ABCDE1234F)"
+              className="dark:bg-gray-800"
+              disabled={createLoading}
+            />
+            {errors.panCardNumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.panCardNumber}</p>
             )}
           </div>
 
@@ -486,226 +438,6 @@ export default function AddChannelPartner() {
             />
             {errors.state && (
               <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-            )}
-          </div>
-
-          {/* New GST Number Field */}
-          <div className="min-h-[80px]">
-            <Label htmlFor="gstNumber">GST Number</Label>
-            <Input
-              type="text"
-              id="gstNumber"
-              value={formData.gstNumber}
-              onChange={(e) => handleSingleChange("gstNumber")(e.target.value)}
-              placeholder="Enter GST Number (e.g., 22AAAAA0000A1Z5)"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.gstNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.gstNumber}</p>
-            )}
-          </div>
-
-          {/* New RERA Number Field */}
-          <div className="min-h-[80px]">
-            <Label htmlFor="reraNumber">RERA Number</Label>
-            <Input
-              type="text"
-              id="reraNumber"
-              value={formData.reraNumber}
-              onChange={(e) => handleSingleChange("reraNumber")(e.target.value)}
-              placeholder="Enter RERA Number"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.reraNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.reraNumber}</p>
-            )}
-          </div>
-
-          {/* New Bank Account Number Field */}
-          <div className="min-h-[80px]">
-            <Label htmlFor="bankAccountNumber">Bank Account Number</Label>
-            <Input
-              type="text"
-              id="bankAccountNumber"
-              value={formData.bankAccountNumber}
-              onChange={(e) => handleSingleChange("bankAccountNumber")(e.target.value)}
-              placeholder="Enter Bank Account Number"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.bankAccountNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.bankAccountNumber}</p>
-            )}
-          </div>
-
-          {/* New IFSC Code Field */}
-          <div className="min-h-[80px]">
-            <Label htmlFor="ifscCode">IFSC Code</Label>
-            <Input
-              type="text"
-              id="ifscCode"
-              value={formData.ifscCode}
-              onChange={(e) => handleSingleChange("ifscCode")(e.target.value)}
-              placeholder="Enter IFSC Code (e.g., SBIN0001234)"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.ifscCode && (
-              <p className="text-red-500 text-sm mt-1">{errors.ifscCode}</p>
-            )}
-          </div>
-
-          {/* New Bank Name Dropdown */}
-          <div className="min-h-[80px]">
-            <Dropdown
-              id="bankName"
-              label="Bank Name"
-              options={bankNameOptions}
-              value={formData.bankName}
-              onChange={handleSingleChange("bankName")}
-              placeholder="Search banks..."
-              disabled={createLoading}
-              error={errors.bankName}
-            />
-          </div>
-
-          <div className="min-h-[80px] space-y-2">
-            <Label htmlFor="reraFile">RERA Document</Label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="reraFile"
-                accept="image/jpeg,image/png,application/pdf"
-                onChange={handleFileChange("reraFile")}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
-                disabled={createLoading}
-              />
-              {formData.reraFile && (
-                <button
-                  type="button"
-                  onClick={handleDeleteFile("reraFile")}
-                  className="text-red-500 hover:text-red-700"
-                  disabled={createLoading}
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-            {errors.reraFile && (
-              <p className="text-red-500 text-sm mt-1">{errors.reraFile}</p>
-            )}
-            <div className="min-h-[60px] flex items-end">
-              {formData.reraFile ? (
-                formData.reraFile.type.startsWith("image/") ? (
-                  <img
-                    src={URL.createObjectURL(formData.reraFile)}
-                    alt="RERA Document Preview"
-                    className="max-w-[100px] max-h-[100px] object-contain"
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.reraFile.name}</p>
-                )
-              ) : (
-                <p className="text-sm text-gray-400">No file selected</p>
-              )}
-            </div>
-          </div>
-
-          <div className="min-h-[80px] space-y-2">
-            <Label htmlFor="gstFile">GST Document</Label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="gstFile"
-                accept="image/jpeg,image/png,application/pdf"
-                onChange={handleFileChange("gstFile")}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
-                disabled={createLoading}
-              />
-              {formData.gstFile && (
-                <button
-                  type="button"
-                  onClick={handleDeleteFile("gstFile")}
-                  className="text-red-500 hover:text-red-700"
-                  disabled={createLoading}
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-            {errors.gstFile && (
-              <p className="text-red-500 text-sm mt-1">{errors.gstFile}</p>
-            )}
-            <div className="min-h-[60px] flex items-end">
-              {formData.gstFile ? (
-                formData.gstFile.type.startsWith("image/") ? (
-                  <img
-                    src={URL.createObjectURL(formData.gstFile)}
-                    alt="GST Document Preview"
-                    className="max-w-[100px] max-h-[100px] object-contain"
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.gstFile.name}</p>
-                )
-              ) : (
-                <p className="text-sm text-gray-400">No file selected</p>
-              )}
-            </div>
-          </div>
-
-          <div className="min-h-[80px] space-y-2">
-            <Label htmlFor="bankCheque">Bank Account Cheque</Label>
-            <div className="flex items-center space-x-2">
-              <input
-                type="file"
-                id="bankCheque"
-                accept="image/jpeg,image/png"
-                onChange={handleFileChange("bankCheque")}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
-                disabled={createLoading}
-              />
-              {formData.bankCheque && (
-                <button
-                  type="button"
-                  onClick={handleDeleteFile("bankCheque")}
-                  className="text-red-500 hover:text-red-700"
-                  disabled={createLoading}
-                >
-                  Delete
-                </button>
-              )}
-            </div>
-            {errors.bankCheque && (
-              <p className="text-red-500 text-sm mt-1">{errors.bankCheque}</p>
-            )}
-            <div className="min-h-[60px] flex items-end">
-              {formData.bankCheque ? (
-                <img
-                  src={URL.createObjectURL(formData.bankCheque)}
-                  alt="Bank Cheque Preview"
-                  className="max-w-[100px] max-h-[100px] object-contain"
-                />
-              ) : (
-                <p className="text-sm text-gray-400">No file selected</p>
-              )}
-            </div>
-          </div>
-
-          <div className="min-h-[80px]">
-            <Label htmlFor="address">Address</Label>
-            <textarea
-              id="address"
-              value={formData.address}
-              onChange={(e) => handleSingleChange("address")(e.target.value)}
-              placeholder="Enter address"
-              className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
-              rows={4}
-              disabled={createLoading}
-            />
-            {errors.address && (
-              <p className="text-red-500 text-sm mt-1">{errors.address}</p>
             )}
           </div>
 

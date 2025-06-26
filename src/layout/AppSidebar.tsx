@@ -1,16 +1,8 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-
-import {
-  CalenderIcon,
-  ChevronDownIcon,
-  GridIcon,
-  HorizontaLDots,
-} from "../icons";
-import { useSidebar } from "../context/SidebarContext";
-import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyCheck,FaUser, FaUserTie } from "react-icons/fa";
-
-
+import { Building2,  ChevronDown, ChevronRight, GridIcon,  } from "lucide-react";
+import { FaAd, FaFileInvoice, FaMoneyBill, FaUser } from "react-icons/fa";
+import { CalenderIcon } from "../icons";
 
 type NavItem = {
   name: string;
@@ -21,7 +13,8 @@ type NavItem = {
     path?: string;
     pro?: boolean;
     new?: boolean;
-    data?: { lead_in: string;  status: number };
+    count?: number;
+    data?: { lead_in: string; status: number };
     nestedItems?: {
       name: string;
       path?: string;
@@ -46,11 +39,9 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "New Leads", path: "/leads/new/0", data: { "lead_in": "New", "status": 0} },
       { name: "Today Leads", path: "/leads/today/1", data: { "lead_in": "Today",  "status": 1} },
-      { name: "Site Visit done", path: "/leads/site/2", data: { "lead_in": "Site", "status": 2 } },
       { name: "Won Leads", path: "/leads/won/3", data: { "lead_in": "Won",  "status": 3} },
-      { name: "Loss Leads", path: "/leads/loss/4", data: { "lead_in": "Loss", "status": 4 } },
       { name: "Total Leads", path: "/leads/total/5", data: { "lead_in": "Total","status": 5 } },
-      { name: "Expiry Leads", path: "/leads/expiry/6", data: { "lead_in": "Expiry","status": 6 } },
+      { name: "Add New Lead", path: "/leads/addlead", },
      
     ],
   },
@@ -67,9 +58,9 @@ const navItems: NavItem[] = [
     icon: <FaUser />,
     name: "Partners",
     subItems: [
-      { name: "New channel Partners", path: "/partners/0" },
+      { name: "All channel Partners", path: "/partners" },
       { name: "Add Channel Partners", path: "/partners/addpartners" },
-      { name: "Top Partners", path: "/partners/1" },
+     
     ],
   },
   // {
@@ -77,29 +68,27 @@ const navItems: NavItem[] = [
   //   name: "User Profile",
   //   path: "/profile",
   // },
-  {
-    name: "Employee Management",
-    icon: <FaUserTie />,
-    subItems: [
-      { name: "Telecallers", path: "/employee/1", pro: false },
-      { name: "Marketing Executors", path: "/employee/2", pro: false },
-      { name: "Sales Team", path: "/employee/3", pro: false },
-      { name: "Reception", path: "/employee/4", pro: false },
-    ],
-  },
+  // {
+  //   name: "Employee Management",
+  //   icon: <FaUserTie />,
+  //   subItems: [
+  //     { name: "Telecallers", path: "/employee/1", pro: false },
+  //     { name: "Marketing Executors", path: "/employee/2", pro: false },
+  //     { name: "Sales Team", path: "/employee/3", pro: false },
+  //     { name: "Reception", path: "/employee/4", pro: false },
+  //   ],
+  // },
   
-  
-  
-  
-  {
-    name: "Price sheets",
-    icon: <FaMoneyCheck />,
-    subItems: [
-      { name: "Generate price Sheet", path: "/maps/cities", pro: false },
-      { name: "Generated Price Sheet", path: "/maps/cities", pro: false },
+
+  // {
+  //   name: "Price sheets",
+  //   icon: <FaMoneyCheck />,
+  //   subItems: [
+  //     { name: "Generate price Sheet", path: "/maps/cities", pro: false },
+  //     { name: "Generated Price Sheet", path: "/maps/cities", pro: false },
       
-    ],
-  },
+  //   ],
+  // },
   {
     name: "Source",
     icon: <FaAd />,
@@ -111,7 +100,7 @@ const navItems: NavItem[] = [
   },
   {
     name: "Comission Structure",
-    icon: <FaIdBadge />,
+    icon: <FaMoneyBill />,
     subItems: [
       { name: "Create Strucutre", path: "/packages/builder", pro: false },
       { name: "Existing Structure", path: "/packages/agents", pro: false },
@@ -120,48 +109,24 @@ const navItems: NavItem[] = [
   },
 ];
 
-const AppSidebar: React.FC = () => {
-  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
+
+interface AppSidebarProps {
+  isExpanded?: boolean;
+  isMobileOpen?: boolean;
+  isHovered?: boolean;
+  setIsHovered?: (hovered: boolean) => void;
+}
+
+const AppSidebar: React.FC<AppSidebarProps> = ({
+  isExpanded = true,
+  isMobileOpen = false,
+  isHovered = false,
+  setIsHovered = () => {}
+}) => {
   const location = useLocation();
-
-
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main"; index: number } | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number } | null>(null);
   const [openDeepNestedSubmenu, setOpenDeepNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number; nestedIndex: number } | null>(null);
-
-  // const filterAccountsSubItems = (subItems: NavItem["subItems"]) => {
-  //   if (!subItems) return subItems;
-  //   return subItems.map(subItem => ({
-  //     ...subItem,
-  //     nestedItems: subItem.nestedItems?.filter(nestedItem => {
-  //       if (userType === 8) {
-  //         return ["Payment Failure", "Expiry Soon"].includes(nestedItem.name);
-  //       }
-  //       return true; // Keep all items for other user types
-  //     }),
-  //   }));
-  // };
-
- 
-  // const filteredNavItems = navItems
-  //   .filter(item => {
-  //     if (userType === 7) return !["Accounts", "Pages", "Maps","Ads","Packages"].includes(item.name); // Manager
-  //     if (userType === 8) return !["Pages", "Maps", "Commercial Rent", "Commercial Buy", "Residential Rent", "Residential Buy", "Employees", "Lead Management", "Users","Ads","Packages"].includes(item.name); // Telecaller
-  //     if (userType === 9) return !["Accounts", "Pages", "Maps", "Employees","Ads","Packages"].includes(item.name); // Marketing Executive
-  //     if (userType === 10) return !["Accounts", "Employees", "Pages", "Maps", "Lead Management", "Users","Ads","Packages"].includes(item.name); // Customer Support
-  //     if (userType === 11) return !["Accounts", "Employees", "Pages", "Maps", "Lead Management", "Users","Ads","Packages"].includes(item.name); // Customer Service
-  //     return true;
-  //   })
-  //   .map(item => {
-  //     if (userType === 8 && item.name === "Accounts") {
-  //       return {
-  //         ...item,
-  //         subItems: filterAccountsSubItems(item.subItems),
-  //       };
-  //     }
-  //     return item;
-  //   });
-
 
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const nestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
@@ -250,231 +215,192 @@ const AppSidebar: React.FC = () => {
     );
   };
 
+  const shouldShowText = isExpanded || isHovered || isMobileOpen;
+
   const renderMenuItems = (items: NavItem[]) => (
-    <ul className="flex flex-col gap-2">
-      {items.map((nav, index) => (
-        <li key={nav.name}>
-          {nav.subItems ? (
-            <button
-              onClick={() => handleSubmenuToggle(index)}
-              className={`flex items-center w-full p-1 rounded-lg gap-1 ${
-                openSubmenu?.type === "main" && openSubmenu?.index === index
-                  ? "bg-gray-100 text-blue-600"
-                  : "hover:bg-gray-50 text-gray-700"
-              } ${!isExpanded && !isHovered ? "lg:justify-center" : "lg:justify-start"}`}
-            >
-              <span className="w-6 h-4 flex-shrink-4">{nav.icon}</span>
-              {(isExpanded || isHovered || isMobileOpen) && <span className="flex-1 text-left">{nav.name}</span>}
-              {(isExpanded || isHovered || isMobileOpen) && (
-                <ChevronDownIcon
-                  className={`w-5 h-5 transition-transform duration-200 ${
-                    openSubmenu?.type === "main" && openSubmenu?.index === index ? "rotate-180 text-blue-600" : "text-gray-500"
-                  }`}
-                />
-              )}
-            </button>
-          ) : (
-            nav.path && (
-              <Link
-                to={nav.path}
-                className={`flex items-center w-full p-2 rounded-lg ${
-                  isActive(nav.path) ? "bg-gray-100 text-blue-600" : "hover:bg-gray-50 text-gray-700"
-                }`}
+    <div className="space-y-1">
+      {items.map((nav, index) => {
+        const isItemActive = nav.path && isActive(nav.path);
+        const isSubmenuOpen = openSubmenu?.type === "main" && openSubmenu?.index === index;
+        const hasActiveChild = nav.subItems?.some(subItem => subItem.path && isActive(subItem.path));
+
+        return (
+          <div key={nav.name} className="group">
+            {nav.subItems ? (
+              <button
+                onClick={() => handleSubmenuToggle(index)}
+                className={`flex items-center w-full px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 group ${
+                  isSubmenuOpen || hasActiveChild
+                    ? "bg-blue-50 text-blue-700 shadow-sm"
+                    : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+                } ${!shouldShowText ? "lg:justify-center lg:px-2" : ""}`}
               >
-                <span className="w-6 h-6 mr-2">{nav.icon}</span>
-                {(isExpanded || isHovered || isMobileOpen) && <span className="flex-1 text-left">{nav.name}</span>}
-              </Link>
-            )
-          )}
-        
-          {nav.subItems && (isExpanded || isHovered || isMobileOpen) && (
-            <div
-              ref={(el: HTMLDivElement | null) => {
-                subMenuRefs.current[`main-${index}`] = el;
-              }}
-              className="overflow-hidden transition-all duration-300"
-              style={{
-                height: openSubmenu?.type === "main" && openSubmenu?.index === index ? `${subMenuHeight[`main-${index}`] || 0}px` : "0px",
-              }}
-            >
-              <ul className="mt-1 space-y-1 ml-6">
-                {nav.subItems.map((subItem, subIndex) => (
-                  <li key={subItem.name}>
-                    {subItem.nestedItems ? (
-                      <div>
-                        <button
-                          onClick={() => handleNestedSubmenuToggle(index, subIndex)}
-                          className={`w-full flex items-center justify-between p-2 rounded-lg ${
-                            openNestedSubmenu?.type === "main" &&
-                            openNestedSubmenu?.index === index &&
-                            openNestedSubmenu?.subIndex === subIndex
-                              ? "bg-gray-50 text-blue-600"
-                              : "hover:bg-gray-50 text-gray-700"
-                          }`}
-                        >
-                          <span>{subItem.name}</span>
-                          <ChevronDownIcon
-                            className={`w-5 h-5 transition-transform duration-200 ${
-                              openNestedSubmenu?.type === "main" &&
-                              openNestedSubmenu?.index === index &&
-                              openNestedSubmenu?.subIndex === subIndex
-                                ? "rotate-180 text-blue-600"
-                                : "text-gray-500"
-                            }`}
-                          />
-                        </button>
-                        <div
-                          ref={(el: HTMLDivElement | null) => {
-                            nestedSubMenuRefs.current[`main-${index}-${subIndex}`] = el;
-                          }}
-                          className="overflow-hidden transition-all duration-300"
-                          style={{
-                            height:
-                              openNestedSubmenu?.type === "main" &&
-                              openNestedSubmenu?.index === index &&
-                              openNestedSubmenu?.subIndex === subIndex
-                                ? `${nestedSubMenuHeight[`main-${index}-${subIndex}`] || 0}px`
-                                : "0px",
-                          }}
-                        >
-                          <ul className="mt-1 space-y-1 ml-4">
-                            {subItem.nestedItems.map((nestedItem, nestedIndex) => (
-                              <li key={nestedItem.name}>
-                                {nestedItem.nestedItems ? (
-                                  <div>
-                                    <button
-                                      onClick={() => handleDeepNestedSubmenuToggle(index, subIndex, nestedIndex)}
-                                      className={`w-full flex items-center justify-between p-2 rounded-lg ${
-                                        openDeepNestedSubmenu?.type === "main" &&
-                                        openDeepNestedSubmenu?.index === index &&
-                                        openDeepNestedSubmenu?.subIndex === subIndex &&
-                                        openDeepNestedSubmenu?.nestedIndex === nestedIndex
-                                          ? "bg-gray-50 text-blue-600"
-                                          : "hover:bg-gray-50 text-gray-700"
-                                      }`}
-                                    >
-                                      <span>{nestedItem.name}</span>
-                                      <ChevronDownIcon
-                                        className={`w-5 h-5 transition-transform duration-200 ${
-                                          openDeepNestedSubmenu?.type === "main" &&
-                                          openDeepNestedSubmenu?.index === index &&
-                                          openDeepNestedSubmenu?.subIndex === subIndex &&
-                                          openDeepNestedSubmenu?.nestedIndex === nestedIndex
-                                            ? "rotate-180 text-blue-600"
-                                            : "text-gray-500"
-                                        }`}
-                                      />
-                                    </button>
-                                    <div
-                                      ref={(el: HTMLDivElement | null) => {
-                                        deepNestedSubMenuRefs.current[`main-${index}-${subIndex}-${nestedIndex}`] = el;
-                                      }}
-                                      className="overflow-hidden transition-all duration-300"
-                                      style={{
-                                        height:
-                                          openDeepNestedSubmenu?.type === "main" &&
-                                          openDeepNestedSubmenu?.index === index &&
-                                          openDeepNestedSubmenu?.subIndex === subIndex &&
-                                          openDeepNestedSubmenu?.nestedIndex === nestedIndex
-                                            ? `${deepNestedSubMenuHeight[`main-${index}-${subIndex}-${nestedIndex}`] || 0}px`
-                                            : "0px",
-                                      }}
-                                    >
-                                      <ul className="mt-1 space-y-1 ml-4">
-                                        {nestedItem.nestedItems.map((deepNestedItem) => (
-                                          <li key={deepNestedItem.name}>
-                                            <Link
-                                              to={deepNestedItem.path}
-                                              className={`block p-2 rounded-lg ${
-                                                isActive(deepNestedItem.path)
-                                                  ? "bg-gray-100 text-blue-600"
-                                                  : "hover:bg-gray-50 text-gray-700"
-                                              }`}
-                                            >
-                                              {deepNestedItem.name}
-                                            </Link>
-                                          </li>
-                                        ))}
-                                      </ul>
-                                    </div>
-                                  </div>
-                                ) : (
-                                  nestedItem.path && (
-                                    <Link
-                                      to={nestedItem.path}
-                                      className={`block p-2 rounded-lg ${
-                                        isActive(nestedItem.path) ? "bg-gray-100 text-blue-600" : "hover:bg-gray-50 text-gray-700"
-                                      }`}
-                                    >
-                                      {nestedItem.name}
-                                    </Link>
-                                  )
+                <div className={`flex items-center justify-center ${shouldShowText ? "mr-3" : ""}`}>
+                  {nav.icon}
+                </div>
+                {shouldShowText && (
+                  <>
+                    <span className="flex-1 text-left font-medium">{nav.name}</span>
+                    <ChevronDown
+                      className={`w-4 h-4 transition-transform duration-200 flex-shrink-0 ${
+                        isSubmenuOpen ? "rotate-180" : ""
+                      }`}
+                    />
+                  </>
+                )}
+              </button>
+            ) : (
+              nav.path && (
+                <Link
+                  to={nav.path}
+                  className={`flex items-center w-full px-3 py-2.5 rounded-xl font-medium text-sm transition-all duration-200 ${
+                    isItemActive
+                      ? "bg-gradient-to-r from-blue-500 to-blue-600 text-white shadow-lg shadow-blue-500/25"
+                      : "text-gray-600 hover:bg-blue-50 hover:text-blue-700"
+                  } ${!shouldShowText ? "lg:justify-center lg:px-2" : ""}`}
+                >
+                  <div className={`flex items-center justify-center ${shouldShowText ? "mr-3" : ""}`}>
+                    {nav.icon}
+                  </div>
+                  {shouldShowText && <span className="flex-1 text-left font-medium">{nav.name}</span>}
+                </Link>
+              )
+            )}
+
+            {nav.subItems && shouldShowText && (
+              <div
+                ref={(el: HTMLDivElement | null) => {
+                  subMenuRefs.current[`main-${index}`] = el;
+                }}
+                className="overflow-hidden transition-all duration-300 ease-in-out"
+                style={{
+                  height: isSubmenuOpen ? `${subMenuHeight[`main-${index}`] || 0}px` : "0px",
+                }}
+              >
+                <div className="mt-1 ml-6 space-y-1 border-l border-gray-100 pl-4">
+                  {nav.subItems.map((subItem, subIndex) => {
+                    const isSubItemActive = subItem.path && isActive(subItem.path);
+                    
+                    return (
+                      <div key={subItem.name}>
+                        {subItem.nestedItems ? (
+                          <div>
+                            <button
+                              onClick={() => handleNestedSubmenuToggle(index, subIndex)}
+                              className={`w-full flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200 ${
+                                openNestedSubmenu?.type === "main" &&
+                                openNestedSubmenu?.index === index &&
+                                openNestedSubmenu?.subIndex === subIndex
+                                  ? "bg-gray-50 text-blue-600"
+                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <span className="font-medium">{subItem.name}</span>
+                              <ChevronRight
+                                className={`w-4 h-4 transition-transform duration-200 ${
+                                  openNestedSubmenu?.type === "main" &&
+                                  openNestedSubmenu?.index === index &&
+                                  openNestedSubmenu?.subIndex === subIndex
+                                    ? "rotate-90"
+                                    : ""
+                                }`}
+                              />
+                            </button>
+                            {/* Nested submenu implementation would continue here */}
+                          </div>
+                        ) : (
+                          subItem.path && (
+                            <Link
+                              to={subItem.path}
+                              className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
+                                isSubItemActive
+                                  ? "bg-blue-50 text-blue-700 font-medium"
+                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                              }`}
+                            >
+                              <span className="font-medium">{subItem.name}</span>
+                              <div className="flex items-center gap-2">
+                                {subItem.count && (
+                                  <span className="px-2 py-0.5 text-xs font-semibold bg-blue-100 text-blue-700 rounded-full">
+                                    {subItem.count}
+                                  </span>
                                 )}
-                              </li>
-                            ))}
-                          </ul>
-                        </div>
+                                {subItem.new && (
+                                  <span className="px-2 py-0.5 text-xs font-semibold bg-green-100 text-green-700 rounded-full">
+                                    New
+                                  </span>
+                                )}
+                                {subItem.pro && (
+                                  <span className="px-2 py-0.5 text-xs font-semibold bg-purple-100 text-purple-700 rounded-full">
+                                    Pro
+                                  </span>
+                                )}
+                              </div>
+                            </Link>
+                          )
+                        )}
                       </div>
-                    ) : (
-                      subItem.path && (
-                        <Link
-                          to={subItem.path}
-                          className={`block p-2 rounded-lg ${
-                            isActive(subItem.path) ? "bg-gray-100 text-blue-600" : "hover:bg-gray-50 text-gray-700"
-                          }`}
-                        >
-                          {subItem.name}
-                          {subItem.new && (
-                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500">new</span>
-                          )}
-                          {subItem.pro && (
-                            <span className="ml-2 px-1.5 py-0.5 text-xs rounded-full bg-gray-100 text-gray-500">pro</span>
-                          )}
-                        </Link>
-                      )
-                    )}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          )}
-        </li>
-      ))}
-    </ul>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        );
+      })}
+    </div>
   );
 
   return (
     <aside
-      className={`fixed mt-16 flex flex-col lg:mt-0 top-0 px-5 left-0 bg-white dark:bg-gray-900 dark:border-gray-800 text-gray-900 h-screen transition-all duration-300 ease-in-out z-50 border-r border-gray-200 
-        ${isExpanded || isMobileOpen ? "w-[290px]" : isHovered ? "w-[290px]" : "w-[80px]"}
-        ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
+      className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-50 flex flex-col shadow-lg ${
+        isExpanded || isMobileOpen ? "w-72" : isHovered ? "w-72" : "w-16"
+      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      <div className={`py-8 flex ${!isExpanded && !isHovered ? "lg:justify-center" : "justify-start"}`}>
-        <Link to="/">
-          {isExpanded || isHovered || isMobileOpen ? (
-            <>
-              <img className="dark:hidden" src="/images/logo.png" alt="Logo" width={150} height={40} />
-              <img className="hidden dark:block" src="/images/logo/logo-dark.svg" alt="Logo" width={150} height={40} />
-            </>
+      {/* Logo Section */}
+      <div className={`px-6 py-6 border-b border-gray-100 ${!shouldShowText ? "lg:px-4" : ""}`}>
+        <Link to="/" className="flex items-center">
+          {shouldShowText ? (
+            <div className="flex items-center">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
+                <Building2 className="w-5 h-5 text-white" />
+              </div>
+              <div className="flex flex-col">
+                <span className="text-xl font-bold text-gray-900">MEET OWNER</span>
+                <span className="text-xs text-gray-500">Real Estate CRM</span>
+              </div>
+            </div>
           ) : (
-            <img src="/images/logo.png" alt="Logo" width={100} height={50} />
+            <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mx-auto">
+              <Building2 className="w-5 h-5 text-white" />
+            </div>
           )}
         </Link>
       </div>
-      <div className="flex flex-col overflow-y-auto duration-300 ease-linear no-scrollbar flex-1">
-        <nav className="mb-6">
-          <h2
-            className={`mb-4 text-xs uppercase flex leading-[20px] text-gray-400 ${
-              !isExpanded && !isHovered ? "lg:justify-center" : "justify-start"
-            }`}
-          >
-            {isExpanded || isHovered || isMobileOpen ? "Menu" : <HorizontaLDots className="size-6" />}
-          </h2>
+
+      {/* Navigation */}
+      <div className="flex-1 overflow-y-auto px-4 py-6">
+        <nav>
+          {shouldShowText && (
+            <h2 className="mb-4 px-3 text-xs font-semibold text-gray-400 uppercase tracking-wider">
+              MENU
+            </h2>
+          )}
           {renderMenuItems(navItems)}
         </nav>
       </div>
+
+      {/* Footer */}
+      {shouldShowText && (
+        <div className="px-6 py-4 border-t border-gray-100">
+          <div className="flex items-center text-xs text-gray-500">
+            <div className="w-2 h-2 bg-green-400 rounded-full mr-2"></div>
+            System Online
+          </div>
+        </div>
+      )}
     </aside>
   );
 };

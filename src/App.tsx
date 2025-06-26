@@ -14,7 +14,7 @@ import BasicTables from "./pages/Tables/BasicTables";
 import BasicTableOne from "./components/tables/BasicTables/BasicTableOne";
 import LocationManager from "./pages/maps/locality";
 import { Toaster } from "react-hot-toast";
-import { lazy } from "react";
+import { lazy,   } from "react";
 
 import AllAdsPage from "./pages/Ads/AllAds";
 import CreateAds from "./pages/Ads/CreateAds";
@@ -28,6 +28,9 @@ import PartnerScreen from "./pages/partners/PartnersScreen";
 import AddChannelPartner from "./pages/partners/AddChannelPartners";
 import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
+import { PartnerProfile } from "./pages/partners/PartnerProfileScreen";
+
+
 
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
@@ -38,19 +41,68 @@ export default function App() {
     <>
       <Router>
         <ScrollToTop />
+        
+          <Routes>
+            <Route element={<AppLayout />}>
+              <Route
+                index
+                path="/"
+                element={
+                      <Home />
+                }
+              />
+              <Route
+                path="/basic-tables"
+                element={
+                      <BasicTables />
+                }
+              />
+              <Route
+                path="/basic-tables-one"
+                element={
+                    <BasicTableOne />
+                }
+              />
+              <Route
+                path="/user-activities"
+                element={
+                      <UserActivities />
+                }
+              />
+              {/* leads */}
+              <Route
+                path="/leads/:lead_in/:status"
+                element={
+                    <LeadsType />
+                }
+              />
+                {/* leads */}
+              <Route
+                path="/leads/addlead"
+                element={
+                    <AddNewLead />
+                }
+              />
+              {/* Partners screen */}
+              <Route
+                path="/partners"
+                element={
+                        <PartnerScreen />
+                }
+              />
+               <Route
+                path="/partner/:id"
+                element={
+                        <PartnerProfile />
+                }
+              />
+              <Route
+                path="/partners/addpartners"
+                element={
+                        <AddChannelPartner />
+                }
+              />
 
-        <Routes>
-          <Route element={<AppLayout />}>
-            <Route index path="/" element={<Home />} />
-            <Route path="/basic-tables" element={<BasicTables />} />
-            <Route path="/basic-tables-one" element={<BasicTableOne />} />
-            <Route path="/user-activities" element={<UserActivities />} />
-            {/* leads */}
-            <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
-            {/* leads */}
-            <Route path="/leads/addlead" element={<AddNewLead />} />
-            {/* Partners screen */}
-            <Route path="/partners/:status" element={<PartnerScreen />} />
             <Route
               path="/partners/addpartners"
               element={<AddChannelPartner />}
@@ -64,12 +116,42 @@ export default function App() {
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />
 
-            <Route path="/maps/cities" element={<CitiesManager />} />
-            <Route path="/maps/states" element={<StatesManager />} />
-            <Route path="/maps/locality" element={<LocationManager />} />
-            <Route path="/adds/all-ads" element={<AllAdsPage />} />
-            <Route path="/adds/upload-ads" element={<CreateAds />} />
-          </Route>
+               <Route
+                path="/maps/cities"
+                element={
+
+                      <CitiesManager />
+                }
+              />
+              <Route
+                path="/maps/states"
+                element={
+                      <StatesManager />
+                }
+              />
+              <Route
+                path="/maps/locality"
+                element={
+                      <LocationManager />
+
+                }
+              />
+              <Route
+                path="/adds/all-ads"
+                element={
+                    <AllAdsPage />
+                }
+              />
+               <Route
+                path="/adds/upload-ads"
+                element={
+                      <CreateAds />
+                }
+              />
+               
+            </Route>
+            
+        
 
           {/* Public Routes */}
           <Route path="/signin" element={<SignIn />} />
