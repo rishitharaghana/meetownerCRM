@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Building2,  ChevronDown, ChevronRight, GridIcon,  } from "lucide-react";
-import { FaAd, FaFileInvoice, FaMoneyBill, FaUser } from "react-icons/fa";
+import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
+import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyBill, FaUser } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
+import { useSidebar } from "../context/SidebarContext";
 
 type NavItem = {
   name: string;
@@ -100,7 +101,7 @@ const navItems: NavItem[] = [
   },
   {
     name: "Comission Structure",
-    icon: <FaMoneyBill />,
+    icon: <FaIdBadge />,
     subItems: [
       { name: "Create Strucutre", path: "/packages/builder", pro: false },
       { name: "Existing Structure", path: "/packages/agents", pro: false },
@@ -110,19 +111,8 @@ const navItems: NavItem[] = [
 ];
 
 
-interface AppSidebarProps {
-  isExpanded?: boolean;
-  isMobileOpen?: boolean;
-  isHovered?: boolean;
-  setIsHovered?: (hovered: boolean) => void;
-}
-
-const AppSidebar: React.FC<AppSidebarProps> = ({
-  isExpanded = true,
-  isMobileOpen = false,
-  isHovered = false,
-  setIsHovered = () => {}
-}) => {
+const AppSidebar: React.FC = () => {
+  const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main"; index: number } | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number } | null>(null);
@@ -280,7 +270,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                 <div className="mt-1 ml-6 space-y-1 border-l border-gray-100 pl-4">
                   {nav.subItems.map((subItem, subIndex) => {
                     const isSubItemActive = subItem.path && isActive(subItem.path);
-                    
                     return (
                       <div key={subItem.name}>
                         {subItem.nestedItems ? (
@@ -306,7 +295,6 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
                                 }`}
                               />
                             </button>
-                            {/* Nested submenu implementation would continue here */}
                           </div>
                         ) : (
                           subItem.path && (
@@ -355,7 +343,7 @@ const AppSidebar: React.FC<AppSidebarProps> = ({
     <aside
       className={`fixed top-0 left-0 h-screen bg-white border-r border-gray-200 transition-all duration-300 ease-in-out z-50 flex flex-col shadow-lg ${
         isExpanded || isMobileOpen ? "w-72" : isHovered ? "w-72" : "w-16"
-      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full"} lg:translate-x-0`}
+      } ${isMobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0"}`}
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >

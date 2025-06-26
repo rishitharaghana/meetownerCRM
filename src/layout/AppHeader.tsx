@@ -4,23 +4,24 @@ import UserDropdown from "../components/header/UserDropdown";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
-
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const inputRef = useRef<HTMLInputElement>(null);
 
+  // Handle sidebar toggle based on screen size
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
-      toggleSidebar();
+      toggleSidebar(); // Toggle desktop sidebar (expanded/collapsed)
     } else {
-      toggleMobileSidebar();
+      toggleMobileSidebar(); // Toggle mobile sidebar (open/closed)
     }
   };
 
+  // Toggle application menu for mobile
   const toggleApplicationMenu = () => {
-    setApplicationMenuOpen(!isApplicationMenuOpen);
+    setApplicationMenuOpen((prev) => !prev);
   };
 
-  const inputRef = useRef<HTMLInputElement>(null);
-
+  // Handle Cmd/Ctrl + K for search focus
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
@@ -30,18 +31,32 @@ const AppHeader: React.FC = () => {
     };
 
     document.addEventListener("keydown", handleKeyDown);
-
     return () => {
       document.removeEventListener("keydown", handleKeyDown);
     };
   }, []);
 
+  // Close application menu when clicking outside (optional, for better UX)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (isApplicationMenuOpen && !(event.target as HTMLElement).closest(".application-menu")) {
+        setApplicationMenuOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, [isApplicationMenuOpen]);
+
   return (
-    <header className="sticky top-0 flex w-full bg-white border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900 lg:border-b">
-      <div className="flex flex-col items-center justify-between grow lg:flex-row lg:px-6">
-        <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:justify-normal lg:border-b-0 lg:px-0 lg:py-4">
+    <header className="sticky top-0 flex w-full bg-white border-b border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900">
+      <div className="flex flex-col items-center justify-between w-full lg:flex-row lg:px-6">
+        <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:border-b-0 lg:px-0 lg:py-4">
+          {/* Sidebar Toggle Button */}
           <button
-            className="items-center justify-center w-10 h-10 text-gray-500 border-gray-200 rounded-lg z-99999 dark:border-gray-800 lg:flex dark:text-gray-400 lg:h-11 lg:w-11 lg:border"
+            className="flex items-center justify-center w-10 h-10 text-gray-500 border border-gray-200 rounded-lg dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11"
             onClick={handleToggle}
             aria-label="Toggle Sidebar"
           >
@@ -76,14 +91,13 @@ const AppHeader: React.FC = () => {
                 />
               </svg>
             )}
-            {/* Cross Icon */}
           </button>
 
-        
-
+          {/* Application Menu Toggle Button */}
           <button
             onClick={toggleApplicationMenu}
-            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg z-99999 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
+            aria-label="Toggle Application Menu"
           >
             <svg
               width="24"
@@ -100,18 +114,17 @@ const AppHeader: React.FC = () => {
               />
             </svg>
           </button>
-
-       
         </div>
+
+        {/* Application Menu */}
         <div
-          className={`${
-            isApplicationMenuOpen ? "flex" : "hidden"
-          } items-center justify-between w-full gap-4 px-5 py-4 lg:flex shadow-theme-md lg:justify-end lg:px-0 lg:shadow-none`}
+          className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
+            isApplicationMenuOpen ? "block" : "hidden"
+          } lg:block shadow-theme-md`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
-          
+            {/* Add search input or other elements here if needed */}
           </div>
-         
           <UserDropdown />
         </div>
       </div>
