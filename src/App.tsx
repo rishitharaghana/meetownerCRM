@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, } from "react-router"; // Updated import
+import { BrowserRouter as Router, Routes, Route } from "react-router"; // Updated import
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
@@ -9,19 +9,12 @@ import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
 
-
-
 import BasicTables from "./pages/Tables/BasicTables";
 
 import BasicTableOne from "./components/tables/BasicTables/BasicTableOne";
 import LocationManager from "./pages/maps/locality";
 import { Toaster } from "react-hot-toast";
-import { lazy,   } from "react";
-
-
-
-
-
+import { lazy } from "react";
 
 import AllAdsPage from "./pages/Ads/AllAds";
 import CreateAds from "./pages/Ads/CreateAds";
@@ -36,151 +29,54 @@ import AddChannelPartner from "./pages/partners/AddChannelPartners";
 import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
 
-
-
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
-
 // Simple server status check component
-
 
 export default function App() {
   return (
     <>
       <Router>
         <ScrollToTop />
-        
-          <Routes>
-            <Route element={<AppLayout />}>
-              <Route
-                index
-                path="/"
-                element={
-                      <Home />
-                }
-              />
-              <Route
-                path="/basic-tables"
-                element={
-                      <BasicTables />
-                }
-              />
-              <Route
-                path="/basic-tables-one"
-                element={
-                    <BasicTableOne />
-                }
-              />
-              <Route
-                path="/user-activities"
-                element={
-                      <UserActivities />
-                }
-              />
-              {/* leads */}
-              <Route
-                path="/leads/:lead_in/:status"
-                element={
-                    <LeadsType />
-                }
-              />
-                {/* leads */}
-              <Route
-                path="/leads/addlead"
-                element={
-                    <AddNewLead />
-                }
-              />
-              {/* Partners screen */}
-              <Route
-                path="/partners/:status"
-                element={
-                        <PartnerScreen />
-                }
-              />
-              <Route
-                path="/partners/addpartners"
-                element={
-                        <AddChannelPartner />
-                }
-              />
 
+        <Routes>
+          <Route element={<AppLayout />}>
+            <Route index path="/" element={<Home />} />
+            <Route path="/basic-tables" element={<BasicTables />} />
+            <Route path="/basic-tables-one" element={<BasicTableOne />} />
+            <Route path="/user-activities" element={<UserActivities />} />
+            {/* leads */}
+            <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
+            {/* leads */}
+            <Route path="/leads/addlead" element={<AddNewLead />} />
+            {/* Partners screen */}
+            <Route path="/partners/:status" element={<PartnerScreen />} />
             <Route
-                path="/employee/:status"
-                element={
-                      <EmployeesScreen />
-                }
-              />
-              
-              {/* Other Pages */}
-              <Route
-                path="/profile"
-                element={
-                      <UserProfiles />
+              path="/partners/addpartners"
+              element={<AddChannelPartner />}
+            />
 
-                }
-              />
+            <Route path="/employee/:status" element={<EmployeesScreen />} />
 
-              
-             
-              <Route
-                path="/projects/add-projects"
-                element={
-                     <CreateProperty />
-                }
-              />
-               <Route
-                path="/projects/allprojects"
-                element={
-                  <AllProjects />
-                }
-              />
+            {/* Other Pages */}
+            <Route path="/profile" element={<UserProfiles />} />
 
-               <Route
-                path="/maps/cities"
-                element={
+            <Route path="/projects/add-projects" element={<CreateProperty />} />
+            <Route path="/projects/allprojects" element={<AllProjects />} />
 
-                      <CitiesManager />
-                }
-              />
-              <Route
-                path="/maps/states"
-                element={
-                      <StatesManager />
-                }
-              />
-              <Route
-                path="/maps/locality"
-                element={
-                      <LocationManager />
+            <Route path="/maps/cities" element={<CitiesManager />} />
+            <Route path="/maps/states" element={<StatesManager />} />
+            <Route path="/maps/locality" element={<LocationManager />} />
+            <Route path="/adds/all-ads" element={<AllAdsPage />} />
+            <Route path="/adds/upload-ads" element={<CreateAds />} />
+          </Route>
 
-                }
-              />
-              <Route
-                path="/adds/all-ads"
-                element={
-                    <AllAdsPage />
-                }
-              />
-               <Route
-                path="/adds/upload-ads"
-                element={
+          {/* Public Routes */}
+          <Route path="/signin" element={<SignIn />} />
+          <Route path="/signup" element={<SignUp />} />
+          <Route path="*" element={<NotFound />} />
+        </Routes>
 
-                      <CreateAds />
-
-                }
-              />
-               
-            </Route>
-            
-        
-
-            {/* Public Routes */}
-            <Route path="/signin" element={<SignIn />} />
-            <Route path="/signup" element={<SignUp />} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        
         <Toaster />
       </Router>
     </>

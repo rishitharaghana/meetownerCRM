@@ -7,7 +7,6 @@ import Dropdown from "../../components/form/Dropdown"; // Adjust path if needed
 import { AppDispatch, RootState } from "../../store/store";
 import { getCities, getStates } from "../../store/slices/propertyDetails";
 
-// Define interfaces
 interface SelectOption {
   value: string;
   label: string;
