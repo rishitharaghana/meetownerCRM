@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
-import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyBill, FaUser } from "react-icons/fa";
+import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyBill, FaUser, FaUserTie } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 
@@ -64,21 +64,18 @@ const navItems: NavItem[] = [
      
     ],
   },
-  // {
-  //   icon: <UserCircleIcon />,
-  //   name: "User Profile",
-  //   path: "/profile",
-  // },
-  // {
-  //   name: "Employee Management",
-  //   icon: <FaUserTie />,
-  //   subItems: [
-  //     { name: "Telecallers", path: "/employee/1", pro: false },
-  //     { name: "Marketing Executors", path: "/employee/2", pro: false },
-  //     { name: "Sales Team", path: "/employee/3", pro: false },
-  //     { name: "Reception", path: "/employee/4", pro: false },
-  //   ],
-  // },
+ 
+  {
+    name: "Employee Management",
+    icon: <FaUserTie />,
+    subItems: [
+      { name: "Telecallers", path: "/employee/1", pro: false },
+      { name: "Marketing Executors", path: "/employee/2", pro: false },
+      { name: "Sales Manger", path: "/employee/3", pro: false },
+      { name: "Receptionists", path: "/employee/4", pro: false },
+      {name:"Add Employee",path:"/create-employee"}
+    ],
+  },
   
 
   // {
@@ -90,24 +87,24 @@ const navItems: NavItem[] = [
       
   //   ],
   // },
-  {
-    name: "Source",
-    icon: <FaAd />,
-    subItems: [
-      { name: "Meta Ads", path: "/adds/all-ads", pro: false },
-      { name: "Google Ads", path: "/adds/all-ads", pro: false },
-      { name: "Direct Ads", path: "/adds/upload-ads", pro: false },
-    ],
-  },
-  {
-    name: "Comission Structure",
-    icon: <FaIdBadge />,
-    subItems: [
-      { name: "Create Strucutre", path: "/packages/builder", pro: false },
-      { name: "Existing Structure", path: "/packages/agents", pro: false },
+  // {
+  //   name: "Source",
+  //   icon: <FaAd />,
+  //   subItems: [
+  //     { name: "Meta Ads", path: "/adds/all-ads", pro: false },
+  //     { name: "Google Ads", path: "/adds/all-ads", pro: false },
+  //     { name: "Direct Ads", path: "/adds/upload-ads", pro: false },
+  //   ],
+  // },
+  // {
+  //   name: "Comission Structure",
+  //   icon: <FaIdBadge />,
+  //   subItems: [
+  //     { name: "Create Strucutre", path: "/packages/builder", pro: false },
+  //     { name: "Existing Structure", path: "/packages/agents", pro: false },
      
-    ],
-  },
+  //   ],
+  // },
 ];
 
 

@@ -84,7 +84,7 @@ export default function CreateEmployee() {
 
   // Base designation options
   const allDesignationOptions: Option[] = [
-    { value: "7", text: "Manager" },
+    { value: "7", text: "Sales Manager" },
     { value: "8", text: "TeleCaller" },
     { value: "9", text: "Marketing Executive" },
     { value: "10", text: "Customer Support" },

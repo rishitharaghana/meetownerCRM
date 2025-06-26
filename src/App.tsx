@@ -30,6 +30,7 @@ import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
 import { PartnerProfile } from "./pages/partners/PartnerProfileScreen";
 import Support from "./pages/Support/Support";
+import CreateEmployee from "./pages/Employee/CreateEmployee";
 
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
@@ -65,10 +66,11 @@ export default function App() {
             />
 
             <Route path="/employee/:status" element={<EmployeesScreen />} />
+            <Route path="/create-employee" element={<CreateEmployee />} />
 
             {/* Other Pages */}
             <Route path="/profile" element={<UserProfiles />} />
-               <Route path="/support" element={<Support />} />
+            <Route path="/support" element={<Support />} />
 
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
