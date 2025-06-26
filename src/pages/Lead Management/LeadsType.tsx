@@ -317,10 +317,10 @@ const LeadsType: React.FC = () => {
   const validateLeadPullForm = (): boolean => {
     const newErrors: Partial<LeadPullFormData> = {};
     if (!leadPullFormData.channelPartnerName) {
-      newErrors.channelPartnerName = "Channel Partner Name is required";
+      newErrors.channelPartnerName = "Employee Name is required";
     }
     if (!leadPullFormData.channelPartnerNumber) {
-      newErrors.channelPartnerNumber = "Channel Partner Number is required";
+      newErrors.channelPartnerNumber = "Employee Number is required";
     } else if (!/^\d{10}$/.test(leadPullFormData.channelPartnerNumber)) {
       newErrors.channelPartnerNumber = "Mobile number must be exactly 10 digits";
     }
@@ -575,7 +575,7 @@ const LeadsType: React.FC = () => {
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Assign Lead</h2>
           <form onSubmit={handleLeadPullSubmit} className="space-y-4">
             <div>
-              <Label htmlFor="channelPartnerName">Channel Partner Name</Label>
+              <Label htmlFor="channelPartnerName">Employee Name</Label>
               <Input
                 type="text"
                 id="channelPartnerName"
@@ -583,14 +583,14 @@ const LeadsType: React.FC = () => {
                 value={leadPullFormData.channelPartnerName}
                 onChange={handleInputChange}
                 className="dark:bg-dark-900"
-                placeholder="Enter channel partner name"
+                placeholder="Enter employee name"
               />
               {formErrors.channelPartnerName && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">{formErrors.channelPartnerName}</p>
               )}
             </div>
             <div>
-              <Label htmlFor="channelPartnerNumber">Channel Partner Number</Label>
+              <Label htmlFor="channelPartnerNumber">Employee Number</Label>
               <Input
                 type="text"
                 id="channelPartnerNumber"
@@ -611,7 +611,7 @@ const LeadsType: React.FC = () => {
                 name="leadPriority"
                 value={leadPullFormData.leadPriority}
                 onChange={handleInputChange}
-                className="w-full p-2 border rounded dark:bg-dark-900 dark:text-white"
+                className="w-full p-2 border rounded  cursor-pointer dark:bg-dark-900 dark:text-white"
               >
                 <option value="">Select Priority</option>
                 {priorityOptions.map((option) => (

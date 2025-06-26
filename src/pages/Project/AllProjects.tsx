@@ -212,13 +212,13 @@ const AllProjects: React.FC = () => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginatedProjects.map((project) => {
           const isExpanded = expandedCards[project.id];
-          const initialAmenities = project.amenities.slice(0, 3);
-          const hiddenAmenities = project.amenities.slice(3);
+          const initialAmenities = project.amenities.slice(0, 4);
+          const hiddenAmenities = project.amenities.slice(4);
 
           return (
             <div
               key={project.id}
-              className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01]"
+              className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[400px] mx-auto"
             >
               <img
                 src={project.image}

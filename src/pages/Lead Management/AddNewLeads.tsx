@@ -241,7 +241,6 @@ export default function AddNewLead() {
     options={projectOptions}
     defaultSelected={formData.interestedProject ? [formData.interestedProject] : []} // Use interestedProject, not name
     onChange={(value) => {
-      // Assuming MultiSelect with singleSelect={true} returns a single value or an array
       const selectedValue = Array.isArray(value) ? value[0] || "" : value || "";
       setFormData((prev) => ({
         ...prev,
