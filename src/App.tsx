@@ -30,6 +30,7 @@ import PartnerScreen from "./pages/partners/PartnersScreen";
 import AddChannelPartner from "./pages/partners/AddChannelPartners";
 import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
+import { PartnerProfile } from "./pages/partners/PartnerProfileScreen";
 
 
 
@@ -88,9 +89,15 @@ export default function App() {
               />
               {/* Partners screen */}
               <Route
-                path="/partners/:status"
+                path="/partners"
                 element={
                         <PartnerScreen />
+                }
+              />
+               <Route
+                path="/partner/:id"
+                element={
+                        <PartnerProfile />
                 }
               />
               <Route
@@ -160,9 +167,7 @@ export default function App() {
                <Route
                 path="/adds/upload-ads"
                 element={
-
                       <CreateAds />
-
                 }
               />
                
