@@ -8,7 +8,7 @@ interface InputProps {
   placeholder?: string;
   value?: string | number;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
-  onWheel?: (e: React.WheelEvent<HTMLInputElement>) => void; // Add onWheel prop
+  onWheel?: (e: React.WheelEvent<HTMLInputElement>) => void;
   className?: string;
   min?: string;
   max?: string;
@@ -26,7 +26,7 @@ const Input: FC<InputProps> = ({
   placeholder,
   value,
   onChange,
-  onWheel, // Add onWheel to destructured props
+  onWheel,
   className = "",
   min,
   max,
@@ -38,7 +38,6 @@ const Input: FC<InputProps> = ({
 }) => {
   let inputClasses = ` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${className}`;
 
-  // Add no-spinner class conditionally for type="number"
   if (type === "number") {
     inputClasses += " no-spinner";
   }
@@ -62,14 +61,13 @@ const Input: FC<InputProps> = ({
         placeholder={placeholder}
         value={value}
         onChange={onChange}
-        onWheel={onWheel} // Pass the onWheel handler to the input element
+        onWheel={onWheel}
         min={min}
         max={max}
         step={step}
         disabled={disabled}
         className={inputClasses}
       />
-
       {hint && (
         <p
           className={`mt-1.5 text-xs ${
@@ -88,3 +86,15 @@ const Input: FC<InputProps> = ({
 };
 
 export default Input;
+
+import { forwardRef } from "react";
+
+export const InputWithRef = forwardRef<HTMLInputElement, InputProps>((props, ref) => {
+  return (
+    <input
+      {...props}
+      ref={ref}
+      className={` h-11 w-full rounded-lg border appearance-none px-4 py-2.5 text-sm shadow-theme-xs placeholder:text-gray-400 focus:outline-hidden focus:ring-3 dark:bg-gray-900 dark:text-white/90 dark:placeholder:text-white/30 ${props.className || ""}`}
+    />
+  );
+});

@@ -1,11 +1,12 @@
 import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import Button from "../../components/ui/button/Button";
-import Input from "../../components/form/input/InputField";
-import sunriseImg from '../../components/ui/Images/SunriseApartments.jpeg';
-import greenValleyImg from '../../components/ui/Images/GreenValleyVillas.jpeg';
-import techPlazaImg from '../../components/ui/Images/TechParkplaza.jpeg';
-import blueskyImg from '../../components/ui/Images/BlueSkyResidencies.jpeg';
+import { InputWithRef } from "../../components/form/input/InputField";
+
+import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
+import greenValleyImg from "../../components/ui/Images/GreenValleyVillas.jpeg";
+import techPlazaImg from "../../components/ui/Images/TechParkplaza.jpeg";
+import blueskyImg from "../../components/ui/Images/BlueSkyResidencies.jpeg";
 
 const sampleProjects = [
   {
@@ -42,7 +43,12 @@ const sampleProjects = [
     possessionDate: "3/31/2024",
     status: "Ready to Move",
     image: techPlazaImg,
-    amenities: ["Conference Room", "Cafeteria", "Parking", "High-speed Elevators"],
+    amenities: [
+      "Conference Room",
+      "Cafeteria",
+      "Parking",
+      "High-speed Elevators",
+    ],
   },
   {
     id: 4,
@@ -98,7 +104,9 @@ const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [filterType, setFilterType] = useState("All");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
+    {}
+  );
   const itemsPerPage = 4;
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -108,7 +116,9 @@ const AllProjects: React.FC = () => {
   };
 
   const filtered = sampleProjects.filter((p) => {
-    const matchesSearch = p.project_name.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch = p.project_name
+      .toLowerCase()
+      .includes(search.toLowerCase());
     const matchesType = filterType === "All" || p.type === filterType;
     return matchesSearch && matchesType;
   });
@@ -120,8 +130,10 @@ const AllProjects: React.FC = () => {
   const paginatedProjects = filtered.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
-  const goToPreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-  const goToNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const goToPreviousPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const goToNextPage = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
@@ -163,26 +175,32 @@ const AllProjects: React.FC = () => {
     }
   };
 
-  const uniqueTypes = ["All", ...Array.from(new Set(sampleProjects.map((p) => p.type)))];
+  const uniqueTypes = [
+    "All",
+    ...Array.from(new Set(sampleProjects.map((p) => p.type))),
+  ];
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
         <div className="flex gap-3 flex-wrap">
-          <Input
+          <InputWithRef
             ref={searchRef}
             placeholder="Search Projects"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-64"
           />
+
           <select
             className="px-3 py-2 cursor-pointer rounded-md border border-gray-300 text-sm"
             value={filterType}
             onChange={(e) => setFilterType(e.target.value)}
           >
             {uniqueTypes.map((type) => (
-              <option key={type} value={type}>{type}</option>
+              <option key={type} value={type}>
+                {type}
+              </option>
             ))}
           </select>
         </div>
@@ -210,24 +228,46 @@ const AllProjects: React.FC = () => {
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
-                    <h3 className="text-xl font-semibold text-gray-800">{project.project_name}</h3>
+                    <h3 className="text-xl font-semibold text-gray-800">
+                      {project.project_name}
+                    </h3>
                     <p className="text-sm text-gray-500">{project.location}</p>
                   </div>
-                  <span className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(project.status)}`}>
+                  <span
+                    className={`text-xs font-medium px-2 py-1 rounded-full ${statusColor(
+                      project.status
+                    )}`}
+                  >
                     {project.status}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 space-y-1 mb-4">
-                  <p><span className="font-medium">Developer:</span> {project.developer}</p>
-                  <p><span className="font-medium">Type:</span> {project.type}</p>
-                  <p><span className="font-medium">Price Range:</span> {project.priceRange}</p>
-                  <p><span className="font-medium">Possession:</span> {project.possessionDate}</p>
+                  <p>
+                    <span className="font-medium">Developer:</span>{" "}
+                    {project.developer}
+                  </p>
+                  <p>
+                    <span className="font-medium">Type:</span> {project.type}
+                  </p>
+                  <p>
+                    <span className="font-medium">Price Range:</span>{" "}
+                    {project.priceRange}
+                  </p>
+                  <p>
+                    <span className="font-medium">Possession:</span>{" "}
+                    {project.possessionDate}
+                  </p>
                 </div>
                 <div className="mb-5">
-                  <p className="text-sm font-medium text-gray-700">Key Amenities:</p>
+                  <p className="text-sm font-medium text-gray-700">
+                    Key Amenities:
+                  </p>
                   <div className="flex flex-wrap gap-2 mt-2">
                     {initialAmenities.map((item) => (
-                      <span key={item} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                      <span
+                        key={item}
+                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                      >
                         {item}
                       </span>
                     ))}
@@ -243,7 +283,10 @@ const AllProjects: React.FC = () => {
                   {isExpanded && (
                     <div className="flex flex-wrap gap-2 mt-2">
                       {hiddenAmenities.map((item) => (
-                        <span key={item} className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full">
+                        <span
+                          key={item}
+                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                        >
                           {item}
                         </span>
                       ))}
@@ -287,14 +330,23 @@ const AllProjects: React.FC = () => {
             </Button>
             {getPaginationItems().map((page, index) =>
               page === "..." ? (
-                <span key={`ellipsis-${index}`} className="px-3 py-1 text-gray-500">...</span>
+                <span
+                  key={`ellipsis-${index}`}
+                  className="px-3 py-1 text-gray-500"
+                >
+                  ...
+                </span>
               ) : (
                 <Button
                   key={page}
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={page === currentPage ? "bg-[#1D3A76] text-white" : "text-gray-500"}
+                  className={
+                    page === currentPage
+                      ? "bg-[#1D3A76] text-white"
+                      : "text-gray-500"
+                  }
                 >
                   {page}
                 </Button>

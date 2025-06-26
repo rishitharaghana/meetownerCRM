@@ -3,8 +3,6 @@ import ComponentCard from '../../components/common/ComponentCard';
 import Label from '../../components/form/Label';
 import Input from '../../components/form/input/InputField';
 import Button from '../../components/ui/button/Button';
-import PageMeta from '../../components/common/PageMeta';
-import PageBreadcrumbList from '../../components/common/PageBreadCrumbLists';
 
 const faqs = [
   { question: "How do I reset my password?", answer: "Go to the login page and click 'Forgot Password' to reset it via email." },
@@ -17,6 +15,7 @@ const Support = () => {
   const [email, setEmail] = useState('');
   const [message, setMessage] = useState('');
   const [currentDate] = useState(new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' }));
+const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -85,12 +84,28 @@ const Support = () => {
           <div>
             <h3 className="text-lg font-semibold mb-4">Frequently Asked Questions</h3>
             <div className="space-y-4">
-              {faqs.map((faq, index) => (
-                <div key={index} className="border-b pb-2">
-                  <h4 className="text-md font-medium text-gray-800 dark:text-white/90">{faq.question}</h4>
-                  <p className="text-gray-600 text-sm mt-1">{faq.answer}</p>
-                </div>
-              ))}
+{faqs.map((faq, index) => (
+  <div key={index} className="border-b pb-2">
+    <button
+      onClick={() =>
+        setExpandedFAQ(expandedFAQ === index ? null : index)
+      }
+      className="w-full text-left text-md font-medium text-gray-800 dark:text-white/90 flex justify-between items-center"
+    >
+      {faq.question}
+      <span className="text-gray-500 text-xs">
+        {expandedFAQ === index ? "▲" : "▼"}
+      </span>
+    </button>
+    {expandedFAQ === index && (
+      <p className="text-gray-600 text-sm mt-2 transition-all duration-300 ease-in-out">
+        {faq.answer}
+      </p>
+    )}
+  </div>
+))}
+
+
             </div>
           </div>
         </div>

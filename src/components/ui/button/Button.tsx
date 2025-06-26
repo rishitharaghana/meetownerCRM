@@ -1,14 +1,13 @@
-import { ReactNode } from "react";
+import { ReactNode, ButtonHTMLAttributes } from "react";
 
-interface ButtonProps {
+interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
   size?: "sm" | "md";
   variant?: "primary" | "outline";
   startIcon?: ReactNode;
   endIcon?: ReactNode;
-  onClick?: () => void;
-  disabled?: boolean;
   className?: string;
+  disabled?: boolean;
   isActive?: boolean;
 }
 
@@ -22,14 +21,13 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   disabled = false,
   isActive = false,
+  ...rest 
 }) => {
-  // Size Classes
   const sizeClasses = {
     sm: "px-4 py-3 text-sm",
     md: "px-5 py-3.5 text-sm",
   };
 
-  // Variant Classes
   const variantClasses = {
     primary:
       "bg-[#1D3A76] text-white shadow-theme-xs hover:bg-[#1D3A76] disabled:bg-gray-300",
@@ -37,12 +35,10 @@ const Button: React.FC<ButtonProps> = ({
       "bg-white text-gray-700 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 dark:bg-gray-800 dark:text-gray-400 dark:ring-gray-700 dark:hover:bg-white/[0.03] dark:hover:text-gray-300",
   };
 
-  // Active state class (applied when isActive is true)
   const activeClass = isActive
-    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]" // Same blue as primary for consistency
+    ? "bg-[#1D3A76] text-white hover:bg-[#1D3A76]"
     : "";
 
-  // Use activeClass if isActive is true, otherwise use the variant class
   const buttonStyle = isActive ? activeClass : variantClasses[variant];
 
   return (
@@ -54,6 +50,7 @@ const Button: React.FC<ButtonProps> = ({
       }`}
       onClick={onClick}
       disabled={disabled}
+      {...rest} 
     >
       {startIcon && <span className="flex items-center">{startIcon}</span>}
       {children}
