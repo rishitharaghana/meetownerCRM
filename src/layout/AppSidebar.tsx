@@ -345,8 +345,8 @@ const AppSidebar: React.FC = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo Section  */}
-     <div className={`px-6 py-6 border-b border-gray-100 ${!shouldShowText ? "lg:px-4" : ""}`}>
+      {/* Logo Section */}
+      <div className={`px-6 py-6 border-b border-gray-100 ${!shouldShowText ? "lg:px-4" : ""}`}>
         <Link to="/" className="flex items-center">
           {shouldShowText ? (
             <div className="flex items-center">
@@ -365,29 +365,6 @@ const AppSidebar: React.FC = () => {
           )}
         </Link>
       </div>
-      {/* <div className={`px-6 py-6 border-b border-gray-100 ${!shouldShowText ? "lg:px-4" : ""} dark:border-purple-600`}>
-  <Link to="/" className="flex items-center justify-center">
-    {shouldShowText ? (
-      <div className="flex items-center">
-        <img
-          src={Logo}
-          alt="App Logo"
-          className="h-8 w-auto max-w-[150px] object-contain mr-3"
-        />
-        <div className="flex flex-col">
-          <span className="text-xl font-bold text-purple-700 dark:text-purple-300">Meet Owner</span>
-          <span className="text-xs text-purple-500 dark:text-purple-400">CRM Platform</span>
-        </div>
-      </div>
-    ) : (
-      <img
-        src={Logo}
-        alt="App Logo"
-        className="h-8 w-auto max-w-[48px] object-contain mx-auto"
-      />
-    )}
-  </Link>
-</div> */}
 
       {/* Navigation */}
       <div className="flex-1 overflow-y-auto px-4 py-6">
