@@ -1,35 +1,51 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
+import { useNavigate } from "react-router";
 
-import {  useNavigate } from "react-router";
-
+const userTypes = [
+  { value: "builder", label: "Builder" },
+  { value: "channel_partner", label: "Channel Partner" },
+  { value: "tele_callers", label: "Tele Caller" },
+  { value: "sales_manager", label: "Sales Manager" },
+  { value: "receptionsit", label: "Receptionist" },
+  { value: "marketing_executors", label: "Marketing Executor" },
+];
 
 export default function SignInForm() {
-
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
+  const [formKey, setFormKey] = useState(Date.now());
   const [formData, setFormData] = useState({
     mobile: "",
     password: "",
+    userType: "",
   });
+
   const [errors, setErrors] = useState({
     mobile: "",
     password: "",
-    general: "", // Add a general error field for server/network errors
+    userType: "",
+    general: "",
   });
 
-  
+  useEffect(() => {
+    localStorage.removeItem("userData");
+    setFormData({ mobile: "", password: "", userType: "" });
+    setErrors({ mobile: "", password: "", userType: "", general: "" });
+    setFormKey(Date.now());
+  }, []);
+
   const handleInputChange = (e: { target: { name: string; value: string } }) => {
     const { name, value } = e.target;
+
     setFormData((prevState) => ({
       ...prevState,
-      [name]: value,
+      [name]: name === "mobile" ? value.replace(/\D/g, "") : value,
     }));
 
-    // Clear errors when user starts typing
     setErrors((prevErrors) => ({
       ...prevErrors,
       [name]: "",
@@ -37,19 +53,31 @@ export default function SignInForm() {
     }));
   };
 
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
-    e.preventDefault();
+  const isValidMobile = (mobile: string) => {
+    return /^[6-9]\d{9}$/.test(mobile);
+  };
 
-    // Local validation
-    let newErrors = { mobile: "", password: "", general: "" };
+  const handleSubmit = (e: { preventDefault: () => void }) => {
+    e.preventDefault();
+    console.log("Submitting form...", formData);
+
+    let newErrors = { mobile: "", password: "", userType: "", general: "" };
     let hasError = false;
 
     if (!formData.mobile.trim()) {
       newErrors.mobile = "Mobile number is required";
       hasError = true;
+    } else if (!isValidMobile(formData.mobile)) {
+      newErrors.mobile = "Enter a valid 10-digit mobile number";
+      hasError = true;
     }
+
     if (!formData.password.trim()) {
       newErrors.password = "Password is required";
+      hasError = true;
+    }
+    if (!formData.userType) {
+      newErrors.userType = "User type is required";
       hasError = true;
     }
 
@@ -57,77 +85,124 @@ export default function SignInForm() {
       setErrors(newErrors);
       return;
     }
-    navigate('/');
 
-   
+    const newUser = {
+      mobile: formData.mobile,
+      userType: formData.userType,
+    };
+
+    try {
+      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
+      existingUsers.push(newUser);
+      localStorage.setItem("users", JSON.stringify(existingUsers));
+      localStorage.setItem("userData", JSON.stringify(newUser));
+      console.log("User saved to localStorage:", newUser);
+    } catch (err) {
+      console.error("Error saving user:", err);
+    }
+
+    setFormData({ mobile: "", password: "", userType: "" });
+    setFormKey(Date.now());
+    navigate("/");
   };
 
-  
   return (
-    <div className="flex flex-col flex-1">
+    <div className="flex flex-col flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-semibold text-gray-800 text-title-sm dark:text-white/90 sm:text-title-md">
-              Sign In
-            </h1>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              Enter your mobile number and password to sign in!
+            <h1 className="mb-2 font-bold text-2xl text-[#7700ff]">Sign In</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">
+              Enter your mobile number, password, and select user type to sign in!
             </p>
+
+            <div className="mt-4">
+              <Label className="text-sm font-medium text-gray-800 dark:text-white">
+                User Type <span className="text-red-500">*</span>
+              </Label>
+              <select
+                name="userType"
+                value={formData.userType}
+                onChange={handleInputChange}
+                className="w-full px-4 py-2 mt-1 cursor-pointer border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
+              >
+                <option value="">Select User Type</option>
+                {userTypes.map((type) => (
+                  <option key={type.value} value={type.value}>
+                    {type.label}
+                  </option>
+                ))}
+              </select>
+              {errors.userType && (
+                <p className="mt-1 text-sm text-red-500">{errors.userType}</p>
+              )}
+            </div>
           </div>
-          <form onSubmit={handleSubmit}>
+
+          <form key={formKey} onSubmit={handleSubmit} autoComplete="off">
             <div className="space-y-6">
               <div>
-                <Label>
-                  Mobile Number <span className="text-error-500">*</span>
+                <Label className="text-sm font-medium text-gray-800 dark:text-white">
+                  Mobile Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
+                  type="tel"
                   name="mobile"
+                  autoComplete="off"
                   placeholder="Enter Mobile number"
                   value={formData.mobile}
+                  maxLength={10}
                   onChange={handleInputChange}
+                  className="w-full px-4 py-2 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
                 />
                 {errors.mobile && (
-                  <p className="mt-1 text-sm text-error-500">{errors.mobile}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
                 )}
               </div>
+
               <div>
-                <Label>
-                  Password <span className="text-error-500">*</span>
+                <Label className="text-sm font-medium text-gray-800 dark:text-white">
+                  Password <span className="text-red-500">*</span>
                 </Label>
                 <div className="relative">
                   <Input
+                    type={showPassword ? "text" : "password"}
                     name="password"
+                    autoComplete="new-password"
                     value={formData.password}
                     onChange={handleInputChange}
-                    type={showPassword ? "text" : "password"}
                     placeholder="Enter your password"
+                    className="w-full px-4 py-2 pr-10 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
+                    className="absolute top-1/2 right-3 -translate-y-1/2 cursor-pointer"
                   >
                     {showPassword ? (
-                      <EyeIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                      <EyeIcon className="fill-gray-500 dark:fill-gray-300 size-5" />
                     ) : (
-                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-400 size-5" />
+                      <EyeCloseIcon className="fill-gray-500 dark:fill-gray-300 size-5" />
                     )}
                   </span>
                 </div>
                 {errors.password && (
-                  <p className="mt-1 text-sm text-error-500">{errors.password}</p>
+                  <p className="mt-1 text-sm text-red-500">{errors.password}</p>
                 )}
               </div>
+
               <div>
-                <Button className="w-full" size="sm" >
-                 Sign in
+                <Button
+                  className="w-full px-5 py-3 font-semibold text-white bg-[#7700ff] hover:bg-purple-800 rounded-md text-sm shadow-md"
+                  size="sm"
+                >
+                  Sign in
                 </Button>
               </div>
             </div>
           </form>
-          {/* Display general errors (e.g., network, server issues) */}
+
           {errors.general && (
-            <p className="mt-4 text-sm text-error-500 text-center">{errors.general}</p>
+            <p className="mt-4 text-sm text-red-500 text-center">{errors.general}</p>
           )}
         </div>
       </div>
