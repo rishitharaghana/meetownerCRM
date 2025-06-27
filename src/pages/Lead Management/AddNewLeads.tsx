@@ -1,23 +1,62 @@
-import React, { ChangeEvent, FormEvent, useEffect, useState } from "react";
-import { useDispatch, useSelector } from "react-redux";
-import { useNavigate, useParams } from "react-router";
-import ComponentCard from "../../components/common/ComponentCard";
-import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
-import { AppDispatch, RootState } from "../../store/store";
-import { getAllApprovedListing } from "../../store/slices/approve_listings";
-import PageMeta from "../../components/common/PageMeta";
-import MultiSelect from "../../components/form/MultiSelect";
+import React, { useState } from 'react';
+import { User, Building, Target, Users } from 'lucide-react';
+import Input from '../../components/form/input/InputField';
+import Button from '../../components/ui/button/Button';
+import { useDispatch } from 'react-redux';
+import { AppDispatch } from '../../store/store';
 
-// Define interfaces for form data and errors
+// Sample Select component (replace with your actual implementation if different)
+interface SelectProps {
+  label: string;
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  placeholder?: string;
+  error?: string;
+}
+
+const Select: React.FC<SelectProps> = ({
+  label,
+  options,
+  value,
+  onChange,
+  placeholder,
+  error,
+}) => (
+  <div className="space-y-1">
+    <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+      {label}
+    </label>
+    <select
+      value={value}
+      onChange={onChange}
+      className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-realty-primary focus:border-realty-primary transition-colors ${
+        error ? 'border-red-500' : 'border-realty-200'
+      }`}
+    >
+      {placeholder && (
+        <option value="" disabled>
+          {placeholder}
+        </option>
+      )}
+      {options.map((option) => (
+        <option key={option.value} value={option.value}>
+          {option.label}
+        </option>
+      ))}
+    </select>
+    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
+  </div>
+);
+
 interface FormData {
   name: string;
   mobile: string;
   email: string;
-  interestedProject: string; // Stores unique_property_id
+  interestedProject: string;
   leadSource: string;
-  channelPartner: string; // Selected channel partner
-  campaign: string; // Selected campaign
+  channelPartner: string;
+  campaign: string;
 }
 
 interface Errors {
@@ -30,307 +69,304 @@ interface Errors {
   campaign?: string;
 }
 
-interface Option {
-  value: string;
-  text: string;
-}
-
-export default function AddNewLead() {
+const LeadForm = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const { lead_in, status } = useParams<{ lead_in: string; status: string }>();
-  const { listings } = useSelector((state: RootState) => state.approved); // Access approved listings from Redux
-
   const [formData, setFormData] = useState<FormData>({
-    name: "",
-    mobile: "",
-    email: "",
-    interestedProject: "",
-    leadSource: "",
-    channelPartner: "",
-    campaign: "",
+    name: '',
+    mobile: '',
+    email: '',
+    interestedProject: '',
+    leadSource: '',
+    channelPartner: '',
+    campaign: '',
   });
-
   const [errors, setErrors] = useState<Errors>({});
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
-  // Fetch approved listings on mount
-  useEffect(() => {
-    dispatch(getAllApprovedListing());
-  }, [dispatch]);
-
-  // Options for Interested Project (from approved listings)
-  const projectOptions: Option[] = listings.map((property) => ({
-    value: property.unique_property_id,
-    text: `${property.unique_property_id} - ${property.property_name || "Unnamed Property"}`,
-  }));
-
-  // Options for Lead Source
-  const leadSourceOptions: Option[] = [
-    { value: "channel_partner", text: "Channel Partner" },
-    { value: "campaign", text: "Campaign" },
+  const projectOptions = [
+    { value: 'luxury-towers', label: 'Luxury Towers - Premium Residential' },
+    { value: 'garden-villas', label: 'Garden Villas - Independent Houses' },
+    { value: 'metro-heights', label: 'Metro Heights - Apartment Complex' },
+    { value: 'royal-estates', label: 'Royal Estates - Luxury Condos' },
   ];
 
-  // Options for Channel Partners
-  const channelPartnerOptions: Option[] = [
-    { value: "channel_partner_1", text: "Channel Partner 1" },
-    { value: "channel_partner_2", text: "Channel Partner 2" },
-    { value: "channel_partner_3", text: "Channel Partner 3" },
+  const leadSourceOptions = [
+    { value: 'channel_partner', label: 'Channel Partner' },
+    { value: 'campaign', label: 'Marketing Campaign' },
   ];
 
-  // Options for Campaigns
-  const campaignOptions: Option[] = [
-    { value: "google_ads", text: "Google Ads" },
-    { value: "meta_ads", text: "Meta Ads" },
+  const channelPartnerOptions = [
+    { value: 'partner_1', label: 'Premium Real Estate Partners' },
+    { value: 'partner_2', label: 'Elite Property Consultants' },
+    { value: 'partner_3', label: 'Prime Realty Associates' },
   ];
 
-  // Handle input changes
-  const handleInputChange = (field: keyof FormData) => (e: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const campaignOptions = [
+    { value: 'google_ads', label: 'Google Ads Campaign' },
+    { value: 'meta_ads', label: 'Meta/Facebook Ads' },
+  ];
+
+  const handleInputChange = (field: keyof FormData) => (
+    e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
+  ) => {
     const value = e.target.value;
+    console.log(`Field: ${field}, Value: ${value}`); // Debug log
     setFormData((prev) => {
-      // Reset secondary fields when leadSource changes
-      if (field === "leadSource") {
+      if (field === 'leadSource') {
         return {
           ...prev,
           [field]: value,
-          channelPartner: "",
-          campaign: "",
+          channelPartner: '',
+          campaign: '',
         };
       }
-      return {
-        ...prev,
-        [field]: value,
-      };
+      return { ...prev, [field]: value };
     });
+
     if (errors[field]) {
-      setErrors({ ...errors, [field]: undefined });
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
-  // Validate form
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
 
     if (!formData.name.trim()) {
-      newErrors.name = "Name is required";
+      newErrors.name = 'Name is required';
     }
 
     if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
+      newErrors.mobile = 'Mobile number is required';
     } else if (!/^\d{10}$/.test(formData.mobile)) {
-      newErrors.mobile = "Mobile number must be exactly 10 digits";
+      newErrors.mobile = 'Mobile number must be exactly 10 digits';
     }
 
     if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
+      newErrors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      newErrors.email = "Please enter a valid email address";
+      newErrors.email = 'Please enter a valid email address';
     }
 
     if (!formData.interestedProject) {
-      newErrors.interestedProject = "Interested project is required";
+      newErrors.interestedProject = 'Please select a project';
     }
 
     if (!formData.leadSource) {
-      newErrors.leadSource = "Lead source is required";
+      newErrors.leadSource = 'Please select a lead source';
     }
 
-    if (formData.leadSource === "channel_partner" && !formData.channelPartner) {
-      newErrors.channelPartner = "Channel partner selection is required";
+    if (formData.leadSource === 'channel_partner' && !formData.channelPartner) {
+      newErrors.channelPartner = 'Please select a channel partner';
     }
 
-    if (formData.leadSource === "campaign" && !formData.campaign) {
-      newErrors.campaign = "Campaign selection is required";
+    if (formData.leadSource === 'campaign' && !formData.campaign) {
+      newErrors.campaign = 'Please select a campaign';
     }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  // Handle form submission
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      const selectedProject = projectOptions.find(
-        (option) => option.value === formData.interestedProject
-      );
-      const selectedLeadSource = leadSourceOptions.find(
-        (option) => option.value === formData.leadSource
-      );
-      const selectedChannelPartner = channelPartnerOptions.find(
-        (option) => option.value === formData.channelPartner
-      );
-      const selectedCampaign = campaignOptions.find(
-        (option) => option.value === formData.campaign
-      );
 
-      const leadData = {
-        name: formData.name,
-        mobile: formData.mobile,
-        email: formData.email,
-        interested_project_id: formData.interestedProject,
-        interested_project_name: selectedProject ? selectedProject.text.split(" - ")[1] : "",
-        lead_source: selectedLeadSource ? selectedLeadSource.text : formData.leadSource,
-        channel_partner: selectedChannelPartner ? selectedChannelPartner.text : "",
-        campaign: selectedCampaign ? selectedCampaign.text : "",
-      };
+    if (!validateForm()) {
+      return;
+    }
 
-      console.log("New Lead Data:", leadData);
-      alert("Lead submitted successfully!");
-      navigate(`/leads/${lead_in}/${status}`); // Navigate back to the leads page
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+
+    try {
+      // Replace with your actual API call or Redux action
+      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      setSubmitSuccess('Lead created successfully!');
+      setFormData({
+        name: '',
+        mobile: '',
+        email: '',
+        interestedProject: '',
+        leadSource: '',
+        channelPartner: '',
+        campaign: '',
+      });
+    } catch (error) {
+      setSubmitError('Failed to create lead. Please try again.');
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
-  // Handle cancel
-  const handleCancel = () => {
-    navigate(`/leads/${lead_in}/${status}`);
-  };
-
   return (
-    <div className="relative min-h-screen">
-      <PageMeta title={`Lead Management - Add New Lead`} />
-      <ComponentCard title="Add New Lead">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="min-h-[80px]">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={handleInputChange("name")}
-              placeholder="Enter customer name"
-              className="dark:bg-dark-900"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
+    <div className="min-h-screen bg-gradient-to-br from-realty-50 via-white to-realty-100 py-8 px-4">
+      <div className="max-w-2xl mx-auto">
+        {submitSuccess && (
+          <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">
+            {submitSuccess}
           </div>
-
-          <div className="min-h-[80px]">
-            <Label htmlFor="mobile">Mobile Number</Label>
-            <Input
-              type="text"
-              id="mobile"
-              value={formData.mobile}
-              onChange={handleInputChange("mobile")}
-              placeholder="Enter 10-digit mobile number"
-              className="dark:bg-dark-900"
-            />
-            {errors.mobile && (
-              <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
-            )}
+        )}
+        {submitError && (
+          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">
+            {submitError}
           </div>
+        )}
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="email">Email Address</Label>
-            <Input
-              type="email"
-              id="email"
-              value={formData.email}
-              onChange={handleInputChange("email")}
-              placeholder="Enter email address"
-              className="dark:bg-dark-900"
-            />
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
+        <div className="text-center mb-8 animate-fade-in">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-[#1D3A76] bg-gradient-to-r from-realty-primary to-realty-accent rounded-full mb-4 shadow-lg">
+            <Building className="w-8 h-8 text-white" />
           </div>
+          <h1 className="text-3xl font-bold text-realty-800 mb-2">
+            Add New Lead
+          </h1>
+          <p className="text-realty-600">
+            Capture potential client information for your real estate projects
+          </p>
+        </div>
 
-          <div className="min-h-[80px]">
-  <MultiSelect
-    label="Interested Project"
-    options={projectOptions}
-    defaultSelected={formData.interestedProject ? [formData.interestedProject] : []} // Use interestedProject, not name
-    onChange={(value) => {
-      const selectedValue = Array.isArray(value) ? value[0] || "" : value || "";
-      setFormData((prev) => ({
-        ...prev,
-        interestedProject: selectedValue,
-      }));
-      if (errors.interestedProject) {
-        setErrors((prev) => ({ ...prev, interestedProject: undefined }));
-      }
-    }}
-    singleSelect={true}
-  />
-  {errors.interestedProject && (
-    <p className="text-red-500 text-sm mt-1">{errors.interestedProject}</p>
-  )}
-</div>
-          <div className="min-h-[80px]">
-            <Label htmlFor="leadSource">Lead Source</Label>
-            <select
-              id="leadSource"
-              value={formData.leadSource}
-              onChange={handleInputChange("leadSource")}
-              className="w-full p-2 border rounded-lg dark:bg-dark-900 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
-            >
-              <option value="">Select a lead source</option>
-              {leadSourceOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.text}
-                </option>
-              ))}
-            </select>
-            {errors.leadSource && (
-              <p className="text-red-500 text-sm mt-1">{errors.leadSource}</p>
-            )}
-          </div>
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8 animate-fade-in">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            <div className="space-y-6">
+              <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
+                <User className="w-5 h-5" />
+                Personal Information
+              </h2>
 
-          {formData.leadSource === "channel_partner" && (
-            <div className="min-h-[80px]">
-              <Label htmlFor="channelPartner">Channel Partner</Label>
-              <select
-                id="channelPartner"
-                value={formData.channelPartner}
-                onChange={handleInputChange("channelPartner")}
-                className="w-full p-2 border rounded-lg dark:bg-dark-900 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
-              >
-                <option value="">Select a channel partner</option>
-                {channelPartnerOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.text}
-                  </option>
-                ))}
-              </select>
-              {errors.channelPartner && (
-                <p className="text-red-500 text-sm mt-1">{errors.channelPartner}</p>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Name
+                </label>
+                <Input
+                  type="text"
+                  value={formData.name}
+                  onChange={handleInputChange('name')}
+                  placeholder="Enter customer's full name"
+                  className={errors.name ? 'border-red-500' : ''}
+                />
+                {errors.name && (
+                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Mobile Number
+                </label>
+                <Input
+                  type="tel"
+                  value={formData.mobile}
+                  onChange={handleInputChange('mobile')}
+                  placeholder="Enter 10-digit mobile number"
+                  className={errors.mobile ? 'border-red-500' : ''}
+                />
+                {errors.mobile && (
+                  <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
+                )}
+              </div>
+
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Email
+                </label>
+                <Input
+                  type="email"
+                  value={formData.email}
+                  onChange={handleInputChange('email')}
+                  placeholder="Enter email address"
+                  className={errors.email ? 'border-red-500' : ''}
+                />
+                {errors.email && (
+                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
+                )}
+              </div>
+            </div>
+
+            <div className="space-y-6 pt-6 border-t border-realty-200">
+              <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Project Interest
+              </h2>
+
+              <Select
+                label="Interested Project"
+                options={projectOptions}
+                value={formData.interestedProject}
+                onChange={handleInputChange('interestedProject')}
+                placeholder="Search or select a project"
+                error={errors.interestedProject}
+              />
+            </div>
+
+            <div className="space-y-6 pt-6 border-t border-realty-200">
+              <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
+                <Target className="w-5 h-5" />
+                Lead Source
+              </h2>
+
+              <Select
+                label="Lead Source"
+                options={leadSourceOptions}
+                value={formData.leadSource}
+                onChange={handleInputChange('leadSource')}
+                placeholder="Select lead source"
+                error={errors.leadSource}
+              />
+
+              {formData.leadSource === 'channel_partner' && (
+                <Select
+                  label="Channel Partner"
+                  options={channelPartnerOptions}
+                  value={formData.channelPartner}
+                  onChange={handleInputChange('channelPartner')}
+                  placeholder="Select channel partner"
+                  error={errors.channelPartner}
+                />
+              )}
+
+              {formData.leadSource === 'campaign' && (
+                <Select
+                  label="Marketing Campaign"
+                  options={campaignOptions}
+                  value={formData.campaign}
+                  onChange={handleInputChange('campaign')}
+                  placeholder="Select campaign"
+                  error={errors.campaign}
+                />
               )}
             </div>
-          )}
 
-          {formData.leadSource === "campaign" && (
-            <div className="min-h-[80px]">
-              <Label htmlFor="campaign">Campaign</Label>
-              <select
-                id="campaign"
-                value={formData.campaign}
-                onChange={handleInputChange("campaign")}
-                className="w-full p-2 border rounded-lg dark:bg-dark-900 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
+            <div className="pt-6">
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full bg-gradient-to-r from-realty-primary to-realty-accent hover:from-realty-700 hover:to-realty-primary text-white font-semibold py-4 px-6 rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-0.5"
               >
-                <option value="">Select a campaign</option>
-                {campaignOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.text}
-                  </option>
-                ))}
-              </select>
-              {errors.campaign && (
-                <p className="text-red-500 text-sm mt-1">{errors.campaign}</p>
-              )}
+                {isSubmitting ? (
+                  <div className="flex items-center justify-center gap-2">
+                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                    Creating Lead...
+                  </div>
+                ) : (
+                  <div className="flex items-center justify-center gap-2">
+                    <Users className="w-5 h-5" />
+                    Create Lead
+                  </div>
+                )}
+              </Button>
             </div>
-          )}
+          </form>
+        </div>
 
-          <div className="flex justify-center space-x-4">
-            
-            <button
-              type="submit"
-              className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200"
-            >
-              Submit
-            </button>
-          </div>
-        </form>
-      </ComponentCard>
+        <div className="text-center mt-8 text-realty-600">
+          <p className="text-sm">
+            All lead information is securely stored and processed according to our privacy policy.
+          </p>
+        </div>
+      </div>
     </div>
   );
-}
+};
+
+export default LeadForm;

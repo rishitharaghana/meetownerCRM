@@ -4,6 +4,7 @@ import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
 import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyBill, FaUser, FaUserTie } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+// import Logo from "../../public/favicon.jpeg";
 
 type NavItem = {
   name: string;

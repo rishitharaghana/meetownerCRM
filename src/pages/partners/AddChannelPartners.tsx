@@ -1,3 +1,4 @@
+
 import React, { useEffect, useState } from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
@@ -9,7 +10,6 @@ import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { getCities, getStates } from "../../store/slices/propertyDetails";
 
-
 interface FormData {
   name: string;
   mobile: string;
@@ -18,10 +18,11 @@ interface FormData {
   city: string[];
   state: string[];
   pincode: string;
-  panCardNumber: string; 
-  companyName: string; 
+  panCardNumber: string;
+  aadharNumber: string; // Added Aadhar Number
+  companyName: string;
   representativeName: string;
-  companyAddress: string; 
+  companyAddress: string;
   companyNumber: string;
 }
 
@@ -33,11 +34,12 @@ interface Errors {
   city?: string;
   state?: string;
   pincode?: string;
-  panCardNumber?: string; 
+  panCardNumber?: string;
+  aadharNumber?: string; // Added Aadhar Number
   companyName?: string;
   representativeName?: string;
-  companyAddress?: string; 
-  companyNumber?: string; 
+  companyAddress?: string;
+  companyNumber?: string;
 }
 
 interface Option {
@@ -69,12 +71,12 @@ export default function AddChannelPartner() {
         state: [],
         pincode: "",
         panCardNumber: "",
-        companyName: "", 
-        representativeName: "", 
-        companyAddress: "", 
-        companyNumber: "", 
+        aadharNumber: "", // Added Aadhar Number
+        companyName: "",
+        representativeName: "",
+        companyAddress: "",
+        companyNumber: "",
       });
-      
     }
   }, [createSuccess, dispatch]);
 
@@ -86,11 +88,12 @@ export default function AddChannelPartner() {
     city: [],
     state: [],
     pincode: "",
-    panCardNumber: "", 
-    companyName: "", 
+    panCardNumber: "",
+    aadharNumber: "", // Added Aadhar Number
+    companyName: "",
     representativeName: "",
-    companyAddress: "", 
-    companyNumber: "", 
+    companyAddress: "",
+    companyNumber: "",
   });
 
   const [errors, setErrors] = useState<Errors>({});
@@ -117,11 +120,12 @@ export default function AddChannelPartner() {
         | "email"
         | "password"
         | "pincode"
-        | "panCardNumber" 
-        | "companyName" 
-        | "representativeName" 
-        | "companyAddress" 
-        | "companyNumber" 
+        | "panCardNumber"
+        | "aadharNumber" // Added Aadhar Number
+        | "companyName"
+        | "representativeName"
+        | "companyAddress"
+        | "companyNumber"
     ) =>
     (value: string) => {
       setFormData({ ...formData, [field]: value });
@@ -163,6 +167,11 @@ export default function AddChannelPartner() {
     } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
       newErrors.panCardNumber = "Invalid PAN Card Number (e.g., ABCDE1234F)";
     }
+    if (!formData.aadharNumber.trim()) {
+      newErrors.aadharNumber = "Aadhar Number is required";
+    } else if (!/^\d{12}$/.test(formData.aadharNumber)) {
+      newErrors.aadharNumber = "Aadhar Number must be 12 digits";
+    }
     if (!formData.companyName.trim()) {
       newErrors.companyName = "Company Name is required";
     }
@@ -185,7 +194,6 @@ export default function AddChannelPartner() {
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
-     
       const createdBy = localStorage.getItem("name");
       const createdUserIdRaw = localStorage.getItem("userId");
 
@@ -209,18 +217,18 @@ export default function AddChannelPartner() {
         city: cityName,
         state: stateName,
         pincode: formData.pincode,
-        panCardNumber: formData.panCardNumber, // New field
-        companyName: formData.companyName, // New field
-        representativeName: formData.representativeName, // New field
-        companyAddress: formData.companyAddress, // New field
-        companyNumber: formData.companyNumber, // New field
+        panCardNumber: formData.panCardNumber,
+        aadharNumber: formData.aadharNumber, // Added Aadhar Number
+        companyName: formData.companyName,
+        representativeName: formData.representativeName,
+        companyAddress: formData.companyAddress,
+        companyNumber: formData.companyNumber,
         user_type: 7, // Assuming Channel Partner user_type is 7
         created_by: createdBy || "Unknown",
         created_userID: createdUserIdRaw ? parseInt(createdUserIdRaw) : 1,
       };
 
       console.log("Employee Data:", employeeData);
-      
     }
   };
 
@@ -365,6 +373,22 @@ export default function AddChannelPartner() {
             />
             {errors.panCardNumber && (
               <p className="text-red-500 text-sm mt-1">{errors.panCardNumber}</p>
+            )}
+          </div>
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="aadharNumber">Aadhar Number</Label>
+            <Input
+              type="text"
+              id="aadharNumber"
+              value={formData.aadharNumber}
+              onChange={(e) => handleSingleChange("aadharNumber")(e.target.value)}
+              placeholder="Enter Aadhar Number (e.g., 1234 5678 9012)"
+              className="dark:bg-gray-800"
+              disabled={createLoading}
+            />
+            {errors.aadharNumber && (
+              <p className="text-red-500 text-sm mt-1">{errors.aadharNumber}</p>
             )}
           </div>
 
