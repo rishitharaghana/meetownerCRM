@@ -93,7 +93,6 @@ const AllEmployees: React.FC = () => {
     };
   }, []);
 
-  // Search filter
   const filteredEmployees = transformedEmployees.filter((employee) =>
     [
       employee.name || "",
