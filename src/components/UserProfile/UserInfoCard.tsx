@@ -20,11 +20,13 @@ const designationOptions: Option[] = [
   { value: 11, text: "Customer Service" },
 ];
 
+const userData = JSON.parse(localStorage.getItem("userData") || "{}");
+
 const mockUser = {
-  name: "Sarah Johnson",
-  email: "sarah.johnson@realestate.com",
-  mobile: "9876543210",
-  user_type: 7
+  name: userData.name || "N/A",
+  email: userData.email || "N/A",
+  mobile: userData.mobile || "N/A",
+  user_type: userData.userType || 0,
 };
 
 export default function UserInfoCard() {

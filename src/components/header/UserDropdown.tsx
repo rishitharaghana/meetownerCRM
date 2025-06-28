@@ -15,11 +15,13 @@ export default function UserDropdown() {
   function closeDropdown() {
     setIsOpen(false);
   }
+const handleLogout = () => {
+  localStorage.removeItem("userData");
+  localStorage.removeItem("users"); 
+  navigate("/signin");
 
-  const handleLogout = () => {
-    closeDropdown();
-    navigate('/signin');
-  }
+};
+
 
   return (
     <div className="relative">

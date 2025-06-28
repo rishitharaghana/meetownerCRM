@@ -3,6 +3,8 @@ import { RootState, AppDispatch } from "../../store/store";
 import { useState, ChangeEvent } from "react";
 import { uploadUserImage } from "../../store/slices/uploadSlice";
 import { toast } from "react-hot-toast";
+const localUserData = JSON.parse(localStorage.getItem("userData") || "{}");
+
 
 interface Option {
   value: number;
@@ -121,6 +123,7 @@ export default function UserMetaCard() {
         <div className="flex-1 text-center xl:text-left">
           {!isEditing ? (
             <>
+            
               <h4 className="text-2xl font-semibold text-slate-800 dark:text-white mb-1">{user?.name}</h4>
               <div className="text-sm text-slate-600 dark:text-slate-400 space-x-2">
                 <span>{getDesignationText(user?.user_type)}</span>
@@ -145,6 +148,12 @@ export default function UserMetaCard() {
                 className="w-full px-3 py-2 text-sm rounded-md border border-slate-300 dark:border-slate-600 dark:bg-slate-800"
                 placeholder="City"
               />
+              <div className="text-sm text-slate-600 dark:text-slate-400 space-x-2 mt-1">
+  <span><strong>Mobile:</strong> {localUserData.mobile || "N/A"}</span>
+  <span className="hidden sm:inline-block w-px h-3 bg-slate-300 dark:bg-slate-600"></span>
+  <span><strong>User Type:</strong> {localUserData.userType || "N/A"}</span>
+</div>
+
               <select
                 value={editedDesignation}
                 onChange={(e) => setEditedDesignation(Number(e.target.value))}
