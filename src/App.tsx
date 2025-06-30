@@ -12,15 +12,10 @@ import Home from "./pages/Dashboard/Home";
 import BasicTables from "./pages/Tables/BasicTables";
 
 import BasicTableOne from "./components/tables/BasicTables/BasicTableOne";
-import LocationManager from "./pages/maps/locality";
 import { Toaster } from "react-hot-toast";
 import { lazy } from "react";
-
 import AllAdsPage from "./pages/Ads/AllAds";
 import CreateAds from "./pages/Ads/CreateAds";
-
-import CitiesManager from "./pages/maps/cities";
-import StatesManager from "./pages/maps/state";
 import UserActivities from "./components/tables/userActivities";
 import CreateProperty from "./pages/Project/AddProject";
 import AllProjects from "./pages/Project/AllProjects";
@@ -33,7 +28,7 @@ import Support from "./pages/Support/Support";
 import CreateEmployee from "./pages/Employee/CreateEmployee";
 import SiteVisit from "./pages/Lead Management/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
-import UpComingProjects from "./pages/Project/UpComingProjects"
+import SiteVisitDetails from "./pages/Lead Management/SiteVisit-details.";
 
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
@@ -55,7 +50,7 @@ export default function App() {
             <Route path="/leads/addlead" element={<AddNewLead />} />
             <Route path="/leads/site-visit" element={<SiteVisit />} />
             <Route path="/leads/view" element={<ViewLeadDetails />} />
-
+            <Route path="/site-visit/details/:id" element={<SiteVisitDetails/>} />
             <Route path="/partners" element={<PartnerScreen />} />
             <Route path="/partner/:id" element={<PartnerProfile />} />
             <Route
@@ -77,12 +72,8 @@ export default function App() {
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />
-                        <Route path="/projects/upcoming-projects" element={<UpComingProjects />} />
 
-
-            <Route path="/maps/cities" element={<CitiesManager />} />
-            <Route path="/maps/states" element={<StatesManager />} />
-            <Route path="/maps/locality" element={<LocationManager />} />
+         
             <Route path="/adds/all-ads" element={<AllAdsPage />} />
             <Route path="/adds/upload-ads" element={<CreateAds />} />
           </Route>
