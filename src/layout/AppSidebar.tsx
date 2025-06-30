@@ -40,10 +40,11 @@ const navItems: NavItem[] = [
     name: "Lead Management",
     subItems: [
       { name: "New Leads", path: "/leads/new/0", data: { "lead_in": "New", "status": 0} },
-      { name: "Today Leads", path: "/leads/today/1", data: { "lead_in": "Today",  "status": 1} },
+      { name: "Today Folow-Ups", path: "/leads/today/1", data: { "lead_in": "Today",  "status": 1} },
       { name: "Won Leads", path: "/leads/won/3", data: { "lead_in": "Won",  "status": 3} },
       { name: "Total Leads", path: "/leads/total/5", data: { "lead_in": "Total","status": 5 } },
       { name: "Add New Lead", path: "/leads/addlead", },
+      {name: "Site Visit", path:"/leads/site-visit", data:{"lead_in": "Total", "status": 3}},
      
     ],
   },

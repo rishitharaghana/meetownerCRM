@@ -103,7 +103,6 @@ export default function Home() {
         </p>
       </div>
 
-      {/* Project Cards with Link */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
         {staticProjectCounts.map((item) => {
           const IconComponent = iconMap[item.id] || FolderKanban;
@@ -141,7 +140,6 @@ export default function Home() {
         })}
       </div>
 
-      {/* User Stat Cards with Link */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {staticOwnerEmployeesCounts.map((item, index) => {
           const IconComponent = iconMap[item.user_type] || Users;

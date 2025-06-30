@@ -68,7 +68,7 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
   return (
     <tr
-      className={`hover:bg-purple-50 dark:hover:bg-purple-900 transition-colors duration-150 ${className || ""}`}
+      className={` dark:hover:bg-purple-900 transition-colors duration-150 ${className || ""}`}
     >
       {children}
     </tr>

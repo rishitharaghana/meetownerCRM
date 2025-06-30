@@ -5,7 +5,6 @@ import Button from '../../components/ui/button/Button';
 import { useDispatch } from 'react-redux';
 import { AppDispatch } from '../../store/store';
 
-// Sample Select component (replace with your actual implementation if different)
 interface SelectProps {
   label: string;
   options: { value: string; label: string }[];
@@ -112,7 +111,7 @@ const LeadForm = () => {
     e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>
   ) => {
     const value = e.target.value;
-    console.log(`Field: ${field}, Value: ${value}`); // Debug log
+    console.log(`Field: ${field}, Value: ${value}`); 
     setFormData((prev) => {
       if (field === 'leadSource') {
         return {
@@ -181,8 +180,7 @@ const LeadForm = () => {
     setSubmitSuccess(null);
 
     try {
-      // Replace with your actual API call or Redux action
-      await new Promise((resolve) => setTimeout(resolve, 1000)); // Simulate API call
+      await new Promise((resolve) => setTimeout(resolve, 1000)); 
       setSubmitSuccess('Lead created successfully!');
       setFormData({
         name: '',

@@ -31,6 +31,8 @@ import AddNewLead from "./pages/Lead Management/AddNewLeads";
 import { PartnerProfile } from "./pages/partners/PartnerProfileScreen";
 import Support from "./pages/Support/Support";
 import CreateEmployee from "./pages/Employee/CreateEmployee";
+import SiteVisit from "./pages/Lead Management/SiteVisit";
+import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
 
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
@@ -48,11 +50,11 @@ export default function App() {
             <Route path="/basic-tables" element={<BasicTables />} />
             <Route path="/basic-tables-one" element={<BasicTableOne />} />
             <Route path="/user-activities" element={<UserActivities />} />
-            {/* leads */}
             <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
-            {/* leads */}
             <Route path="/leads/addlead" element={<AddNewLead />} />
-            {/* Partners screen */}
+            <Route path="/leads/site-visit" element={<SiteVisit />} />
+            <Route path="/leads/view" element={<ViewLeadDetails />} />
+
             <Route path="/partners" element={<PartnerScreen />} />
             <Route path="/partner/:id" element={<PartnerProfile />} />
             <Route
@@ -71,7 +73,6 @@ export default function App() {
             {/* Other Pages */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/support" element={<Support />} />
-
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />

@@ -57,54 +57,70 @@ export default function SignInForm() {
     return /^[6-9]\d{9}$/.test(mobile);
   };
 
-  const handleSubmit = (e: { preventDefault: () => void }) => {
-    e.preventDefault();
-    console.log("Submitting form...", formData);
+ const handleSubmit = (e: { preventDefault: () => void }) => {
+  e.preventDefault();
+  console.log("Submitting form...", formData);
 
-    let newErrors = { mobile: "", password: "", userType: "", general: "" };
-    let hasError = false;
+  let newErrors = { mobile: "", password: "", userType: "", general: "" };
+  let hasError = false;
 
-    if (!formData.mobile.trim()) {
-      newErrors.mobile = "Mobile number is required";
-      hasError = true;
-    } else if (!isValidMobile(formData.mobile)) {
-      newErrors.mobile = "Enter a valid 10-digit mobile number";
-      hasError = true;
-    }
+  if (!formData.mobile.trim()) {
+    newErrors.mobile = "Mobile number is required";
+    hasError = true;
+  } else if (!isValidMobile(formData.mobile)) {
+    newErrors.mobile = "Enter a valid 10-digit mobile number";
+    hasError = true;
+  }
 
-    if (!formData.password.trim()) {
-      newErrors.password = "Password is required";
-      hasError = true;
-    }
-    if (!formData.userType) {
-      newErrors.userType = "User type is required";
-      hasError = true;
-    }
+  if (!formData.password.trim()) {
+    newErrors.password = "Password is required";
+    hasError = true;
+  }
 
-    if (hasError) {
-      setErrors(newErrors);
-      return;
-    }
+  if (!formData.userType) {
+    newErrors.userType = "User type is required";
+    hasError = true;
+  }
 
-    const newUser = {
-      mobile: formData.mobile,
-      userType: formData.userType,
-    };
+  if (hasError) {
+    setErrors(newErrors);
+    return;
+  }
 
-    try {
-      const existingUsers = JSON.parse(localStorage.getItem("users") || "[]");
-      existingUsers.push(newUser);
-      localStorage.setItem("users", JSON.stringify(existingUsers));
-      localStorage.setItem("userData", JSON.stringify(newUser));
-      console.log("User saved to localStorage:", newUser);
-    } catch (err) {
-      console.error("Error saving user:", err);
-    }
-
-    setFormData({ mobile: "", password: "", userType: "" });
-    setFormKey(Date.now());
-    navigate("/");
+  const newUser = {
+    mobile: formData.mobile,
+    userType: formData.userType,
   };
+
+  try {
+    const existingUsers = JSON.parse(localStorage.getItem("users") || "{}");
+
+    if (!existingUsers[formData.userType]) {
+      existingUsers[formData.userType] = [];
+    }
+
+    // Optional: prevent same mobile from being added again
+    const alreadyExists = existingUsers[formData.userType].some(
+      (user: any) => user.mobile === newUser.mobile
+    );
+
+    if (!alreadyExists) {
+      existingUsers[formData.userType].push(newUser);
+    }
+
+    localStorage.setItem("users", JSON.stringify(existingUsers));
+    localStorage.setItem("userData", JSON.stringify(newUser));
+    console.log(`User saved under ${formData.userType}:`, newUser);
+  } catch (err) {
+    console.error("Error saving user:", err);
+  }
+
+  setFormData({ mobile: "", password: "", userType: "" });
+  setFormKey(Date.now());
+  navigate("/");
+};
+
+
 
   return (
     <div className="flex flex-col flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6">
