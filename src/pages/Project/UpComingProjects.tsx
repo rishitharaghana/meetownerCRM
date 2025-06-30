@@ -3,12 +3,11 @@ import { useNavigate } from "react-router";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
-import techPlazaImg from "../../components/ui/Images/TechParkplaza.jpeg";
-
+import blueskyImg from "../../components/ui/Images/BlueSkyResidencies.jpeg";
 
 const upcomingProjects = [
   {
-    id: 101,
+    id: 201,
     project_name: "Ocean View Residences",
     location: "Andheri West, Mumbai",
     developer: "DreamBuild",
@@ -20,7 +19,7 @@ const upcomingProjects = [
     amenities: ["Infinity Pool", "Sky Garden", "Yoga Studio", "Gym", "Library"],
   },
   {
-    id: 102,
+    id: 202,
     project_name: "Eco Tower Commercial",
     location: "Gachibowli, Hyderabad",
     developer: "GreenWorks",
@@ -28,7 +27,7 @@ const upcomingProjects = [
     priceRange: "₹3Cr - ₹6Cr",
     possessionDate: "5/30/2026",
     status: "Upcoming",
-    image: techPlazaImg,
+    image: blueskyImg,
     amenities: ["Solar Panels", "EV Parking", "Business Lounge"],
   },
 ];
@@ -40,9 +39,10 @@ const UpcomingProjects: React.FC = () => {
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
     {}
   );
-  const itemsPerPage = 4;
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
+
+  const itemsPerPage = 4;
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -123,10 +123,6 @@ const UpcomingProjects: React.FC = () => {
             ))}
           </select>
         </div>
-        {/* Optional: Add New Upcoming Project Button */}
-        {/* <Link to="/projects/add-upcoming">
-          <Button variant="primary">Add Upcoming Project</Button>
-        </Link> */}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -138,7 +134,7 @@ const UpcomingProjects: React.FC = () => {
           return (
             <div
               key={project.id}
-              className="bg-white border border-gray-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
+              className="bg-white border border-purple-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
               <img
                 src={project.image}
@@ -153,25 +149,22 @@ const UpcomingProjects: React.FC = () => {
                     </h3>
                     <p className="text-sm text-gray-500">{project.location}</p>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-indigo-100 text-indigo-800">
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-800">
                     {project.status}
                   </span>
                 </div>
                 <div className="text-sm text-gray-700 space-y-1 mb-4">
                   <p>
-                    <span className="font-medium">Developer:</span>{" "}
-                    {project.developer}
+                    <strong>Developer:</strong> {project.developer}
                   </p>
                   <p>
-                    <span className="font-medium">Type:</span> {project.type}
+                    <strong>Type:</strong> {project.type}
                   </p>
                   <p>
-                    <span className="font-medium">Price Range:</span>{" "}
-                    {project.priceRange}
+                    <strong>Price Range:</strong> {project.priceRange}
                   </p>
                   <p>
-                    <span className="font-medium">Possession:</span>{" "}
-                    {project.possessionDate}
+                    <strong>Possession:</strong> {project.possessionDate}
                   </p>
                 </div>
                 <div className="mb-5">
@@ -182,7 +175,7 @@ const UpcomingProjects: React.FC = () => {
                     {initialAmenities.map((item) => (
                       <span
                         key={item}
-                        className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                        className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded-full"
                       >
                         {item}
                       </span>
@@ -190,7 +183,7 @@ const UpcomingProjects: React.FC = () => {
                     {hiddenAmenities.length > 0 && !isExpanded && (
                       <button
                         onClick={() => toggleExpand(project.id)}
-                        className="text-xs text-blue-600 underline"
+                        className="text-xs text-purple-600 underline"
                       >
                         +{hiddenAmenities.length} more
                       </button>
@@ -201,25 +194,26 @@ const UpcomingProjects: React.FC = () => {
                       {hiddenAmenities.map((item) => (
                         <span
                           key={item}
-                          className="text-xs bg-gray-100 text-gray-700 px-2 py-1 rounded-full"
+                          className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded-full"
                         >
                           {item}
                         </span>
                       ))}
                       <button
                         onClick={() => toggleExpand(project.id)}
-                        className="text-xs text-blue-600 underline w-full text-left"
+                        className="text-xs text-purple-600 underline w-full text-left"
                       >
                         Show less
                       </button>
                     </div>
                   )}
                 </div>
-                <div className="flex justify-between items-center mt-4">
+                <div className="flex justify-end items-center mt-4">
                   <Button
-                    variant="outline"
+                    variant="primary"
                     size="sm"
                     onClick={() => navigate(`/upcoming/${project.id}`)}
+                    className="bg-[#7D23E0] hover:bg-purple-800 text-white"
                   >
                     View Details
                   </Button>
@@ -261,8 +255,8 @@ const UpcomingProjects: React.FC = () => {
                   onClick={() => goToPage(page as number)}
                   className={
                     page === currentPage
-                      ? "bg-[#1D3A76] text-white"
-                      : "text-gray-500"
+                      ? "bg-[#7D23E0] text-white"
+                      : "text-gray-600"
                   }
                 >
                   {page}

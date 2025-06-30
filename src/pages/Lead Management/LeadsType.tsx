@@ -16,7 +16,6 @@ import Input from "../../components/form/input/InputField";
 import { Modal } from "../../components/ui/modal";
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
 
-
 interface LeadPullFormData {
   channelPartnerName: string;
   channelPartnerNumber: string;
@@ -44,7 +43,7 @@ interface Listing {
   budget: string;
   property_type: string;
   lead_type: string;
-  image?: string; 
+  image?: string;
 }
 
 const sidebarSubItems = [
@@ -397,64 +396,6 @@ const LeadsType: React.FC = () => {
     setSelectedListing(null);
   };
 
-  // // Timeline Popup Handlers
-  // const handleNameClick = (item: Listing) => {
-  //   setSelectedListing(item);
-  //   setIsTimelinePopupOpen(true);
-  // };
-
-  // const handleTimelinePopupClose = () => {
-  //   setIsTimelinePopupOpen(false);
-  //   setSelectedListing(null);
-  // };
-
-  // Timeline events
-  // const getTimelineEvents = (listing: Listing): TimelineEvent[] => {
-  //   const events: TimelineEvent[] = [
-  //     {
-  //       date: formatDateTime(listing.created_date, listing.created_time),
-  //       title: "Lead Initiated",
-  //       description: `Property ${listing.property_name} was created by ${listing.user.name}.`,
-  //     },
-  //   ];
-  //   if (listing.status >= 1) {
-  //     events.push({
-  //       date: formatDateTime(listing.updated_date, listing.updated_time),
-  //       title: "Today Follow-Ups",
-  //       description: `Property ${listing.property_name} was marked as a today lead.`,
-  //     });
-  //   }
-  //   if (listing.status >= 2) {
-  //     events.push({
-  //       date: formatDateTime(listing.updated_date, listing.updated_time),
-  //       title: "Site Visit Done",
-  //       description: `Site visit completed for ${listing.property_name}.`,
-  //     });
-  //   }
-  //   if (listing.status === 3) {
-  //     events.push({
-  //       date: formatDateTime(listing.updated_date, listing.updated_time),
-  //       title: "Won Lead",
-  //       description: `Lead for ${listing.property_name} was won.`,
-  //     });
-  //   }
-  //   if (listing.status === 4) {
-  //     events.push({
-  //       date: formatDateTime(listing.updated_date, listing.updated_time),
-  //       title: "Loss Lead",
-  //       description: `Lead for ${listing.property_name} was lost.`,
-  //     });
-  //   }
-  //   if (listing.status === 5) {
-  //     events.push({
-  //       date: formatDateTime(listing.updated_date, listing.updated_time),
-  //       title: "Total Lead",
-  //       description: `Property ${listing.property_name} is part of total leads.`,
-  //     });
-  //   }
-  //   return events;
-  // };
-
   const handleAddNewLead = () => {
     navigate("/leads/addlead");
   };
@@ -761,55 +702,47 @@ const LeadsType: React.FC = () => {
         </div>
       </Modal>
 
-      {/* {isTimelinePopupOpen && selectedListing && (
+      {propertyViewModal && propertyDetails && (
         <Modal
-          isOpen={isTimelinePopupOpen}
-          onClose={handleTimelinePopupClose}
+          isOpen={propertyViewModal}
+          onClose={() => setPropertyViewModal(false)}
           className="max-w-md p-6"
         >
           <div className="space-y-4">
             <h2 className="text-xl font-semibold text-gray-800 dark:text-white">
-              Timeline for {selectedListing.user.name}
+              Property Details
             </h2>
-            {getTimelineEvents(selectedListing).map((event, index, events) => (
-              <div key={index} className="flex items-start relative">
-                <div className="flex-shrink-0 w-4 h-4 bg-[#1D3A76] rounded-full z-10"></div>
-                {index < events.length - 1 && (
-                  <div className="absolute top-4 left-[7px] w-0.5 h-[calc(100%+1rem)] bg-green-500"></div>
-                )}
-                <div className="ml-4">
-                  <p className="text-sm text-gray-500 dark:text-gray-400">
-                    {event.date}
-                  </p>
-                  <h3 className="text-lg font-medium text-gray-800 dark:text-white">
-                    {event.title}
-                  </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {event.description}
-                  </p>
-                </div>
-              </div>
-            ))}
+            <p>
+              <strong>Budget:</strong> {propertyDetails.budget || "N/A"}
+            </p>
+            <p>
+              <strong>Property Type:</strong>{" "}
+              {propertyDetails.property_type || "N/A"}
+            </p>
+            <p>
+              <strong>Lead Source:</strong>{" "}
+              {propertyDetails.lead_source || "N/A"}
+            </p>
+            <p>
+              <strong>Created On:</strong>{" "}
+              {formatDateTime(
+                propertyDetails.created_date,
+                propertyDetails.created_time
+              )}
+            </p>
+            <div className="flex justify-end">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setPropertyViewModal(false)}
+              >
+                Close
+              </Button>
+            </div>
           </div>
         </Modal>
-      )} */}
-      {propertyViewModal && propertyDetails && (
-  <Modal isOpen={propertyViewModal} onClose={() => setPropertyViewModal(false)} className="max-w-md p-6">
-    <div className="space-y-4">
-      <h2 className="text-xl font-semibold text-gray-800 dark:text-white">Property Details</h2>
-      <p><strong>Budget:</strong> {propertyDetails.budget || "N/A"}</p>
-      <p><strong>Property Type:</strong> {propertyDetails.property_type || "N/A"}</p>
-      <p><strong>Lead Source:</strong> {propertyDetails.lead_source || "N/A"}</p>
-      <p><strong>Created On:</strong> {formatDateTime(propertyDetails.created_date, propertyDetails.created_time)}</p>
-      <div className="flex justify-end">
-        <Button variant="outline" size="sm" onClick={() => setPropertyViewModal(false)}>Close</Button>
-      </div>
+      )}
     </div>
-  </Modal>
-)}
-
-    </div>
-    
   );
 };
 

@@ -29,10 +29,8 @@ import CreateEmployee from "./pages/Employee/CreateEmployee";
 import SiteVisit from "./pages/Lead Management/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
 import SiteVisitDetails from "./pages/Lead Management/SiteVisit-details.";
-
+import UpComingProjects from "./pages/Project/UpComingProjects";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
-
-// Simple server status check component
 
 export default function App() {
   return (
@@ -50,7 +48,10 @@ export default function App() {
             <Route path="/leads/addlead" element={<AddNewLead />} />
             <Route path="/leads/site-visit" element={<SiteVisit />} />
             <Route path="/leads/view" element={<ViewLeadDetails />} />
-            <Route path="/site-visit/details/:id" element={<SiteVisitDetails/>} />
+            <Route
+              path="/site-visit/details/:id"
+              element={<SiteVisitDetails />}
+            />
             <Route path="/partners" element={<PartnerScreen />} />
             <Route path="/partner/:id" element={<PartnerProfile />} />
             <Route
@@ -72,8 +73,11 @@ export default function App() {
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />
+            <Route
+              path="/projects/upcoming-projects"
+              element={<UpComingProjects />}
+            />
 
-         
             <Route path="/adds/all-ads" element={<AllAdsPage />} />
             <Route path="/adds/upload-ads" element={<CreateAds />} />
           </Route>
