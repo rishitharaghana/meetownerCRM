@@ -45,6 +45,7 @@ const navItems: NavItem[] = [
       { name: "Total Leads", path: "/leads/total/5", data: { "lead_in": "Total","status": 5 } },
       { name: "Add New Lead", path: "/leads/addlead", },
       {name: "Site Visit", path:"/leads/site-visit", data:{"lead_in": "Total", "status": 3}},
+      
      
     ],
   },
@@ -54,6 +55,9 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Add Projects", path: "/projects/add-projects", pro: false },
       { name: "All Projects", path: "/projects/allprojects", pro: false },
+      { name: "Up-Coming Projects", path: "/projects/upcoming-projects", pro: false },
+
+
     ],
   },
  

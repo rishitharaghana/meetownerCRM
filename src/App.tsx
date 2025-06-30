@@ -33,6 +33,7 @@ import Support from "./pages/Support/Support";
 import CreateEmployee from "./pages/Employee/CreateEmployee";
 import SiteVisit from "./pages/Lead Management/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
+import UpComingProjects from "./pages/Project/UpComingProjects"
 
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
@@ -76,6 +77,8 @@ export default function App() {
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />
+                        <Route path="/projects/upcoming-projects" element={<UpComingProjects />} />
+
 
             <Route path="/maps/cities" element={<CitiesManager />} />
             <Route path="/maps/states" element={<StatesManager />} />

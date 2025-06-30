@@ -14,6 +14,8 @@ import Button from "../../components/ui/button/Button";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
 import { Modal } from "../../components/ui/modal";
+import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
+
 
 interface LeadPullFormData {
   channelPartnerName: string;
@@ -42,6 +44,7 @@ interface Listing {
   budget: string;
   property_type: string;
   lead_type: string;
+  image?: string; 
 }
 
 const sidebarSubItems = [
@@ -112,6 +115,7 @@ const sampleListings: Listing[] = [
     budget: "50L-75L",
     property_type: "Residential",
     lead_type: "Contacted",
+    image: sunriseImg,
   },
   {
     id: 2,
@@ -137,7 +141,6 @@ const sampleListings: Listing[] = [
   },
 ];
 
-// Timeline Event type
 interface TimelineEvent {
   date: string;
   title: string;
@@ -394,63 +397,63 @@ const LeadsType: React.FC = () => {
     setSelectedListing(null);
   };
 
-  // Timeline Popup Handlers
-  const handleNameClick = (item: Listing) => {
-    setSelectedListing(item);
-    setIsTimelinePopupOpen(true);
-  };
+  // // Timeline Popup Handlers
+  // const handleNameClick = (item: Listing) => {
+  //   setSelectedListing(item);
+  //   setIsTimelinePopupOpen(true);
+  // };
 
-  const handleTimelinePopupClose = () => {
-    setIsTimelinePopupOpen(false);
-    setSelectedListing(null);
-  };
+  // const handleTimelinePopupClose = () => {
+  //   setIsTimelinePopupOpen(false);
+  //   setSelectedListing(null);
+  // };
 
   // Timeline events
-  const getTimelineEvents = (listing: Listing): TimelineEvent[] => {
-    const events: TimelineEvent[] = [
-      {
-        date: formatDateTime(listing.created_date, listing.created_time),
-        title: "Lead Initiated",
-        description: `Property ${listing.property_name} was created by ${listing.user.name}.`,
-      },
-    ];
-    if (listing.status >= 1) {
-      events.push({
-        date: formatDateTime(listing.updated_date, listing.updated_time),
-        title: "Today Follow-Ups",
-        description: `Property ${listing.property_name} was marked as a today lead.`,
-      });
-    }
-    if (listing.status >= 2) {
-      events.push({
-        date: formatDateTime(listing.updated_date, listing.updated_time),
-        title: "Site Visit Done",
-        description: `Site visit completed for ${listing.property_name}.`,
-      });
-    }
-    if (listing.status === 3) {
-      events.push({
-        date: formatDateTime(listing.updated_date, listing.updated_time),
-        title: "Won Lead",
-        description: `Lead for ${listing.property_name} was won.`,
-      });
-    }
-    if (listing.status === 4) {
-      events.push({
-        date: formatDateTime(listing.updated_date, listing.updated_time),
-        title: "Loss Lead",
-        description: `Lead for ${listing.property_name} was lost.`,
-      });
-    }
-    if (listing.status === 5) {
-      events.push({
-        date: formatDateTime(listing.updated_date, listing.updated_time),
-        title: "Total Lead",
-        description: `Property ${listing.property_name} is part of total leads.`,
-      });
-    }
-    return events;
-  };
+  // const getTimelineEvents = (listing: Listing): TimelineEvent[] => {
+  //   const events: TimelineEvent[] = [
+  //     {
+  //       date: formatDateTime(listing.created_date, listing.created_time),
+  //       title: "Lead Initiated",
+  //       description: `Property ${listing.property_name} was created by ${listing.user.name}.`,
+  //     },
+  //   ];
+  //   if (listing.status >= 1) {
+  //     events.push({
+  //       date: formatDateTime(listing.updated_date, listing.updated_time),
+  //       title: "Today Follow-Ups",
+  //       description: `Property ${listing.property_name} was marked as a today lead.`,
+  //     });
+  //   }
+  //   if (listing.status >= 2) {
+  //     events.push({
+  //       date: formatDateTime(listing.updated_date, listing.updated_time),
+  //       title: "Site Visit Done",
+  //       description: `Site visit completed for ${listing.property_name}.`,
+  //     });
+  //   }
+  //   if (listing.status === 3) {
+  //     events.push({
+  //       date: formatDateTime(listing.updated_date, listing.updated_time),
+  //       title: "Won Lead",
+  //       description: `Lead for ${listing.property_name} was won.`,
+  //     });
+  //   }
+  //   if (listing.status === 4) {
+  //     events.push({
+  //       date: formatDateTime(listing.updated_date, listing.updated_time),
+  //       title: "Loss Lead",
+  //       description: `Lead for ${listing.property_name} was lost.`,
+  //     });
+  //   }
+  //   if (listing.status === 5) {
+  //     events.push({
+  //       date: formatDateTime(listing.updated_date, listing.updated_time),
+  //       title: "Total Lead",
+  //       description: `Property ${listing.property_name} is part of total leads.`,
+  //     });
+  //   }
+  //   return events;
+  // };
 
   const handleAddNewLead = () => {
     navigate("/leads/addlead");
@@ -758,7 +761,7 @@ const LeadsType: React.FC = () => {
         </div>
       </Modal>
 
-      {isTimelinePopupOpen && selectedListing && (
+      {/* {isTimelinePopupOpen && selectedListing && (
         <Modal
           isOpen={isTimelinePopupOpen}
           onClose={handleTimelinePopupClose}
@@ -789,7 +792,7 @@ const LeadsType: React.FC = () => {
             ))}
           </div>
         </Modal>
-      )}
+      )} */}
       {propertyViewModal && propertyDetails && (
   <Modal isOpen={propertyViewModal} onClose={() => setPropertyViewModal(false)} className="max-w-md p-6">
     <div className="space-y-4">
