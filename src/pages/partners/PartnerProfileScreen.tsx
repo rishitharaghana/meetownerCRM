@@ -241,7 +241,8 @@ const staticUsers: User[] = [
 export function PartnerProfile() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const user = staticUsers.find((u) => u.id === parseInt(id || "0"));
+
+  const user = staticUsers.find((u) => u.id === Number(id));
 
   if (!user) {
     return <div className="p-4">Partner not found</div>;

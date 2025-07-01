@@ -1,25 +1,30 @@
-
 import React, { useEffect, useState } from "react";
-import ComponentCard from "../../components/common/ComponentCard";
-import Label from "../../components/form/Label";
-import Input from "../../components/form/input/InputField";
-import MultiSelect from "../../components/form/MultiSelect";
-import PhoneInput from "../../components/form/group-input/PhoneInput";
-import { EyeCloseIcon, EyeIcon, EnvelopeIcon } from "../../icons";
+import {
+  User,
+  MapPin,
+  KeyRound,
+  Mail,
+  EyeIcon,
+  EyeOff,
+  Landmark,
+  Building2,
+} from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { getCities, getStates } from "../../store/slices/propertyDetails";
+import Input from "../../components/form/input/InputField";
+import PhoneInput from "../../components/form/group-input/PhoneInput";
 
 interface FormData {
   name: string;
   mobile: string;
   email: string;
   password: string;
-  city: string[];
-  state: string[];
+  city: string;
+  state: string;
   pincode: string;
   panCardNumber: string;
-  aadharNumber: string; // Added Aadhar Number
+  aadharNumber: string;
   companyName: string;
   representativeName: string;
   companyAddress: string;
@@ -27,164 +32,82 @@ interface FormData {
 }
 
 interface Errors {
-  name?: string;
-  mobile?: string;
-  email?: string;
-  password?: string;
-  city?: string;
-  state?: string;
-  pincode?: string;
-  panCardNumber?: string;
-  aadharNumber?: string; // Added Aadhar Number
-  companyName?: string;
-  representativeName?: string;
-  companyAddress?: string;
-  companyNumber?: string;
+  [key: string]: string | undefined;
 }
 
-interface Option {
-  value: string;
-  text: string;
-}
-
-export default function AddChannelPartner() {
-  const [showPassword, setShowPassword] = useState(false);
+const AddChannelPartner = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { cities, states } = useSelector((state: RootState) => state.property);
-  const { createLoading, createError, createSuccess } = useSelector(
-    (state: RootState) => state.employee
-  );
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    mobile: "",
+    email: "",
+    password: "",
+    city: "",
+    state: "",
+    pincode: "",
+    panCardNumber: "",
+    aadharNumber: "",
+    companyName: "",
+    representativeName: "",
+    companyAddress: "",
+    companyNumber: "",
+  });
+  const [errors, setErrors] = useState<Errors>({});
+  const [showPassword, setShowPassword] = useState(false);
 
   useEffect(() => {
     dispatch(getCities());
     dispatch(getStates());
   }, [dispatch]);
 
-  useEffect(() => {
-    if (createSuccess) {
-      setFormData({
-        name: "",
-        mobile: "",
-        email: "",
-        password: "",
-        city: [],
-        state: [],
-        pincode: "",
-        panCardNumber: "",
-        aadharNumber: "", // Added Aadhar Number
-        companyName: "",
-        representativeName: "",
-        companyAddress: "",
-        companyNumber: "",
-      });
-    }
-  }, [createSuccess, dispatch]);
+  const cityOptions =
+    cities?.map((city: any) => ({ value: city.value, text: city.label })) || [];
 
-  const [formData, setFormData] = useState<FormData>({
-    name: "",
-    mobile: "",
-    email: "",
-    password: "",
-    city: [],
-    state: [],
-    pincode: "",
-    panCardNumber: "",
-    aadharNumber: "", // Added Aadhar Number
-    companyName: "",
-    representativeName: "",
-    companyAddress: "",
-    companyNumber: "",
-  });
+  const stateOptions =
+    states?.map((state: any) => ({ value: state.value, text: state.label })) || [];
 
-  const [errors, setErrors] = useState<Errors>({});
-
-  const cityOptions: Option[] =
-    cities?.map((city: any) => ({
-      value: city.value,
-      text: city.label,
-    })) || [];
-
-  const stateOptions: Option[] =
-    states?.map((state: any) => ({
-      value: state.value,
-      text: state.label,
-    })) || [];
-
-  const countries = [{ code: "IN", label: "+91" }];
-
-  const handleSingleChange =
-    (
-      field:
-        | "name"
-        | "mobile"
-        | "email"
-        | "password"
-        | "pincode"
-        | "panCardNumber"
-        | "aadharNumber" // Added Aadhar Number
-        | "companyName"
-        | "representativeName"
-        | "companyAddress"
-        | "companyNumber"
-    ) =>
-    (value: string) => {
-      setFormData({ ...formData, [field]: value });
-      if (errors[field]) {
-        setErrors({ ...errors, [field]: undefined });
-      }
-    };
-
-  const handleMultiSelectChange =
-    (field: "city" | "state") => (values: string[]) => {
-      setFormData({ ...formData, [field]: values });
-      if (errors[field]) {
-        setErrors({ ...errors, [field]: undefined });
-      }
-    };
+  const handleChange = (field: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   const validateForm = () => {
-    let newErrors: Errors = {};
-
+    const newErrors: Errors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
+    if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
     if (!formData.password) newErrors.password = "Password is required";
-    if (formData.city.length === 0)
-      newErrors.city = "At least one city is required";
-    if (formData.state.length === 0)
-      newErrors.state = "At least one state is required";
+    if (!formData.city) newErrors.city = "City is required";
+    if (!formData.state) newErrors.state = "State is required";
     if (!formData.pincode.trim()) {
       newErrors.pincode = "Pincode is required";
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = "Pincode must be 6 digits";
     }
     if (!formData.panCardNumber.trim()) {
-      newErrors.panCardNumber = "PAN Card Number is required";
+      newErrors.panCardNumber = "PAN Card is required";
     } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
-      newErrors.panCardNumber = "Invalid PAN Card Number (e.g., ABCDE1234F)";
+      newErrors.panCardNumber = "Invalid PAN (ABCDE1234F)";
     }
     if (!formData.aadharNumber.trim()) {
-      newErrors.aadharNumber = "Aadhar Number is required";
+      newErrors.aadharNumber = "Aadhar is required";
     } else if (!/^\d{12}$/.test(formData.aadharNumber)) {
-      newErrors.aadharNumber = "Aadhar Number must be 12 digits";
+      newErrors.aadharNumber = "Aadhar must be 12 digits";
     }
-    if (!formData.companyName.trim()) {
-      newErrors.companyName = "Company Name is required";
-    }
-    if (!formData.representativeName.trim()) {
-      newErrors.representativeName = "Representative Name is required";
-    }
-    if (!formData.companyAddress.trim()) {
-      newErrors.companyAddress = "Company Address is required";
-    }
+    if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
+    if (!formData.representativeName.trim())
+      newErrors.representativeName = "Representative is required";
+    if (!formData.companyAddress.trim())
+      newErrors.companyAddress = "Company address is required";
     if (!formData.companyNumber.trim()) {
-      newErrors.companyNumber = "Company Number is required";
+      newErrors.companyNumber = "Company number is required";
     } else if (!/^\d{10}$/.test(formData.companyNumber)) {
-      newErrors.companyNumber = "Company Number must be 10 digits";
+      newErrors.companyNumber = "Company number must be 10 digits";
     }
 
     setErrors(newErrors);
@@ -193,289 +116,195 @@ export default function AddChannelPartner() {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (validateForm()) {
-      const createdBy = localStorage.getItem("name");
-      const createdUserIdRaw = localStorage.getItem("userId");
+    if (!validateForm()) return;
 
-      // Map city ID to city name
-      const selectedCityId = formData.city[0];
-      const cityName =
-        cityOptions.find((option) => option.value === selectedCityId)?.text ||
-        selectedCityId;
+    const createdBy = localStorage.getItem("name") || "Admin";
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1");
 
-      // Map state ID to state name
-      const selectedStateId = formData.state[0];
-      const stateName =
-        stateOptions.find((option) => option.value === selectedStateId)?.text ||
-        selectedStateId;
+    const cityName =
+      cityOptions.find((option) => option.value === formData.city)?.text || formData.city;
 
-      const employeeData = {
-        name: formData.name,
-        mobile: formData.mobile,
-        email: formData.email,
-        password: formData.password,
-        city: cityName,
-        state: stateName,
-        pincode: formData.pincode,
-        panCardNumber: formData.panCardNumber,
-        aadharNumber: formData.aadharNumber, // Added Aadhar Number
-        companyName: formData.companyName,
-        representativeName: formData.representativeName,
-        companyAddress: formData.companyAddress,
-        companyNumber: formData.companyNumber,
-        user_type: 7, // Assuming Channel Partner user_type is 7
-        created_by: createdBy || "Unknown",
-        created_userID: createdUserIdRaw ? parseInt(createdUserIdRaw) : 1,
-      };
+    const stateName =
+      stateOptions.find((option) => option.value === formData.state)?.text || formData.state;
 
-      console.log("Employee Data:", employeeData);
-    }
+    const payload = {
+      ...formData,
+      city: cityName,
+      state: stateName,
+      user_type: 7, // Channel Partner type
+      created_by: createdBy,
+      created_userID: createdUserId,
+    };
+
+    console.log("Channel Partner Data Submitted:", payload);
+    // dispatch(createEmployee(payload)) if needed
   };
 
   return (
-    <div className="relative min-h-screen">
-      <ComponentCard title="Create Channel Partner">
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {createSuccess && (
-            <div className="p-3 bg-green-100 text-green-700 rounded-md">
-              {createSuccess}
-            </div>
-          )}
-          {createError && (
-            <div className="p-3 bg-red-100 text-red-700 rounded-md">
-              {createError}
-            </div>
-          )}
+    <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
+            <Building2 className="w-8 h-8 text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-gray-800 mb-2">Add Channel Partner</h1>
+          <p className="text-gray-600">Fill in the details below to add a new partner</p>
+        </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="name">Name</Label>
-            <Input
-              type="text"
-              id="name"
-              value={formData.name}
-              onChange={(e) => handleSingleChange("name")(e.target.value)}
-              placeholder="Enter your name"
-              disabled={createLoading}
-              className="dark:bg-gray-800"
-            />
-            {errors.name && (
-              <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-            )}
+        <form onSubmit={handleSubmit} className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6">
+          {/* Name */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><User size={16} /> Name</label>
+            <Input value={formData.name} onChange={(e) => handleChange("name")(e.target.value)} placeholder="Enter name" />
+            {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label>Mobile Number</Label>
+          {/* Mobile */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Mobile</label>
             <PhoneInput
-              selectPosition="start"
-              countries={countries}
+              countries={[{ code: "IN", label: "+91" }]}
               value={formData.mobile}
-              placeholder="Enter mobile number"
-              onChange={handleSingleChange("mobile")}
+              placeholder="Enter mobile"
+              onChange={handleChange("mobile")}
             />
-            {errors.mobile && (
-              <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
-            )}
+            {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="email">Email ID</Label>
-            <div className="relative">
-              <Input
-                type="email"
-                id="email"
-                value={formData.email}
-                onChange={(e) => handleSingleChange("email")(e.target.value)}
-                placeholder="example@domain.com"
-                className="pl-[62px] dark:bg-gray-800"
-                disabled={createLoading}
-              />
-              <span className="absolute left-0 top-1/2 -translate-y-1/2 border-r border-gray-200 px-3.5 py-3 text-gray-500 dark:border-gray-800 dark:text-gray-400">
-                <EnvelopeIcon className="size-6" />
-              </span>
-            </div>
-            {errors.email && (
-              <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-            )}
-          </div>
-
-          <div className="min-h-[80px]">
-            <Label htmlFor="companyName">Company Name</Label>
+          {/* Email */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><Mail size={16} /> Email</label>
             <Input
-              type="text"
-              id="companyName"
-              value={formData.companyName}
-              onChange={(e) => handleSingleChange("companyName")(e.target.value)}
-              placeholder="Enter company name"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
+              type="email"
+              value={formData.email}
+              onChange={(e) => handleChange("email")(e.target.value)}
+              placeholder="email@example.com"
             />
-            {errors.companyName && (
-              <p className="text-red-500 text-sm mt-1">{errors.companyName}</p>
-            )}
+            {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="representativeName">Representative Name</Label>
-            <Input
-              type="text"
-              id="representativeName"
-              value={formData.representativeName}
-              onChange={(e) => handleSingleChange("representativeName")(e.target.value)}
-              placeholder="Enter representative name"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.representativeName && (
-              <p className="text-red-500 text-sm mt-1">{errors.representativeName}</p>
-            )}
+          {/* Company Name */}
+          <div>
+            <label className="text-sm font-medium text-gray-700"><Landmark size={16} className="inline" /> Company Name</label>
+            <Input value={formData.companyName} onChange={(e) => handleChange("companyName")(e.target.value)} />
+            {errors.companyName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="companyAddress">Company Address</Label>
+          {/* Representative */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Representative Name</label>
+            <Input value={formData.representativeName} onChange={(e) => handleChange("representativeName")(e.target.value)} />
+            {errors.representativeName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.representativeName}</p>}
+          </div>
+
+          {/* Company Address */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Company Address</label>
             <textarea
-              id="companyAddress"
               value={formData.companyAddress}
-              onChange={(e) => handleSingleChange("companyAddress")(e.target.value)}
-              placeholder="Enter company address"
-              className="w-full p-2 border rounded-lg dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700 focus:ring-blue-500 focus:border-blue-500"
-              rows={4}
-              disabled={createLoading}
+              onChange={(e) => handleChange("companyAddress")(e.target.value)}
+              rows={3}
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
             />
-            {errors.companyAddress && (
-              <p className="text-red-500 text-sm mt-1">{errors.companyAddress}</p>
-            )}
+            {errors.companyAddress && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="companyNumber">Company Number</Label>
+          {/* Company Number */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Company Phone</label>
             <PhoneInput
-              selectPosition="start"
-              countries={countries}
+              countries={[{ code: "IN", label: "+91" }]}
               value={formData.companyNumber}
-              placeholder="Enter company number"
-              onChange={handleSingleChange("companyNumber")}
+              placeholder="Enter phone number"
+              onChange={handleChange("companyNumber")}
             />
-            {errors.companyNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.companyNumber}</p>
-            )}
+            {errors.companyNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="panCardNumber">PAN Card Number</Label>
+          {/* PAN */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
+            <Input value={formData.panCardNumber} onChange={(e) => handleChange("panCardNumber")(e.target.value)} />
+            {errors.panCardNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>}
+          </div>
+
+          {/* Aadhar */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
+            <Input value={formData.aadharNumber} onChange={(e) => handleChange("aadharNumber")(e.target.value)} />
+            {errors.aadharNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>}
+          </div>
+
+          {/* Password */}
+          <div className="relative">
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><KeyRound size={16} /> Password</label>
             <Input
-              type="text"
-              id="panCardNumber"
-              value={formData.panCardNumber}
-              onChange={(e) => handleSingleChange("panCardNumber")(e.target.value)}
-              placeholder="Enter PAN Card Number (e.g., ABCDE1234F)"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
+              type={showPassword ? "text" : "password"}
+              value={formData.password}
+              onChange={(e) => handleChange("password")(e.target.value)}
+              placeholder="Enter password"
             />
-            {errors.panCardNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.panCardNumber}</p>
-            )}
+            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-9">
+              {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
+            </button>
+            {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="aadharNumber">Aadhar Number</Label>
+          {/* City */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">City</label>
+            <select
+              value={formData.city}
+              onChange={(e) => handleChange("city")(e.target.value)}
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
+            >
+              <option value="" disabled>Select a city</option>
+              {cityOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.text}</option>
+              ))}
+            </select>
+            {errors.city && <p className="text-red-600 text-sm mt-1">⚠️ {errors.city}</p>}
+          </div>
+
+          {/* Pincode */}
+          <div>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><MapPin size={16} /> Pincode</label>
             <Input
-              type="text"
-              id="aadharNumber"
-              value={formData.aadharNumber}
-              onChange={(e) => handleSingleChange("aadharNumber")(e.target.value)}
-              placeholder="Enter Aadhar Number (e.g., 1234 5678 9012)"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
-            />
-            {errors.aadharNumber && (
-              <p className="text-red-500 text-sm mt-1">{errors.aadharNumber}</p>
-            )}
-          </div>
-
-          <div className="min-h-[80px]">
-            <Label>Password</Label>
-            <div className="relative">
-              <Input
-                type={showPassword ? "text" : "password"}
-                value={formData.password}
-                onChange={(e) => handleSingleChange("password")(e.target.value)}
-                placeholder="Enter password"
-                className="dark:bg-gray-800"
-                disabled={createLoading}
-              />
-              <button
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute z-30 -translate-y-1/2 cursor-pointer right-4 top-1/2"
-                disabled={createLoading}
-              >
-                {showPassword ? (
-                  <EyeIcon className="fill-gray-main dark:fill-gray-400 size-5" />
-                ) : (
-                  <EyeCloseIcon className="fill-gray-main dark:fill-gray-400 size-5" />
-                )}
-              </button>
-            </div>
-            {errors.password && (
-              <p className="text-red-500 text-sm mt-1">{errors.password}</p>
-            )}
-          </div>
-
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="City"
-              options={cityOptions}
-              defaultSelected={formData.city}
-              onChange={handleMultiSelectChange("city")}
-              disabled={createLoading}
-              singleSelect={true}
-            />
-            {errors.city && (
-              <p className="text-red-500 text-sm mt-1">{errors.city}</p>
-            )}
-          </div>
-
-          <div className="min-h-[80px]">
-            <Label htmlFor="pincode">Pincode</Label>
-            <Input
-              type="text"
-              id="pincode"
               value={formData.pincode}
-              onChange={(e) => handleSingleChange("pincode")(e.target.value)}
+              onChange={(e) => handleChange("pincode")(e.target.value)}
               placeholder="Enter pincode"
-              className="dark:bg-gray-800"
-              disabled={createLoading}
             />
-            {errors.pincode && (
-              <p className="text-red-500 text-sm mt-1">{errors.pincode}</p>
-            )}
+            {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
           </div>
 
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="State"
-              options={stateOptions}
-              defaultSelected={formData.state}
-              onChange={handleMultiSelectChange("state")}
-              disabled={createLoading}
-              singleSelect={true}
-            />
-            {errors.state && (
-              <p className="text-red-500 text-sm mt-1">{errors.state}</p>
-            )}
+          {/* State */}
+          <div>
+            <label className="text-sm font-medium text-gray-700">State</label>
+            <select
+              value={formData.state}
+              onChange={(e) => handleChange("state")(e.target.value)}
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
+            >
+              <option value="" disabled>Select a state</option>
+              {stateOptions.map((opt) => (
+                <option key={opt.value} value={opt.value}>{opt.text}</option>
+              ))}
+            </select>
+            {errors.state && <p className="text-red-600 text-sm mt-1">⚠️ {errors.state}</p>}
           </div>
 
-          <div className="flex justify-center">
+          <div className="pt-4">
             <button
               type="submit"
-              className="w-[60%] px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
-              disabled={createLoading}
+              className="w-full py-3 bg-gradient-to-r from-[#1D3A76] to-purple-700 text-white font-semibold rounded-xl hover:from-purple-800 hover:to-purple-600"
             >
-              {createLoading ? "Submitting..." : "Submit"}
+              Submit
             </button>
           </div>
         </form>
-      </ComponentCard>
+      </div>
     </div>
   );
-}
+};
+
+export default AddChannelPartner;

@@ -57,9 +57,8 @@ export default function SignInForm() {
     return /^[6-9]\d{9}$/.test(mobile);
   };
 
- const handleSubmit = (e: { preventDefault: () => void }) => {
+const handleSubmit = (e: { preventDefault: () => void }) => {
   e.preventDefault();
-  console.log("Submitting form...", formData);
 
   let newErrors = { mobile: "", password: "", userType: "", general: "" };
   let hasError = false;
@@ -74,11 +73,6 @@ export default function SignInForm() {
 
   if (!formData.password.trim()) {
     newErrors.password = "Password is required";
-    hasError = true;
-  }
-
-  if (!formData.userType) {
-    newErrors.userType = "User type is required";
     hasError = true;
   }
 
@@ -99,7 +93,6 @@ export default function SignInForm() {
       existingUsers[formData.userType] = [];
     }
 
-    // Optional: prevent same mobile from being added again
     const alreadyExists = existingUsers[formData.userType].some(
       (user: any) => user.mobile === newUser.mobile
     );
@@ -108,14 +101,13 @@ export default function SignInForm() {
       existingUsers[formData.userType].push(newUser);
     }
 
-    localStorage.setItem("users", JSON.stringify(existingUsers));
-    localStorage.setItem("userData", JSON.stringify(newUser));
-    console.log(`User saved under ${formData.userType}:`, newUser);
+    localStorage.setItem("users", JSON.stringify(existingUsers)); // ✅ Keep this
+    // localStorage.setItem("userData", JSON.stringify(newUser)); ❌ Remove this line
   } catch (err) {
     console.error("Error saving user:", err);
   }
 
-  setFormData({ mobile: "", password: "", userType: "" });
+  setFormData({ mobile: "", password: "", userType: "tele_callers" }); // Or your default type
   setFormKey(Date.now());
   navigate("/");
 };
@@ -132,27 +124,7 @@ export default function SignInForm() {
               Enter your mobile number, password, and select user type to sign in!
             </p>
 
-            <div className="mt-4">
-              <Label className="text-sm font-medium text-gray-800 dark:text-white">
-                User Type <span className="text-red-500">*</span>
-              </Label>
-              <select
-                name="userType"
-                value={formData.userType}
-                onChange={handleInputChange}
-                className="w-full px-4 py-2 mt-1 cursor-pointer border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-700 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
-              >
-                <option value="">Select User Type</option>
-                {userTypes.map((type) => (
-                  <option key={type.value} value={type.value}>
-                    {type.label}
-                  </option>
-                ))}
-              </select>
-              {errors.userType && (
-                <p className="mt-1 text-sm text-red-500">{errors.userType}</p>
-              )}
-            </div>
+          
           </div>
 
           <form key={formKey} onSubmit={handleSubmit} autoComplete="off">

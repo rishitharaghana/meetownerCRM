@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
-import Dropdown from "../../components/form/Dropdown"; // Adjust path if needed
+import Dropdown from "../../components/form/Dropdown";
 import { AppDispatch, RootState } from "../../store/store";
 import { getCities, getStates } from "../../store/slices/propertyDetails";
+import DatePicker from "../../components/form/date-picker";
 
 interface SelectOption {
   value: string;
@@ -40,7 +41,10 @@ interface FormData {
   sizes: SizeEntry[];
   aroundProperty: AroundPropertyEntry[];
   brochure: File | null;
-  priceSheet: File |null;
+  priceSheet: File | null;
+  isUpcoming: boolean;
+  status: "Under Construction" | "Ready to Move";
+  launchDate?: string;
 }
 
 interface Errors {
@@ -51,10 +55,17 @@ interface Errors {
   propertySubType?: string;
   projectName?: string;
   builderName?: string;
-  sizes?: { [key: string]: { buildupArea?: string; carpetArea?: string; floorPlan?: string } };
+  sizes?: {
+    [key: string]: {
+      buildupArea?: string;
+      carpetArea?: string;
+      floorPlan?: string;
+    };
+  };
   aroundProperty?: string;
   brochure?: string;
   priceSheet?: string;
+  launchDate?: string;
 }
 
 export default function AddProject() {
@@ -69,22 +80,34 @@ export default function AddProject() {
     propertySubType: "",
     projectName: "",
     builderName: "",
-    sizes: [{ id: `${Date.now()}-1`, buildupArea: "", carpetArea: "", floorPlan: null }],
+    sizes: [
+      {
+        id: `${Date.now()}-1`,
+        buildupArea: "",
+        carpetArea: "",
+        floorPlan: null,
+      },
+    ],
     aroundProperty: [],
     brochure: null,
     priceSheet: null,
+    isUpcoming: false,
+    status: "Ready to Move",
+    launchDate: "",
   });
 
   const [errors, setErrors] = useState<Errors>({});
   const [placeAroundProperty, setPlaceAroundProperty] = useState("");
   const [distanceFromProperty, setDistanceFromProperty] = useState("");
 
+  const brochureInputRef = useRef<HTMLInputElement>(null);
+  const priceSheetInputRef = useRef<HTMLInputElement>(null);
+
   useEffect(() => {
     dispatch(getCities());
     dispatch(getStates());
   }, [dispatch]);
 
-  // Mock locality options (replace with actual API if available)
   const localityOptions: Option[] = [
     { value: "locality1", text: "Locality 1" },
     { value: "locality2", text: "Locality 2" },
@@ -196,6 +219,12 @@ export default function AddProject() {
       }));
     };
 
+  const handleBrochureButtonClick = () => {
+    if (brochureInputRef.current) {
+      brochureInputRef.current.click();
+    }
+  };
+
   const handleBrochureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
@@ -239,7 +268,14 @@ export default function AddProject() {
       },
     }));
   };
-    const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+
+  const handlePriceSheetButtonClick = () => {
+    if (priceSheetInputRef.current) {
+      priceSheetInputRef.current.click();
+    }
+  };
+
+  const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
       const validFileTypes = ["image/jpeg", "image/png", "application/pdf"];
@@ -266,7 +302,6 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, priceSheet: null }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
   };
-
 
   const handleDeleteSize = (id: string) => () => {
     setFormData((prev) => ({
@@ -326,22 +361,41 @@ export default function AddProject() {
     }));
   };
 
+  const handleLaunchDateChange = (selectedDates: Date[]) => {
+    const selectedDate = selectedDates[0];
+    const formattedDate = selectedDate
+      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      : "";
+    setFormData((prev) => ({ ...prev, launchDate: formattedDate }));
+    setErrors((prev) => ({ ...prev, launchDate: undefined }));
+  };
+
   const validateForm = () => {
     const newErrors: Errors = {};
 
     if (!formData.state) newErrors.state = "State is required";
     if (!formData.city) newErrors.city = "City is required";
     if (!formData.locality) newErrors.locality = "Locality is required";
-    if (!formData.propertyType) newErrors.propertyType = "Property Type is required";
+    if (!formData.propertyType)
+      newErrors.propertyType = "Property Type is required";
     if (!formData.propertySubType)
       newErrors.propertySubType = "Property Sub Type is required";
-    if (!formData.projectName.trim()) newErrors.projectName = "Project Name is required";
-    if (!formData.builderName.trim()) newErrors.builderName = "Builder Name is required";
+    if (!formData.projectName.trim())
+      newErrors.projectName = "Project Name is required";
+    if (!formData.builderName.trim())
+      newErrors.builderName = "Builder Name is required";
     if (formData.aroundProperty.length === 0)
-      newErrors.aroundProperty = "At least one place around property is required";
+      newErrors.aroundProperty =
+        "At least one place around property is required";
+    if (formData.status === "Under Construction" && !formData.launchDate)
+      newErrors.launchDate = "Expected Completion date is required";
 
     const sizeErrors: {
-      [key: string]: { buildupArea?: string; carpetArea?: string; floorPlan?: string };
+      [key: string]: {
+        buildupArea?: string;
+        carpetArea?: string;
+        floorPlan?: string;
+      };
     } = {};
     formData.sizes.forEach((size) => {
       const errorsForSize: {
@@ -349,8 +403,10 @@ export default function AddProject() {
         carpetArea?: string;
         floorPlan?: string;
       } = {};
-      if (!size.buildupArea.trim()) errorsForSize.buildupArea = "Buildup Area is required";
-      if (!size.carpetArea.trim()) errorsForSize.carpetArea = "Carpet Area is required";
+      if (!size.buildupArea.trim())
+        errorsForSize.buildupArea = "Buildup Area is required";
+      if (!size.carpetArea.trim())
+        errorsForSize.carpetArea = "Carpet Area is required";
       if (!size.floorPlan) errorsForSize.floorPlan = "Floor Plan is required";
       if (Object.keys(errorsForSize).length > 0) {
         sizeErrors[size.id] = errorsForSize;
@@ -375,8 +431,8 @@ export default function AddProject() {
         cityOptions.find((option) => option.value === formData.city)?.text ||
         formData.city;
       const localityName =
-        localityOptions.find((option) => option.value === formData.locality)?.text ||
-        formData.locality;
+        localityOptions.find((option) => option.value === formData.locality)
+          ?.text || formData.locality;
 
       const propertyData = {
         state: stateName,
@@ -390,10 +446,13 @@ export default function AddProject() {
           buildupArea: size.buildupArea,
           carpetArea: size.carpetArea,
           floorPlan: size.floorPlan ? size.floorPlan.name : null,
+          isUpcoming: formData.isUpcoming,
+          status: formData.status,
+          launchDate: formData.status === "Under Construction" ? formData.launchDate : null,
         })),
         aroundProperty: formData.aroundProperty,
         brochure: formData.brochure ? formData.brochure.name : null,
-        priceSheet: formData.priceSheet ? formData.priceSheet.name: null,
+        priceSheet: formData.priceSheet ? formData.priceSheet.name : null,
       };
 
       console.log("Property Data:", propertyData);
@@ -449,7 +508,9 @@ export default function AddProject() {
                 <button
                   key={option.value}
                   type="button"
-                  onClick={() => handleSelectChange("propertyType")(option.value)}
+                  onClick={() =>
+                    handleSelectChange("propertyType")(option.value)
+                  }
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                     formData.propertyType === option.value
                       ? "bg-[#1D3A76] text-white border-blue-600"
@@ -473,7 +534,9 @@ export default function AddProject() {
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() => handleSelectChange("propertySubType")(option.value)}
+                    onClick={() =>
+                      handleSelectChange("propertySubType")(option.value)
+                    }
                     className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                       formData.propertySubType === option.value
                         ? "bg-[#1D3A76] text-white border-blue-600"
@@ -485,7 +548,9 @@ export default function AddProject() {
                 ))}
               </div>
               {errors.propertySubType && (
-                <p className="text-red-500 text-sm mt-1">{errors.propertySubType}</p>
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.propertySubType}
+                </p>
               )}
             </div>
           )}
@@ -520,6 +585,79 @@ export default function AddProject() {
             )}
           </div>
 
+          <div className="min-h-[80px]">
+            <Label htmlFor="status">Construction Status</Label>
+            <div className="flex space-x-4">
+              {["Under Construction", "Ready to Move"].map((statusOption) => (
+                <button
+                  key={statusOption}
+                  type="button"
+                  onClick={() =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      status: statusOption as FormData["status"],
+                      launchDate: statusOption === "Ready to Move" ? "" : prev.launchDate,
+                    }))
+                  }
+                  className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
+                    formData.status === statusOption
+                      ? "bg-[#1D3A76] text-white border-blue-600"
+                      : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                  }`}
+                >
+                  {statusOption}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {formData.status === "Under Construction" && (
+            <div className="min-h-[80px]">
+              <DatePicker
+                id="launchDate"
+                label="Possession End Date"
+                placeholder="Select date"
+                defaultDate={formData.launchDate || undefined}
+                onChange={handleLaunchDateChange}
+              />
+              {errors.launchDate && (
+                <p className="text-red-500 text-sm mt-1">{errors.launchDate}</p>
+              )}
+            </div>
+          )}
+
+          <div className="min-h-[80px]">
+            <Label htmlFor="isUpcoming">Is this an Upcoming Project?</Label>
+            <div className="flex space-x-4 mb-5">
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, isUpcoming: true }))
+                }
+                className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
+                  formData.isUpcoming
+                    ? "bg-[#1D3A76] text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                }`}
+              >
+                Yes
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setFormData((prev) => ({ ...prev, isUpcoming: false }))
+                }
+                className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
+                  !formData.isUpcoming
+                    ? "bg-[#1D3A76] text-white border-blue-600"
+                    : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
+                }`}
+              >
+                No
+              </button>
+            </div>
+          </div>
+
           <div className="space-y-4">
             <h3 className="text-lg font-semibold">Sizes</h3>
             {formData.sizes.map((size, index) => (
@@ -551,7 +689,9 @@ export default function AddProject() {
                   </button>
                 )}
                 <div className="min-h-[80px]">
-                  <Label htmlFor={`buildupArea-${size.id}`}>Buildup Area (sq.ft)</Label>
+                  <Label htmlFor={`buildupArea-${size.id}`}>
+                    Buildup Area (sq.ft)
+                  </Label>
                   <Input
                     type="text"
                     id={`buildupArea-${size.id}`}
@@ -568,7 +708,9 @@ export default function AddProject() {
                 </div>
 
                 <div className="min-h-[80px]">
-                  <Label htmlFor={`carpetArea-${size.id}`}>Carpet Area (sq.ft)</Label>
+                  <Label htmlFor={`carpetArea-${size.id}`}>
+                    Carpet Area (sq.ft)
+                  </Label>
                   <Input
                     type="text"
                     id={`carpetArea-${size.id}`}
@@ -620,7 +762,9 @@ export default function AddProject() {
                         className="max-w-[100px] max-h-[100px] object-contain"
                       />
                     ) : (
-                      <p className="text-sm text-gray-500 truncate">{size.floorPlan.name}</p>
+                      <p className="text-sm text-gray-500 truncate">
+                        {size.floorPlan.name}
+                      </p>
                     )
                   ) : (
                     <p className="text-sm text-gray-400"></p>
@@ -667,7 +811,9 @@ export default function AddProject() {
               </button>
             </div>
             {errors.aroundProperty && (
-              <p className="text-red-500 text-sm mt-1">{errors.aroundProperty}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.aroundProperty}
+              </p>
             )}
             {formData.aroundProperty.length > 0 && (
               <div className="mt-4">
@@ -696,14 +842,22 @@ export default function AddProject() {
 
           <div className="space-y-1">
             <Label htmlFor="brochure">Brochure</Label>
-            <div className="flex items-center space-x-1">
+            <div className="flex items-center space-x-2">
               <input
                 type="file"
                 id="brochure"
+                ref={brochureInputRef}
                 accept="image/jpeg,image/png,application/pdf"
                 onChange={handleBrochureChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
+                className="hidden"
               />
+              <button
+                type="button"
+                onClick={handleBrochureButtonClick}
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-700"
+              >
+                Choose File
+              </button>
               {formData.brochure && (
                 <button
                   type="button"
@@ -713,6 +867,9 @@ export default function AddProject() {
                   Delete
                 </button>
               )}
+              <span className="text-sm text-gray-500">
+                {formData.brochure ? formData.brochure.name : "No file chosen"}
+              </span>
             </div>
             {errors.brochure && (
               <p className="text-red-500 text-sm mt-1">{errors.brochure}</p>
@@ -726,23 +883,34 @@ export default function AddProject() {
                     className="max-w-[100px] max-h-[100px] object-contain"
                   />
                 ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.brochure.name}</p>
+                  <p className="text-sm text-gray-500 truncate">
+                    {formData.brochure.name}
+                  </p>
                 )
               ) : (
                 <p className="text-sm text-gray-400"></p>
               )}
             </div>
           </div>
+
           <div className="space-y-1">
             <Label htmlFor="priceSheet">Price Sheet</Label>
             <div className="flex items-center space-x-2">
               <input
                 type="file"
                 id="priceSheet"
+                ref={priceSheetInputRef}
                 accept="image/jpeg,image/png,application/pdf"
                 onChange={handlePriceSheetChange}
-                className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
+                className="hidden"
               />
+              <button
+                type="button"
+                onClick={handlePriceSheetButtonClick}
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-700"
+              >
+                Choose File
+              </button>
               {formData.priceSheet && (
                 <button
                   type="button"
@@ -752,6 +920,9 @@ export default function AddProject() {
                   Delete
                 </button>
               )}
+              <span className="text-sm text-gray-500">
+                {formData.priceSheet ? formData.priceSheet.name : "No file chosen"}
+              </span>
             </div>
             {errors.priceSheet && (
               <p className="text-red-500 text-sm mt-1">{errors.priceSheet}</p>
@@ -765,14 +936,15 @@ export default function AddProject() {
                     className="max-w-[100px] max-h-[100px] object-contain"
                   />
                 ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.priceSheet.name}</p>
+                  <p className="text-sm text-gray-500 truncate">
+                    {formData.priceSheet.name}
+                  </p>
                 )
               ) : (
                 <p className="text-sm text-gray-400"></p>
               )}
             </div>
           </div>
-
 
           <div className="flex justify-center">
             <button

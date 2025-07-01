@@ -26,7 +26,7 @@ const userTypeRoutes: { [key: string]: string } = {
   new_leads: "/leads/new/0",
   today_leads: "/leads/today/1",
   site_visits: "/dashboard/site-visits",
-  "7": "/dashboard/partners",
+  "7": "/partners",
   tele_callers: "/employee/1",
   marketing_executors: "/employee/2",
   sales_manager: "/employee/3",

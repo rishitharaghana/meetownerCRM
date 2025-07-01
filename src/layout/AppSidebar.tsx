@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
-import { FaAd, FaFileInvoice, FaIdBadge, FaMoneyBill, FaUser, FaUserTie } from "react-icons/fa";
+import { FaFileInvoice,  FaUser, FaUserTie } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import Logo from "../../public/favicon.jpeg";
@@ -14,7 +14,7 @@ type NavItem = {
     name: string;
     path?: string;
     pro?: boolean;
-    new?: boolean;
+    new?: boolean; 
     count?: number;
     data?: { lead_in: string; status: number };
     nestedItems?: {
@@ -125,8 +125,7 @@ const AppSidebar: React.FC = () => {
   const nestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const deepNestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-  const [nestedSubMenuHeight, setNestedSubMenuHeight] = useState<Record<string, number>>({});
-  const [deepNestedSubMenuHeight, setDeepNestedSubMenuHeight] = useState<Record<string, number>>({});
+   const [deepNestedSubMenuHeight, setDeepNestedSubMenuHeight] = useState<Record<string, number>>({});
 
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
