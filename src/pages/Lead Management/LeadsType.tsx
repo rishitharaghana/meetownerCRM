@@ -44,6 +44,10 @@ interface Listing {
   property_type: string;
   lead_type: string;
   image?: string;
+  flat_no?: string;
+  floor?: string;
+  block?: string;
+  project_name?: string;
 }
 
 const sidebarSubItems = [
@@ -413,6 +417,39 @@ const LeadsType: React.FC = () => {
     navigate("/leads/view", { state: { property: item } });
   };
 
+  const [bookingForm, setBookingForm] = useState({
+    flat_no: "",
+    floor: "",
+    block: "",
+    project_name: "",
+  });
+  const handleBookingChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target;
+    setBookingForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
+  };
+
+  const handleBookingSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    console.log("Booking data:", bookingForm);
+    // Submit to API here if needed
+    closeBookingModal();
+  };
+  const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
+
+  const closeBookingModal = () => {
+    setIsBookingModalOpen(false);
+    setBookingForm({
+      flat_no: "",
+      floor: "",
+      block: "",
+      project_name: "",
+    });
+    setSelectedListing(null);
+  };
+
   return (
     <div className="relative min-h-screen">
       <PageMeta title={`Lead Management - ${getPageTitle()}`} />
@@ -566,6 +603,22 @@ const LeadsType: React.FC = () => {
                               >
                                 View History
                               </button>
+                              <button
+                                onClick={() => {
+                                  setSelectedListing(item);
+                                  setBookingForm({
+                                    flat_no: item.flat_no || "",
+                                    floor: item.floor || "",
+                                    block: item.block || "",
+                                    project_name: item.project_name || "",
+                                  });
+                                  setIsBookingModalOpen(true);
+                                }}
+                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                              >
+                                Bookings Done
+                              </button>
+
                               <button
                                 onClick={() =>
                                   handleDelete(item.unique_property_id)
@@ -742,6 +795,75 @@ const LeadsType: React.FC = () => {
           </div>
         </Modal>
       )}
+     {isBookingModalOpen && (
+  <Modal
+    isOpen={isBookingModalOpen}
+    onClose={closeBookingModal}
+    className="max-w-sm p-6" // <-- smaller, tighter layout
+  >
+    <form onSubmit={handleBookingSubmit}>
+      <div className="space-y-4">
+        <h2 className="text-lg font-semibold text-gray-800 dark:text-white border-b pb-2">
+          Enter Booking Details
+        </h2>
+
+        <div>
+          <Label htmlFor="flatNo">Flat No</Label>
+          <Input
+            id="flatNo"
+            name="flat_no"
+            value={bookingForm.flat_no}
+            onChange={handleBookingChange}
+            placeholder="Enter flat number"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="floor">Floor</Label>
+          <Input
+            id="floor"
+            name="floor"
+            value={bookingForm.floor}
+            onChange={handleBookingChange}
+            placeholder="Enter floor"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="block">Block</Label>
+          <Input
+            id="block"
+            name="block"
+            value={bookingForm.block}
+            onChange={handleBookingChange}
+            placeholder="Enter block"
+          />
+        </div>
+
+        <div>
+          <Label htmlFor="projectName">Project Name</Label>
+          <Input
+            id="projectName"
+            name="project_name"
+            value={bookingForm.project_name}
+            onChange={handleBookingChange}
+            placeholder="Enter project name"
+          />
+        </div>
+
+        <div className="flex justify-end gap-3 pt-2 border-t mt-4">
+          <Button variant="outline" size="sm" onClick={closeBookingModal}>
+            Cancel
+          </Button>
+          <Button variant="primary" size="sm" type="submit">
+            Save
+          </Button>
+        </div>
+      </div>
+    </form>
+  </Modal>
+)}
+
     </div>
   );
 };

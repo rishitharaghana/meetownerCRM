@@ -16,12 +16,10 @@ const AppHeader: React.FC = () => {
     }
   };
 
-  // Toggle application menu for mobile
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen((prev) => !prev);
   };
 
-  // Handle Cmd/Ctrl + K for search focus
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       if ((event.metaKey || event.ctrlKey) && event.key === "k") {
@@ -36,7 +34,6 @@ const AppHeader: React.FC = () => {
     };
   }, []);
 
-  // Close application menu when clicking outside (optional, for better UX)
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (isApplicationMenuOpen && !(event.target as HTMLElement).closest(".application-menu")) {
@@ -54,7 +51,6 @@ const AppHeader: React.FC = () => {
     <header className="sticky top-0 flex w-full bg-white border-b border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900">
       <div className="flex flex-col items-center justify-between w-full lg:flex-row lg:px-6">
         <div className="flex items-center justify-between w-full gap-2 px-3 py-3 border-b border-gray-200 dark:border-gray-800 sm:gap-4 lg:border-b-0 lg:px-0 lg:py-4">
-          {/* Sidebar Toggle Button */}
           <button
             className="flex items-center justify-center w-10 h-10 text-gray-500 border border-gray-200 rounded-lg dark:border-gray-800 dark:text-gray-400 lg:h-11 lg:w-11"
             onClick={handleToggle}
@@ -93,7 +89,6 @@ const AppHeader: React.FC = () => {
             )}
           </button>
 
-          {/* Application Menu Toggle Button */}
           <button
             onClick={toggleApplicationMenu}
             className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800 lg:hidden"
@@ -116,14 +111,12 @@ const AppHeader: React.FC = () => {
           </button>
         </div>
 
-        {/* Application Menu */}
         <div
           className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
             isApplicationMenuOpen ? "block" : "hidden"
           } lg:block shadow-theme-md`}
         >
           <div className="flex items-center gap-2 2xsm:gap-3">
-            {/* Add search input or other elements here if needed */}
           </div>
           <UserDropdown />
         </div>

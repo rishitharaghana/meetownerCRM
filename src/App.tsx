@@ -26,10 +26,12 @@ import AddNewLead from "./pages/Lead Management/AddNewLeads";
 import { PartnerProfile } from "./pages/partners/PartnerProfileScreen";
 import Support from "./pages/Support/Support";
 import CreateEmployee from "./pages/Employee/CreateEmployee";
-import SiteVisit from "./pages/Lead Management/SiteVisit";
+import SiteVisit from "./pages/SiteVists/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
-import SiteVisitDetails from "./pages/Lead Management/SiteVisit-details.";
+import SiteVisitDetails from "./pages/SiteVists/SiteVisit-details.";
 import UpComingProjects from "./pages/Project/UpComingProjects";
+import BookingsDone from "./pages/Bookings/BookingsDone";
+import BookingDetails from "./pages/Bookings/BookingDetails";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
 export default function App() {
@@ -46,7 +48,7 @@ export default function App() {
             <Route path="/user-activities" element={<UserActivities />} />
             <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
             <Route path="/leads/addlead" element={<AddNewLead />} />
-            <Route path="/leads/site-visit" element={<SiteVisit />} />
+            <Route path="/sitevists/site-visit" element={<SiteVisit />} />
             <Route path="/leads/view" element={<ViewLeadDetails />} />
             <Route
               path="/site-visit/details/:id"
@@ -62,10 +64,13 @@ export default function App() {
             <Route
               path="/partners/addpartners"
               element={<AddChannelPartner />}
-            />
+            /> <Route path="/bookings/bookings-done" element={<BookingsDone />} />
+            <Route path="/bookings-done/details/:id" element={<BookingDetails />} />
+
 
             <Route path="/employee/:status" element={<EmployeesScreen />} />
             <Route path="/create-employee" element={<CreateEmployee />} />
+
 
             {/* Other Pages */}
             <Route path="/profile" element={<UserProfiles />} />

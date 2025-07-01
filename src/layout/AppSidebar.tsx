@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
-import { FaFileInvoice,  FaUser, FaUserTie } from "react-icons/fa";
+import { FaFileInvoice,  FaUser, FaUserTie, FaSitemap, FaSwatchbook } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 // import Logo from "../../public/favicon.jpeg";
@@ -44,8 +44,6 @@ const navItems: NavItem[] = [
       { name: "Won Leads", path: "/leads/won/3", data: { "lead_in": "Won",  "status": 3} },
       { name: "Total Leads", path: "/leads/total/5", data: { "lead_in": "Total","status": 5 } },
       { name: "Add New Lead", path: "/leads/addlead", },
-      {name: "Site Visit", path:"/leads/site-visit", data:{"lead_in": "Total", "status": 3}},
-      
      
     ],
   },
@@ -70,7 +68,26 @@ const navItems: NavItem[] = [
      
     ],
   },
- 
+    {
+    name: "Site Visits",
+    icon: <FaSitemap />,
+    subItems: [
+      { name: "Site Visits Done", path: "/sitevists/site-visit", pro: false },
+      { name: "Site Visits Scheduled", path: "/employee/2", pro: false },
+     
+    ],
+  },
+
+   {
+    name: "Bookings",
+    icon: <FaSwatchbook />,
+    subItems: [
+      { name: "Bookings Done", path: "/bookings/bookings-done", pro: false },
+     
+    ],
+  },
+
+
   {
     name: "Employee Management",
     icon: <FaUserTie />,
