@@ -38,7 +38,7 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex flex-wrap gap-2 justify-center mt-4">
+    <div className="flex justify-center gap-2 mt-4  sm:justify-end w-full">
       <button
         onClick={handlePrevious}
         disabled={currentPage === 1}
@@ -58,7 +58,7 @@ const Pagination: React.FC<PaginationProps> = ({
             onClick={() => onPageChange(page)}
             className={`px-3 py-1 rounded-md border text-sm font-medium transition-all duration-150 ${
               page === currentPage
-                ? "bg-purple-600 text-white border-purple-600"
+                ? "bg-purple-500 text-white border-purple-600"
                 : "bg-white hover:bg-gray-100 dark:bg-gray-800 dark:hover:bg-gray-700 border-gray-300 text-gray-700 dark:text-white"
             }`}
           >
