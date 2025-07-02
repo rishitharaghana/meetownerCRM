@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react";
+import { useState, useRef } from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
 import {
@@ -8,12 +8,9 @@ import {
   TableHeader,
   TableRow,
 } from "../../components/ui/table";
-import Button from "../../components/ui/button/Button"; // Add Button import
-import { useDispatch, useSelector } from "react-redux";
-import { AppDispatch, RootState } from "../../store/store";
-import { fetchAllEmployees, deleteEmployee, clearMessages, updateEmployee } from "../../store/slices/employee";
+import Button from "../../components/ui/button/Button"; 
+
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-import { useNavigate } from "react-router";
 
 interface Option {
   value: string;
@@ -30,13 +27,45 @@ const designationOptions: Option[] = [
 ];
 
 const AllEmployees: React.FC = () => {
-  const dispatch = useDispatch<AppDispatch>();
-  const navigate = useNavigate();
-  const { employees, fetchLoading, fetchError, deleteError, deleteSuccess, updateSuccess, updateError } = useSelector(
-    (state: RootState) => state.employee
-  );
   
-  const [isLoading, setIsLoading] = useState(true);
+const employees = [
+  {
+    id: 1,
+    name: "John Doe",
+    mobile: "9876543210",
+    email: "john@example.com",
+    designation: "7", // Manager
+    city: "Hyderabad",
+    state: "Telangana",
+    pincode: "500001",
+    status: 0,
+    created_by: "Admin",
+    created_userID: 1,
+  },
+  {
+    id: 2,
+    name: "Jane Smith",
+    mobile: "9123456789",
+    email: "jane@example.com",
+    designation: "8", 
+    city: "Mumbai",
+    state: "Maharashtra",
+    pincode: "400001",
+    status: 2,
+    created_by: "Manager",
+    created_userID: 2,
+  },
+];
+
+const deleteSuccess = null;
+const deleteError = null;
+const updateSuccess = null;
+const updateError = null;
+const fetchLoading = false;
+const fetchError = null;
+
+  
+  const [isLoading, setIsLoading] = useState(false);
   const [dropdownOpen, setDropdownOpen] = useState<number | null>(null);
   const dropdownRefs = useRef<Map<number, HTMLDivElement>>(new Map());
   const [filterValue, setFilterValue] = useState<string>("");
@@ -53,45 +82,12 @@ const AllEmployees: React.FC = () => {
     state: [emp.state],
     status: emp.status,
     pincode: emp.pincode,
-    created_by: emp.created_by , // Ensure this field exists in your employee data
+    created_by: emp.created_by ,
     created_userID: emp.created_userID, 
   }));
  
 
-  useEffect(() => {
-    setIsLoading(true);
-    const userId = parseInt(localStorage.getItem("userId")!);
-    dispatch(fetchAllEmployees(userId)).finally(() => {
-      setIsLoading(false);
-    });
-  }, [dispatch]);
 
-  useEffect(() => {
-    if (deleteSuccess || updateSuccess) {
-      const userId = parseInt(localStorage.getItem("userId")!);
-      dispatch(fetchAllEmployees(userId)).then(() => {
-        dispatch(clearMessages());
-      });
-    }
-  }, [deleteSuccess, updateSuccess, dispatch]);
-
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      let isOutside = true;
-      dropdownRefs.current.forEach((ref) => {
-        if (ref && ref.contains(event.target as Node)) {
-          isOutside = false;
-        }
-      });
-      if (isOutside) {
-        setDropdownOpen(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, []);
 
   const filteredEmployees = transformedEmployees.filter((employee) =>
     [
@@ -161,41 +157,21 @@ const AllEmployees: React.FC = () => {
     return pages;
   };
 
-  const handleEdit = (employee: any) => {
-    navigate("/all-employees/edit-employee", { state: { employee } });
-    setDropdownOpen(null);
-  };
+  
+const handleEdit = (employee: any) => {
+  console.log("Edit clicked for:", employee);
+};
 
-  const handleDelete = (employeeId: number) => {
-    dispatch(deleteEmployee(employeeId)).then((action) => {
-      if (deleteEmployee.fulfilled.match(action)) {
-        console.log("Delete successful, employeeId:", employeeId);
-      } else if (deleteEmployee.rejected.match(action)) {
-        console.log("Delete failed:", deleteError);
-      }
-    });
-    setDropdownOpen(null);
-  };
+const handleDelete = (employeeId: number) => {
+  console.log("Delete clicked for employeeId:", employeeId);
+};
 
-  const handleStatusChange = (employee: any) => {
-    const updatedEmployee = {
-      ...employee,
-      status: employee.status === 0 ? 2 : 0,
-      city: employee.city[0],
-      state: employee.state[0],
-      user_type: designationOptions.find(opt => opt.text === employee.designation)?.value || "7",
-      created_by: localStorage.getItem("name"),
-      created_userID: parseInt(localStorage.getItem("userId")!),
-    };
-    dispatch(updateEmployee(updatedEmployee)).then((action) => {
-      if (updateEmployee.fulfilled.match(action)) {
-        console.log("Status update successful, employeeId:", employee.id);
-      } else if (updateEmployee.rejected.match(action)) {
-        console.log("Status update failed:", updateError);
-      }
-    });
-    setDropdownOpen(null);
-  };
+const handleStatusChange = (employee: any) => {
+  console.log("Status change clicked for:", employee);
+};
+
+ 
+  
 
   if (isLoading || fetchLoading) {
     return (
@@ -252,6 +228,25 @@ const AllEmployees: React.FC = () => {
             {updateError}
           </div>
         )}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+  <div className="bg-purple-100 text-purple-800 p-4 rounded-xl shadow-sm dark:bg-purple-900 dark:text-white">
+    <h4 className="text-sm font-medium">Total Employees</h4>
+    <p className="text-2xl font-semibold">120</p>
+  </div>
+  <div className="bg-green-100 text-green-800 p-4 rounded-xl shadow-sm dark:bg-green-900 dark:text-white">
+    <h4 className="text-sm font-medium">Active</h4>
+    <p className="text-2xl font-semibold">90</p>
+  </div>
+  <div className="bg-yellow-100 text-yellow-800 p-4 rounded-xl shadow-sm dark:bg-yellow-900 dark:text-white">
+    <h4 className="text-sm font-medium">Suspended</h4>
+    <p className="text-2xl font-semibold">20</p>
+  </div>
+  <div className="bg-red-100 text-red-800 p-4 rounded-xl shadow-sm dark:bg-red-900 dark:text-white">
+    <h4 className="text-sm font-medium">Deleted</h4>
+    <p className="text-2xl font-semibold">10</p>
+  </div>
+</div>
+
         <ComponentCard title="All Employees">
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
