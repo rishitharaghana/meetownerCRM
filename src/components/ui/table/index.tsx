@@ -46,7 +46,7 @@ const Table: React.FC<TableProps> = ({ children, className }) => {
 const TableHeader: React.FC<TableHeaderProps> = ({ children, className }) => {
   return (
     <thead
-      className={`bg-purple-600 text-white border-b border-purple-200 dark:bg-purple-800 dark:border-purple-600 ${className || ""}`}
+      className={`bg-blue-900 text-white border-b border-blue-600 dark:bg-blue-400 dark:border-blue-400 ${className || ""}`}
     >
       {children}
     </thead>
@@ -57,7 +57,7 @@ const TableHeader: React.FC<TableHeaderProps> = ({ children, className }) => {
 const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
   return (
     <tbody
-      className={`divide-y divide-purple-200 dark:divide-purple-600 ${className || ""}`}
+      className={`divide-y divide-black-200 dark:divide-blue-300 ${className || ""}`}
     >
       {children}
     </tbody>
@@ -68,7 +68,7 @@ const TableBody: React.FC<TableBodyProps> = ({ children, className }) => {
 const TableRow: React.FC<TableRowProps> = ({ children, className }) => {
   return (
     <tr
-      className={` dark:hover:bg-purple-900 transition-colors duration-150 ${className || ""}`}
+      className={` dark:hover:bg-blue-500 transition-colors duration-150 ${className || ""}`}
     >
       {children}
     </tr>
@@ -87,7 +87,7 @@ const TableCell: React.FC<TableCellProps> = ({
       className={`${
         isHeader
           ? "px-5 py-3 font-semibold text-white text-theme-xs dark:text-white"
-          : "px-5 py-4 text-purple-700 dark:text-purple-300 text-theme-sm dark:text-gray-400"
+          : "px-5 py-4 text-black dark:text-black text-theme-sm dark:text-gray-400"
       } ${className || ""}`}
     >
       {children}
