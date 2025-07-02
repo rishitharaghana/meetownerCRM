@@ -51,6 +51,8 @@ const BookingsDone = () => {
         <Table className="min-w-[800px]">
           <TableHeader>
             <TableRow>
+                            <TableCell isHeader>Sl.No</TableCell>
+
               <TableCell isHeader>Customer Name</TableCell>
               <TableCell isHeader>Mobile</TableCell>
               <TableCell isHeader>Email</TableCell>
@@ -65,6 +67,7 @@ const BookingsDone = () => {
           <TableBody>
             {completedBookings.map((booking) => (
               <TableRow key={booking.id}>
+                <TableCell>{booking.id}</TableCell>
                 <TableCell>{booking.name}</TableCell>
                 <TableCell>{booking.mobile}</TableCell>
                 <TableCell>{booking.email}</TableCell>

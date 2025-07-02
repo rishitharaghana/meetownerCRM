@@ -2,6 +2,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 import Button from "../../components/ui/button/Button";
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
+import Timeline, { TimelineEvent } from "../../components/ui/timeline/timeline";
 
 const ViewLeadDetails = () => {
   const location = useLocation();
@@ -16,7 +17,7 @@ const ViewLeadDetails = () => {
 
   if (!property) return null;
 
-  const statusMap = {
+  const statusMap: Record<number, number> = {
     0: 0, // Lead Created
     1: 1, // Today Follow-Up
     2: 2, // Site Visit
@@ -26,31 +27,44 @@ const ViewLeadDetails = () => {
 
   const currentStepIndex = statusMap[property.status] ?? 0;
 
-  const timeline = [
-    {
-      date: `${property.created_date} ${property.created_time}`,
-      title: "Lead Created",
-      description: `Lead created for ${property.property_name}.`,
-    },
-    {
-      date: `${property.updated_date} ${property.updated_time}`,
-      title: "Today Follow-Up",
-      description: `Follow-up scheduled for ${property.user.name}.`,
-    },
-    {
-      date: `${property.updated_date} ${property.updated_time}`,
-      title: "Site Visit",
-      description: `Site visit planned for ${property.property_name}.`,
-    },
-    {
-      date: `${property.updated_date} ${property.updated_time}`,
-      title: property.status === 3 ? "Lead Won" : "Lead Lost",
-      description:
-        property.status === 3
-          ? `${property.property_name} lead converted.`
-          : `${property.property_name} lead not converted.`,
-    },
-  ];
+  const eventStatus = (stepIndex: number): "completed" | "pending" => {
+    return currentStepIndex >= stepIndex ? "completed" : "pending";
+  };
+
+ const timeline: TimelineEvent[] = [
+  {
+    label: "Lead Created",
+    timestamp: `${property.created_date} ${property.created_time}`,
+    status: eventStatus(0),
+    description: `Lead created for ${property.property_name}.`,
+    current: currentStepIndex === 0,
+  },
+  {
+    label: "Today Follow-Up",
+    timestamp: `${property.updated_date} ${property.updated_time}`,
+    status: eventStatus(1),
+    description: `Follow-up scheduled for ${property.user.name}.`,
+    current: currentStepIndex === 1,
+  },
+  {
+    label: "Site Visit",
+    timestamp: `${property.updated_date} ${property.updated_time}`,
+    status: eventStatus(2),
+    description: `Site visit planned for ${property.property_name}.`,
+    current: currentStepIndex === 2,
+  },
+  {
+    label: property.status === 3 ? "Lead Won" : "Lead Lost",
+    timestamp: `${property.updated_date} ${property.updated_time}`,
+    status: eventStatus(3),
+    description:
+      property.status === 3
+        ? `${property.property_name} lead converted.`
+        : `${property.property_name} lead not converted.`,
+    current: currentStepIndex === 3,
+  },
+];
+
 
   return (
     <div className="p-6 space-y-6">
@@ -59,7 +73,7 @@ const ViewLeadDetails = () => {
       </h2>
 
       <div className="bg-white dark:bg-dark-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Image + Details */}
+        {/* Left: Image + Info */}
         <div className="space-y-6">
           <img
             src={property.image || sunriseImg}
@@ -80,43 +94,9 @@ const ViewLeadDetails = () => {
           </div>
         </div>
 
-        {/* Right: Timeline */}
-        <div className="relative pl-8">
-          {timeline.map((step, i) => {
-            const isCurrent = i === currentStepIndex;
-            const isLast = i === timeline.length - 1;
-
-            return (
-              <div key={i} className="relative pb-10">
-                {/* Vertical connector */}
-                {!isLast && (
-                  <span className="absolute left-1.5 top-3 h-full w-0.5 bg-purple-500" />
-                )}
-
-                {/* Step dot */}
-                <span
-                  className={`absolute left-0 top-2 w-4 h-4 rounded-full border-2 z-10
-                    ${isCurrent ? "bg-green-500 border-green-300 animate-pulse" : "bg-purple-600 border-white"}
-                  `}
-                />
-
-                <div className="ml-6">
-                  <p className="text-xs text-gray-500 dark:text-gray-400 mb-1">
-                    {step.date}
-                    {isCurrent && (
-                      <span className="ml-2 text-green-600 font-semibold">(Current)</span>
-                    )}
-                  </p>
-                  <h4 className={`text-base font-semibold ${isCurrent ? "text-green-700 dark:text-green-300" : "text-gray-800 dark:text-gray-100"}`}>
-                    {step.title}
-                  </h4>
-                  <p className="text-sm text-gray-600 dark:text-gray-300">
-                    {step.description}
-                  </p>
-                </div>
-              </div>
-            );
-          })}
+        <div>
+          <h2 className="text-xl font-semibold mb-4 text-purple-700">Lead Timeline</h2>
+          <Timeline data={timeline} />
         </div>
       </div>
 

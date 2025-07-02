@@ -152,9 +152,9 @@ const CreateEmployee = () => {
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
-            <Users className="w-8 h-8 text-white" />
+            <Users className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Create Employee</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Create Employee</h1>
           <p className="text-gray-600">Add a new team member to your organization</p>
         </div>
 

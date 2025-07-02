@@ -131,35 +131,32 @@ const AddChannelPartner = () => {
       ...formData,
       city: cityName,
       state: stateName,
-      user_type: 7, // Channel Partner type
+      user_type: 7, 
       created_by: createdBy,
       created_userID: createdUserId,
     };
 
     console.log("Channel Partner Data Submitted:", payload);
-    // dispatch(createEmployee(payload)) if needed
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
-            <Building2 className="w-8 h-8 text-white" />
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
+            <Building2 className="w-6 h-6 text-white" />
           </div>
-          <h1 className="text-3xl font-bold text-gray-800 mb-2">Add Channel Partner</h1>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Add Channel Partner</h1>
           <p className="text-gray-600">Fill in the details below to add a new partner</p>
         </div>
 
         <form onSubmit={handleSubmit} className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6">
-          {/* Name */}
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><User size={16} /> Name</label>
             <Input value={formData.name} onChange={(e) => handleChange("name")(e.target.value)} placeholder="Enter name" />
             {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
           </div>
 
-          {/* Mobile */}
           <div>
             <label className="text-sm font-medium text-gray-700">Mobile</label>
             <PhoneInput
@@ -171,7 +168,6 @@ const AddChannelPartner = () => {
             {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
           </div>
 
-          {/* Email */}
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><Mail size={16} /> Email</label>
             <Input
@@ -183,21 +179,18 @@ const AddChannelPartner = () => {
             {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
           </div>
 
-          {/* Company Name */}
           <div>
             <label className="text-sm font-medium text-gray-700"><Landmark size={16} className="inline" /> Company Name</label>
             <Input value={formData.companyName} onChange={(e) => handleChange("companyName")(e.target.value)} />
             {errors.companyName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>}
           </div>
 
-          {/* Representative */}
           <div>
             <label className="text-sm font-medium text-gray-700">Representative Name</label>
             <Input value={formData.representativeName} onChange={(e) => handleChange("representativeName")(e.target.value)} />
             {errors.representativeName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.representativeName}</p>}
           </div>
 
-          {/* Company Address */}
           <div>
             <label className="text-sm font-medium text-gray-700">Company Address</label>
             <textarea
@@ -209,7 +202,6 @@ const AddChannelPartner = () => {
             {errors.companyAddress && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>}
           </div>
 
-          {/* Company Number */}
           <div>
             <label className="text-sm font-medium text-gray-700">Company Phone</label>
             <PhoneInput
@@ -221,21 +213,18 @@ const AddChannelPartner = () => {
             {errors.companyNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>}
           </div>
 
-          {/* PAN */}
           <div>
             <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
             <Input value={formData.panCardNumber} onChange={(e) => handleChange("panCardNumber")(e.target.value)} />
             {errors.panCardNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>}
           </div>
 
-          {/* Aadhar */}
           <div>
             <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
             <Input value={formData.aadharNumber} onChange={(e) => handleChange("aadharNumber")(e.target.value)} />
             {errors.aadharNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>}
           </div>
 
-          {/* Password */}
           <div className="relative">
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><KeyRound size={16} /> Password</label>
             <Input
@@ -250,7 +239,6 @@ const AddChannelPartner = () => {
             {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
           </div>
 
-          {/* City */}
           <div>
             <label className="text-sm font-medium text-gray-700">City</label>
             <select
@@ -266,7 +254,6 @@ const AddChannelPartner = () => {
             {errors.city && <p className="text-red-600 text-sm mt-1">⚠️ {errors.city}</p>}
           </div>
 
-          {/* Pincode */}
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><MapPin size={16} /> Pincode</label>
             <Input
@@ -277,7 +264,6 @@ const AddChannelPartner = () => {
             {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
           </div>
 
-          {/* State */}
           <div>
             <label className="text-sm font-medium text-gray-700">State</label>
             <select

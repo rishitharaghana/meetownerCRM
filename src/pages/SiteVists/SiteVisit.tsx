@@ -1,8 +1,9 @@
-import { useState,  useEffect,   } from "react";
-import { useNavigate, useParams,  } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useParams } from "react-router";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
+import Pagination from "../../components/ui/pagination/Pagination";
 import {
   Table,
   TableBody,
@@ -11,8 +12,6 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
-
-
 
 interface SiteVisit {
   id: number;
@@ -46,13 +45,17 @@ interface SiteVisit {
   distance_from_property: string[];
 }
 
-// Sample Data
 const sampleSiteVisits: SiteVisit[] = [
   {
     id: 1,
     unique_property_id: "PROP001",
     property_name: "Sunrise Villa",
-    user: { user_type: 5, name: "John Doe", mobile: "9876543210", email: "john.doe@example.com" },
+    user: {
+      user_type: 5,
+      name: "John Doe",
+      mobile: "9876543210",
+      email: "john.doe@example.com",
+    },
     channel_partner: { name: "Alice Brown", mobile: "8765432109" },
     created_date: "2025-04-10",
     updated_status: "Followup",
@@ -75,7 +78,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 2,
     unique_property_id: "PROP002",
     property_name: "Green Meadows",
-    user: { user_type: 4, name: "Jane Smith", mobile: "8765432109", email: "jane.smith@example.com" },
+    user: {
+      user_type: 4,
+      name: "Jane Smith",
+      mobile: "8765432109",
+      email: "jane.smith@example.com",
+    },
     channel_partner: { name: "Bob Wilson", mobile: "7654321098" },
     created_date: "2025-04-09",
     updated_status: "Negotiation",
@@ -98,7 +106,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 3,
     unique_property_id: "PROP003",
     property_name: "Ocean Breeze",
-    user: { user_type: 5, name: "Amit Sharma", mobile: "9123456789", email: "amit.sharma@example.com" },
+    user: {
+      user_type: 5,
+      name: "Amit Sharma",
+      mobile: "9123456789",
+      email: "amit.sharma@example.com",
+    },
     channel_partner: { name: "Priya Patel", mobile: "9871234567" },
     created_date: "2025-04-08",
     updated_status: "Ready to Close",
@@ -121,7 +134,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 4,
     unique_property_id: "PROP004",
     property_name: "Hilltop Residency",
-    user: { user_type: 4, name: "Ravi Kumar", mobile: "9012345678", email: "ravi.kumar@example.com" },
+    user: {
+      user_type: 4,
+      name: "Ravi Kumar",
+      mobile: "9012345678",
+      email: "ravi.kumar@example.com",
+    },
     channel_partner: { name: "Suresh Nair", mobile: "8761234567" },
     created_date: "2025-04-07",
     updated_status: "Loss Lead",
@@ -144,7 +162,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 5,
     unique_property_id: "PROP005",
     property_name: "Cityscape Towers",
-    user: { user_type: 5, name: "Neha Gupta", mobile: "8901234567", email: "neha.gupta@example.com" },
+    user: {
+      user_type: 5,
+      name: "Neha Gupta",
+      mobile: "8901234567",
+      email: "neha.gupta@example.com",
+    },
     channel_partner: { name: "Vikram Singh", mobile: "7651234567" },
     created_date: "2025-04-06",
     updated_status: "Followup",
@@ -167,7 +190,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 6,
     unique_property_id: "PROP006",
     property_name: "Lakeview Apartments",
-    user: { user_type: 4, name: "Sonia Mehra", mobile: "8791234567", email: "sonia.mehra@example.com" },
+    user: {
+      user_type: 4,
+      name: "Sonia Mehra",
+      mobile: "8791234567",
+      email: "sonia.mehra@example.com",
+    },
     channel_partner: { name: "Rahul Verma", mobile: "7541234567" },
     created_date: "2025-04-05",
     updated_status: "Negotiation",
@@ -190,7 +218,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 7,
     unique_property_id: "PROP007",
     property_name: "Skyline Plaza",
-    user: { user_type: 5, name: "Kiran Patel", mobile: "8681234567", email: "kiran.patel@example.com" },
+    user: {
+      user_type: 5,
+      name: "Kiran Patel",
+      mobile: "8681234567",
+      email: "kiran.patel@example.com",
+    },
     channel_partner: { name: "Anita Desai", mobile: "7431234567" },
     created_date: "2025-04-04",
     updated_status: "Ready to Close",
@@ -207,13 +240,18 @@ const sampleSiteVisits: SiteVisit[] = [
     build_up_area: "2500 sqft",
     carpet_area: "2000 sqft",
     around_this_property: ["Mall", "Office", "Metro"],
-    distance_from_property:[ "1 km to business district"],
+    distance_from_property: ["1 km to business district"],
   },
   {
     id: 8,
     unique_property_id: "PROP008",
     property_name: "Garden Heights",
-    user: { user_type: 4, name: "Vivek Joshi", mobile: "8571234567", email: "vivek.joshi@example.com" },
+    user: {
+      user_type: 4,
+      name: "Vivek Joshi",
+      mobile: "8571234567",
+      email: "vivek.joshi@example.com",
+    },
     channel_partner: { name: "Meena Kapoor", mobile: "7321234567" },
     created_date: "2025-04-03",
     updated_status: "Followup",
@@ -236,7 +274,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 9,
     unique_property_id: "PROP009",
     property_name: "Metro View",
-    user: { user_type: 5, name: "Pooja Reddy", mobile: "8461234567", email: "pooja.reddy@example.com" },
+    user: {
+      user_type: 5,
+      name: "Pooja Reddy",
+      mobile: "8461234567",
+      email: "pooja.reddy@example.com",
+    },
     channel_partner: { name: "Sanjay Gupta", mobile: "7211234567" },
     created_date: "2025-04-02",
     updated_status: "Negotiation",
@@ -259,7 +302,12 @@ const sampleSiteVisits: SiteVisit[] = [
     id: 10,
     unique_property_id: "PROP010",
     property_name: "Starlight Residency",
-    user: { user_type: 4, name: "Arjun Malhotra", mobile: "8351234567", email: "arjun.malhotra@example.com" },
+    user: {
+      user_type: 4,
+      name: "Arjun Malhotra",
+      mobile: "8351234567",
+      email: "arjun.malhotra@example.com",
+    },
     channel_partner: { name: "Ritu Sharma", mobile: "7101234567" },
     created_date: "2025-04-01",
     updated_status: "Loss Lead",
@@ -280,21 +328,16 @@ const sampleSiteVisits: SiteVisit[] = [
   },
 ];
 
-// Timeline Event type
-
 const SiteVisit: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [localPage, setLocalPage] = useState<number>(1);
   const navigate = useNavigate();
   const { status } = useParams<{ status: string }>();
- 
 
- 
   const itemsPerPage = 5;
   const totalCount = sampleSiteVisits.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
 
-  // Filter site visits
   const filteredSiteVisits = sampleSiteVisits.filter((item) => {
     if (status && item.updated_status.toLowerCase() !== status.toLowerCase()) {
       return false;
@@ -312,7 +355,6 @@ const SiteVisit: React.FC = () => {
     );
   });
 
-  // Paginate filtered site visits
   const currentSiteVisits = filteredSiteVisits.slice(
     (localPage - 1) * itemsPerPage,
     localPage * itemsPerPage
@@ -325,29 +367,8 @@ const SiteVisit: React.FC = () => {
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
   };
-
-  const goToPage = (page: number) => {
-    setLocalPage(page);
-  };
-
-  const goToPreviousPage = () => localPage > 1 && goToPage(localPage - 1);
-  const goToNextPage = () => localPage < totalPages && goToPage(localPage + 1);
-
-  const getPaginationItems = () => {
-    const pages = [];
-    const totalVisiblePages = 7;
-    let startPage = Math.max(1, localPage - Math.floor(totalVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
-    if (endPage - startPage + 1 < totalVisiblePages) {
-      startPage = Math.max(1, endPage - totalVisiblePages + 1);
-    }
-    if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push("...");
-    for (let i = startPage; i <= endPage; i++) pages.push(i);
-    if (endPage < totalPages - 1) pages.push("...");
-    if (endPage < totalPages) pages.push(totalPages);
-    return pages;
-  };
+ 
+  
 
   const handleViewDetails = (item: SiteVisit) => {
     navigate(`/site-visit/details/${item.id}`, { state: { siteVisit: item } });
@@ -357,7 +378,9 @@ const SiteVisit: React.FC = () => {
     if (!date) return "N/A";
     const [year, month, day] = date.split("-").map(Number);
     const dateTime = new Date(year, month - 1, day);
-    return `${String(dateTime.getDate()).padStart(2, "0")}-${String(dateTime.getMonth() + 1).padStart(2, "0")}-${dateTime.getFullYear()}`;
+    return `${String(dateTime.getDate()).padStart(2, "0")}-${String(
+      dateTime.getMonth() + 1
+    ).padStart(2, "0")}-${dateTime.getFullYear()}`;
   };
 
   return (
@@ -382,15 +405,60 @@ const SiteVisit: React.FC = () => {
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sl. No</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer Name</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Customer Number</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Channel Partner Name</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Channel Partner Number</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Project Name</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Created Date</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Updated Status</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Sl. No
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Customer Name
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Customer Number
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Channel Partner Name
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Channel Partner Number
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Project Name
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Created Date
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Updated Status
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -399,16 +467,34 @@ const SiteVisit: React.FC = () => {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.user.name || "N/A"}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.user.mobile || "N/A"}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.channel_partner.name || "N/A"}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.channel_partner.mobile || "N/A"}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.property_name || "N/A"}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{formatDate(item.created_date)}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{item.updated_status || "N/A"}</TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                        <Button variant="primary" size="sm" onClick={() => handleViewDetails(item)}>
-                          View Details
+                        {item.user.name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {item.user.mobile || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {item.channel_partner.name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {item.channel_partner.mobile || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {item.property_name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {formatDate(item.created_date)}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {item.updated_status || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        <Button
+                          size="sm"
+                          className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
+                          onClick={() => handleViewDetails(item)}
+                        >
+                          View
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -421,26 +507,14 @@ const SiteVisit: React.FC = () => {
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
                 Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(localPage * itemsPerPage, filteredSiteVisits.length)} of {filteredSiteVisits.length} entries
+                {Math.min(localPage * itemsPerPage, filteredSiteVisits.length)}{" "}
+                of {filteredSiteVisits.length} entries
               </div>
-              <div className="flex gap-2 flex-wrap justify-center">
-                <Button variant={localPage === 1 ? "outline" : "primary"} size="sm" onClick={goToPreviousPage} disabled={localPage === 1}>
-                  Previous
-                </Button>
-                {getPaginationItems().map((page, index) => (
-                  <Button
-                    key={`${page}-${index}`}
-                    variant={page === localPage ? "primary" : "outline"}
-                    size="sm"
-                    onClick={() => typeof page === "number" && goToPage(page)}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                <Button variant={localPage === totalPages ? "outline" : "primary"} size="sm" onClick={goToNextPage} disabled={localPage === totalPages}>
-                  Next
-                </Button>
-              </div>
+              <Pagination
+                currentPage={localPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setLocalPage(page)}
+              />
             </div>
           )}
         </ComponentCard>
@@ -448,6 +522,5 @@ const SiteVisit: React.FC = () => {
     </div>
   );
 };
-
 
 export default SiteVisit;

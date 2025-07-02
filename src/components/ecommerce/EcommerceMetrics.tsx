@@ -9,12 +9,14 @@ import {
   CircleUser,
   User,
   UserRound,
+  BookCheck,
 } from "lucide-react";
 
 const userTypeMap: { [key: string]: string } = {
   new_leads: "New Leads",
   today_leads: "Today Leads",
   site_visits: "Site Visits",
+  bookings: "Bookings",
   "7": "Channel Partners",
   tele_callers: "TeleCallers",
   marketing_executors: "Marketing Executors",
@@ -25,7 +27,8 @@ const userTypeMap: { [key: string]: string } = {
 const userTypeRoutes: { [key: string]: string } = {
   new_leads: "/leads/new/0",
   today_leads: "/leads/today/1",
-  site_visits: "/dashboard/site-visits",
+  site_visits: "/sitevists/site-visit",
+  bookings: "/bookings/bookings-done",
   "7": "/partners",
   tele_callers: "/employee/1",
   marketing_executors: "/employee/2",
@@ -41,6 +44,7 @@ const iconMap: { [key: string]: any } = {
   new_leads: UserPlus,
   today_leads: Clock,
   site_visits: MapPin,
+  bookings: BookCheck,
   "7": Users,
   total_projects: FolderKanban,
   tele_callers: Headset,
@@ -53,6 +57,7 @@ const staticOwnerEmployeesCounts = [
   { user_type: "new_leads", count: 50, trend: "up", percentage: 5 },
   { user_type: "today_leads", count: 15, trend: "up", percentage: 2 },
   { user_type: "site_visits", count: 30, trend: "down", percentage: 1 },
+  { user_type: "bookings", count: 30, trend: "down", percentage: 1 },
   { user_type: "7", count: 25, trend: "down", percentage: 3 },
   { user_type: "tele_callers", count: 10, trend: "up", percentage: 5 },
   { user_type: "marketing_executors", count: 10, trend: "down", percentage: 5 },

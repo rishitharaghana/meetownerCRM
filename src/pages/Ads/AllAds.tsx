@@ -91,7 +91,6 @@ const AllAdsPage: React.FC = () => {
     setCurrentPage(1); // Reset to first page on search
   };
 
-  // Pagination logic
   const totalPages = Math.ceil(filteredAds.length / adsPerPage);
   const indexOfLastAd = currentPage * adsPerPage;
   const indexOfFirstAd = indexOfLastAd - adsPerPage;

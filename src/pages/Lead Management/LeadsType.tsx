@@ -465,11 +465,17 @@ const LeadsType: React.FC = () => {
           <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
             Search result - {filteredListings.length}
           </h2>
-          {status === "0" && (
-            <Button variant="primary" size="sm" onClick={handleAddNewLead}>
-              Add New Lead
-            </Button>
-          )}
+         {status === "0" && (
+  <Button
+    variant="primary"
+    size="sm"
+    onClick={handleAddNewLead}
+    className="bg-purple-600 hover:bg-purple-700 text-white"
+  >
+    Add New Lead
+  </Button>
+)}
+
           {parseInt(status || "0", 10) === 5 && (
             <div className="px-4 py-2">
               <Label htmlFor="userTypeFilter">Filter by User Type</Label>
@@ -546,12 +552,7 @@ const LeadsType: React.FC = () => {
                           {(localPage - 1) * itemsPerPage + index + 1}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
-                          <span
-                            className="cursor-pointer text-blue-600 hover:underline"
-                            onClick={() => handleNameClick(item)}
-                          >
-                            {item.user.name || "N/A"}
-                          </span>
+                          {item.user.name || "N/A"}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                           {item.user.mobile || "N/A"}
@@ -586,49 +587,57 @@ const LeadsType: React.FC = () => {
                               <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
                           </Button>
-                          {dropdownOpen === item.id.toString() && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute right-0 mt-2 w-44 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-md shadow-lg z-10"
-                            >
-                              <button
-                                onClick={() => handleLeadAssign(item)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                Lead Assign
-                              </button>
-                              <button
-                                onClick={() => handleViewProperty(item)}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                View History
-                              </button>
-                              <button
-                                onClick={() => {
-                                  setSelectedListing(item);
-                                  setBookingForm({
-                                    flat_no: item.flat_no || "",
-                                    floor: item.floor || "",
-                                    block: item.block || "",
-                                    project_name: item.project_name || "",
-                                  });
-                                  setIsBookingModalOpen(true);
-                                }}
-                                className="block w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-                              >
-                                Bookings Done
-                              </button>
+                       {dropdownOpen === item.id.toString() && (
+  <div
+    ref={dropdownRef}
+    className="absolute top-full right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-20"
+  >
+    <ul className="py-2">
+      <li>
+        <button
+          onClick={() => handleLeadAssign(item)}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-md"
+        >
+          Lead Assign
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={() => handleViewProperty(item)}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-md"
+        >
+          View History
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={() => {
+            setSelectedListing(item);
+            setBookingForm({
+              flat_no: item.flat_no || "",
+              floor: item.floor || "",
+              block: item.block || "",
+              project_name: item.project_name || "",
+            });
+            setIsBookingModalOpen(true);
+          }}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition rounded-md"
+        >
+          Bookings Done
+        </button>
+      </li>
+      <li>
+        <button
+          onClick={() => handleDelete(item.unique_property_id)}
+          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition rounded-md"
+        >
+          Delete
+        </button>
+      </li>
+    </ul>
+  </div>
+)}
 
-                              <button
-                                onClick={() =>
-                                  handleDelete(item.unique_property_id)
-                                }
-                                className="block w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-100 dark:hover:bg-red-700"
-                              >
-                                Delete
-                              </button>
-                            </div>
-                          )}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -795,75 +804,74 @@ const LeadsType: React.FC = () => {
           </div>
         </Modal>
       )}
-     {isBookingModalOpen && (
-  <Modal
-    isOpen={isBookingModalOpen}
-    onClose={closeBookingModal}
-    className="max-w-sm p-6" // <-- smaller, tighter layout
-  >
-    <form onSubmit={handleBookingSubmit}>
-      <div className="space-y-4">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white border-b pb-2">
-          Enter Booking Details
-        </h2>
+      {isBookingModalOpen && (
+        <Modal
+          isOpen={isBookingModalOpen}
+          onClose={closeBookingModal}
+          className="max-w-sm p-6" // <-- smaller, tighter layout
+        >
+          <form onSubmit={handleBookingSubmit}>
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold text-gray-800 dark:text-white border-b pb-2">
+                Enter Booking Details
+              </h2>
 
-        <div>
-          <Label htmlFor="flatNo">Flat No</Label>
-          <Input
-            id="flatNo"
-            name="flat_no"
-            value={bookingForm.flat_no}
-            onChange={handleBookingChange}
-            placeholder="Enter flat number"
-          />
-        </div>
+              <div>
+                <Label htmlFor="flatNo">Flat No</Label>
+                <Input
+                  id="flatNo"
+                  name="flat_no"
+                  value={bookingForm.flat_no}
+                  onChange={handleBookingChange}
+                  placeholder="Enter flat number"
+                />
+              </div>
 
-        <div>
-          <Label htmlFor="floor">Floor</Label>
-          <Input
-            id="floor"
-            name="floor"
-            value={bookingForm.floor}
-            onChange={handleBookingChange}
-            placeholder="Enter floor"
-          />
-        </div>
+              <div>
+                <Label htmlFor="floor">Floor</Label>
+                <Input
+                  id="floor"
+                  name="floor"
+                  value={bookingForm.floor}
+                  onChange={handleBookingChange}
+                  placeholder="Enter floor"
+                />
+              </div>
 
-        <div>
-          <Label htmlFor="block">Block</Label>
-          <Input
-            id="block"
-            name="block"
-            value={bookingForm.block}
-            onChange={handleBookingChange}
-            placeholder="Enter block"
-          />
-        </div>
+              <div>
+                <Label htmlFor="block">Block</Label>
+                <Input
+                  id="block"
+                  name="block"
+                  value={bookingForm.block}
+                  onChange={handleBookingChange}
+                  placeholder="Enter block"
+                />
+              </div>
 
-        <div>
-          <Label htmlFor="projectName">Project Name</Label>
-          <Input
-            id="projectName"
-            name="project_name"
-            value={bookingForm.project_name}
-            onChange={handleBookingChange}
-            placeholder="Enter project name"
-          />
-        </div>
+              <div>
+                <Label htmlFor="projectName">Project Name</Label>
+                <Input
+                  id="projectName"
+                  name="project_name"
+                  value={bookingForm.project_name}
+                  onChange={handleBookingChange}
+                  placeholder="Enter project name"
+                />
+              </div>
 
-        <div className="flex justify-end gap-3 pt-2 border-t mt-4">
-          <Button variant="outline" size="sm" onClick={closeBookingModal}>
-            Cancel
-          </Button>
-          <Button variant="primary" size="sm" type="submit">
-            Save
-          </Button>
-        </div>
-      </div>
-    </form>
-  </Modal>
-)}
-
+              <div className="flex justify-end gap-3 pt-2 border-t mt-4">
+                <Button variant="outline" size="sm" onClick={closeBookingModal}>
+                  Cancel
+                </Button>
+                <Button variant="primary" size="sm" type="submit">
+                  Save
+                </Button>
+              </div>
+            </div>
+          </form>
+        </Modal>
+      )}
     </div>
   );
 };

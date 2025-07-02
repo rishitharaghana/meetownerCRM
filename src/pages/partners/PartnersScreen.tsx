@@ -1,21 +1,24 @@
 import { useState } from "react";
-import {  useNavigate } from "react-router";
-import { Table, TableBody, TableCell, TableHeader, TableRow } from "../../components/ui/table";
+import { useNavigate } from "react-router";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
 import { MoreVertical } from "lucide-react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { Modal } from "../../components/ui/modal";
 
-
-// User type mapping
 const userTypeMap: { [key: number]: string } = {
   3: "Builder",
   4: "Agent",
   5: "Owner",
   6: "Channel Partner",
 };
-
 
 interface User {
   id: number;
@@ -36,7 +39,7 @@ interface User {
   pan_card?: string;
   office_number?: string;
   created_date: string;
-  status: number; // 0: Pending, 1: Verified
+  status: number;
 }
 
 const staticUsers: User[] = [
@@ -252,14 +255,12 @@ const staticUsers: User[] = [
   },
 ];
 
-// Format date function
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toISOString().split("T")[0];
 };
 
 export default function PartnerScreen() {
-
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
@@ -271,7 +272,6 @@ export default function PartnerScreen() {
   const itemsPerPage = 10;
   const categoryLabel = "Partners";
 
-  // Filter users based on search input
   const filteredUsers = staticUsers.filter((user) => {
     const searchableFields = [
       user.name,
@@ -311,7 +311,9 @@ export default function PartnerScreen() {
 
   const handleRejectSubmit = () => {
     if (selectedUser && rejectReason) {
-      console.log(`Reject user with ID: ${selectedUser.id}, Reason: ${rejectReason}`);
+      console.log(
+        `Reject user with ID: ${selectedUser.id}, Reason: ${rejectReason}`
+      );
       setIsRejectModalOpen(false);
       setRejectReason("");
       setSelectedUser(null);
@@ -330,7 +332,10 @@ export default function PartnerScreen() {
   const getPaginationItems = () => {
     const pages = [];
     const totalVisiblePages = 7;
-    let startPage = Math.max(1, currentPage - Math.floor(totalVisiblePages / 2));
+    let startPage = Math.max(
+      1,
+      currentPage - Math.floor(totalVisiblePages / 2)
+    );
     let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
 
     if (endPage - startPage + 1 < totalVisiblePages) {
@@ -364,36 +369,85 @@ export default function PartnerScreen() {
               <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">ID</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Name</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Number</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Location</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Joined</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Status</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      ID
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Name
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Email
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Number
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Location
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Joined
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Status
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                   {paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.id}</TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.id}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start">
                         <div className="flex items-center gap-3">
                           <div>
-                            <span className="block font-medium text-gray-800 text-theme-sm dark:text-white/90">
+                            <span className="block font-medium text-purple-600 text-theme-sm dark:text-purple-400">
                               {user.name}
                             </span>
-                            <span className="block text-gray-500 text-theme-xs dark:text-gray-400">
+                            <span className="block text-purple-500 text-theme-sm dark:text-purple-400">
                               {userTypeMap[user.user_type] || "Unknown"}
                             </span>
                           </div>
                         </div>
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.email}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.mobile}</TableCell>
+
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.email}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.mobile}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{`${user.city}, ${user.state}`}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{formatDate(user.created_date)}</TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {formatDate(user.created_date)}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         <span
                           className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -406,7 +460,11 @@ export default function PartnerScreen() {
                         </span>
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative">
-                        <Button variant="outline" size="sm" onClick={() => toggleMenu(user.id)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleMenu(user.id)}
+                        >
                           <MoreVertical className="size-5 text-gray-500 dark:text-gray-400" />
                         </Button>
                         {activeMenu === user.id && (
@@ -488,7 +546,6 @@ export default function PartnerScreen() {
         </ComponentCard>
       </div>
 
-      {/* Reject Modal */}
       <Modal
         isOpen={isRejectModalOpen}
         onClose={() => setIsRejectModalOpen(false)}
@@ -499,7 +556,8 @@ export default function PartnerScreen() {
             Reject Partner
           </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Please provide a reason for rejecting {selectedUser?.name}'s application:
+            Please provide a reason for rejecting {selectedUser?.name}'s
+            application:
           </p>
           <textarea
             className="w-full h-24 p-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
@@ -529,5 +587,3 @@ export default function PartnerScreen() {
     </div>
   );
 }
-
-

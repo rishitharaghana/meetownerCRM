@@ -283,7 +283,6 @@ const AllEmployees: React.FC = () => {
                             <p className="font-semibold">Created By: <span className="font-normal">{employee.created_by}</span></p>
                            
                           </div>
-                          {/* Triangle pointer */}
                           <div className="absolute top-[-6px] left-10 w-0 h-0 border-l-8 border-r-8 border-b-8 border-l-transparent border-r-transparent border-b-white dark:border-b-gray-800" />
                         </div>
                       </TableCell>

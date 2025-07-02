@@ -9,7 +9,6 @@ const PageMeta = ({
 }) => (
   <Helmet>
     <title>{title}</title>
-    {/* Only render meta tag if description is provided */}
     {description && <meta name="description" content={description} />}
   </Helmet>
 );

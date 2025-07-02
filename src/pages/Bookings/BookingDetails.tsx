@@ -58,6 +58,7 @@ const BookingDetails = () => {
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-purple-700 mb-4">Summary</h2>
           <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
+            <p><strong>Sl.No:</strong>{booking.id}</p>
             <p><strong>Customer Name:</strong> {booking.customerName}</p>
             <p><strong>Mobile:</strong> {booking.mobile}</p>
             <p><strong>Email:</strong> {booking.email}</p>
@@ -69,8 +70,7 @@ const BookingDetails = () => {
           </div>
         </div>
 
-        {/* Booking Timeline */}
-        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold mb-4 text-purple-700">Booking Timeline</h2>
           <ol className="relative border-l border-purple-300 dark:border-purple-600">
             {timelineData.map((event, index) => (

@@ -202,7 +202,7 @@ const EditEmployee: React.FC = () => {
           <div className="relative mb-10 min-h-[80px]">
             <MultiSelect
               label="Designation"
-              options={designationOptions} // Use filtered options
+              options={designationOptions} 
               defaultSelected={getDesignationValue(selectedEmployee.designation)}
               onChange={(values) => handleInputChange("designation", designationOptions.filter(opt => values.includes(opt.value)).map(opt => opt.text))}
               disabled={updateLoading}
