@@ -587,7 +587,7 @@ export default function AddProject() {
 
           <div className="min-h-[80px]">
             <Label htmlFor="status">Construction Status</Label>
-            <div className="flex space-x-4">
+            <div className="flex space-x-4 ">
               {["Under Construction", "Ready to Move"].map((statusOption) => (
                 <button
                   key={statusOption}
@@ -601,7 +601,7 @@ export default function AddProject() {
                   }
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                     formData.status === statusOption
-                      ? "bg-[#1D3A76] text-white border-blue-600"
+                      ? " text-white bg-purple-600 hover:bg-purple-700"
                       : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                   }`}
                 >
@@ -636,7 +636,7 @@ export default function AddProject() {
                 }
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   formData.isUpcoming
-                    ? "bg-[#1D3A76] text-white border-blue-600"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
                     : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                 }`}
               >
@@ -649,7 +649,7 @@ export default function AddProject() {
                 }
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   !formData.isUpcoming
-                    ? "bg-[#1D3A76] text-white border-blue-600"
+                    ? "bg-purple-600 hover:bg-purple-700 text-white"
                     : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                 }`}
               >
@@ -854,7 +854,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={handleBrochureButtonClick}
-                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm font-semibold text-white  rounded-md bg-purple-600 hover:bg-purple-700 "
               >
                 Choose File
               </button>
@@ -907,7 +907,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={handlePriceSheetButtonClick}
-                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-700"
+                className="px-4 py-2 text-sm font-semibold text-white rounded-md bg-purple-600 hover:bg-purple-700"
               >
                 Choose File
               </button>

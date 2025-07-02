@@ -504,18 +504,13 @@ const SiteVisit: React.FC = () => {
             </div>
           </div>
           {filteredSiteVisits.length > itemsPerPage && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(localPage * itemsPerPage, filteredSiteVisits.length)}{" "}
-                of {filteredSiteVisits.length} entries
-              </div>
+        <div className="flex justify-end mt-4 px-4">
               <Pagination
                 currentPage={localPage}
                 totalPages={totalPages}
                 onPageChange={(page) => setLocalPage(page)}
               />
-            </div>
+      </div>
           )}
         </ComponentCard>
       </div>

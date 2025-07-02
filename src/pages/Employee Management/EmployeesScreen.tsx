@@ -9,6 +9,8 @@ import Button from "../../components/ui/button/Button";
 import { MoreVertical } from "lucide-react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+import Pagination from "../../components/ui/pagination/Pagination";
+
 
 // User type mapping
 const userTypeMap: { [key: number]: string } = {
@@ -32,10 +34,9 @@ interface User {
   gst_number?: string;
   rera_number?: string;
   created_date: string;
-  status: number; // 0: Active, 2: Suspended, 3: Blocked
+  status: number; 
 }
 
-// Static data for partners
 const staticUsers: User[] = [
   {
     id: 1,
@@ -189,7 +190,6 @@ const staticUsers: User[] = [
   },
 ];
 
-// Format date function
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toISOString().split("T")[0];
@@ -201,17 +201,15 @@ export default function EmployeesScreen() {
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const itemsPerPage = 10;
+  const itemsPerPage = 5;
 
   // Hardcode userType to focus on partners (Builder, Agent, Owner, Channel Partner)
   const userType = "3,4,5,6"; // Represents Builder, Agent, Owner, Channel Partner
   const categoryLabel = "Partners";
 
-  // Always show GST and RERA numbers for partners
   const showGstNumber = true;
   const showReraNumber = true;
 
-  // Always show Mobile and Email for partners
   const showMobileAndEmail = false;
 
   // Filter users based on search input
@@ -392,50 +390,14 @@ export default function EmployeesScreen() {
             </div>
           </div>
 
-          {totalItems > itemsPerPage && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-              </div>
-              <div className="flex gap-2 flex-wrap justify-center">
-                <Button
-                  variant={currentPage === 1 ? "outline" : "primary"}
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                {getPaginationItems().map((page, index) =>
-                  page === "..." ? (
-                    <span
-                      key={index}
-                      className="px-3 py-1 text-gray-500 dark:text-gray-400"
-                    >
-                      ...
-                    </span>
-                  ) : (
-                    <Button
-                      key={page}
-                      variant={page === currentPage ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page as number)}
-                    >
-                      {page}
-                    </Button>
-                  )
-                )}
-                <Button
-                  variant={currentPage === totalPages ? "outline" : "primary"}
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
+{totalItems > itemsPerPage && (
+  <Pagination
+    currentPage={currentPage}
+    totalPages={totalPages}
+    onPageChange={(page: number) => setCurrentPage(page)}
+  />
+)}
+
         </ComponentCard>
       </div>
     </div>
