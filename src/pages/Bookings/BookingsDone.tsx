@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React from "react";
 import ComponentCard from "../../components/common/ComponentCard";
 import {
   Table,
@@ -48,47 +48,49 @@ const BookingsDone = () => {
   return (
     <div className="min-h-screen px-4 py-6">
       <ComponentCard title="Completed Bookings">
-        <Table className="min-w-[800px]">
-          <TableHeader>
-            <TableRow>
-                            <TableCell isHeader>Sl.No</TableCell>
-
-              <TableCell isHeader>Customer Name</TableCell>
-              <TableCell isHeader>Mobile</TableCell>
-              <TableCell isHeader>Email</TableCell>
-              <TableCell isHeader>Flat No</TableCell>
-              <TableCell isHeader>Floor</TableCell>
-              <TableCell isHeader>Block</TableCell>
-              <TableCell isHeader>Project</TableCell>
-              <TableCell isHeader>Sqft</TableCell>
-              <TableCell isHeader>Actions</TableCell>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {completedBookings.map((booking) => (
-              <TableRow key={booking.id}>
-                <TableCell>{booking.id}</TableCell>
-                <TableCell>{booking.name}</TableCell>
-                <TableCell>{booking.mobile}</TableCell>
-                <TableCell>{booking.email}</TableCell>
-                <TableCell>{booking.flat_no}</TableCell>
-                <TableCell>{booking.floor}</TableCell>
-                <TableCell>{booking.block}</TableCell>
-                <TableCell>{booking.project_name}</TableCell>
-                <TableCell>{booking.sqft}</TableCell>
-                <TableCell>
-                  <Button
-                    size="sm"
-                    className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
-                    onClick={() => handleViewDetails(booking)}
-                  >
-                    View
-                  </Button>
-                </TableCell>
+        {/* ✅ Added scroll wrapper */}
+        <div className="overflow-x-auto">
+          <Table className="min-w-[900px]">
+            <TableHeader>
+              <TableRow>
+                <TableCell isHeader>Sl.No</TableCell>
+                <TableCell isHeader>Customer Name</TableCell>
+                <TableCell isHeader>Mobile</TableCell>
+                <TableCell isHeader>Email</TableCell>
+                <TableCell isHeader>Flat No</TableCell>
+                <TableCell isHeader>Floor</TableCell>
+                <TableCell isHeader>Block</TableCell>
+                <TableCell isHeader>Project</TableCell>
+                <TableCell isHeader>Sqft</TableCell>
+                <TableCell isHeader>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+            </TableHeader>
+            <TableBody>
+              {completedBookings.map((booking) => (
+                <TableRow key={booking.id}>
+                  <TableCell>{booking.id}</TableCell>
+                  <TableCell>{booking.name}</TableCell>
+                  <TableCell>{booking.mobile}</TableCell>
+                  <TableCell>{booking.email}</TableCell>
+                  <TableCell>{booking.flat_no}</TableCell>
+                  <TableCell>{booking.floor}</TableCell>
+                  <TableCell>{booking.block}</TableCell>
+                  <TableCell>{booking.project_name}</TableCell>
+                  <TableCell>{booking.sqft}</TableCell>
+                  <TableCell>
+                    <Button
+                      size="sm"
+                      className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
+                      onClick={() => handleViewDetails(booking)}
+                    >
+                      View
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </div>
       </ComponentCard>
     </div>
   );
