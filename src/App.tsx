@@ -32,6 +32,7 @@ import SiteVisitDetails from "./pages/SiteVists/SiteVisit-details.";
 import UpComingProjects from "./pages/Project/UpComingProjects";
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import BookingDetails from "./pages/Bookings/BookingDetails";
+import AllEmployees from "./pages/Employee/AllEmployees";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
 export default function App() {
@@ -70,6 +71,8 @@ export default function App() {
 
             <Route path="/employee/:status" element={<EmployeesScreen />} />
             <Route path="/create-employee" element={<CreateEmployee />} />
+
+            <Route path ="/employee/employees" element={<AllEmployees/>} />
 
 
             {/* Other Pages */}
