@@ -375,7 +375,7 @@ const AppSidebar: React.FC = () => {
                 <Building2 className="w-5 h-5 text-white" />
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900">MEET OWNER</span>
+                <span className="text-xl font-bold text-gray-900">MNTechs </span>
                 <span className="text-xs text-gray-500">Real Estate CRM</span>
               </div>
             </div>

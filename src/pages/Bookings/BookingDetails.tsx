@@ -54,7 +54,7 @@ const BookingDetails = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Summary Section */}
+        
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-blue-900 mb-4">Summary</h2>
           <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">

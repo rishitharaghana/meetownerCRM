@@ -46,16 +46,15 @@ const BookingsDone = () => {
   };
 
   return (
-    <div className="min-h-screen px-4 py-6">
+    <div className="min-h-screen px-1 py-3">
       <ComponentCard title="Completed Bookings">
-        {/* ✅ Added scroll wrapper */}
-        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-          <div className="max-w-full overflow-x-auto">
-            <Table>
-              <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+        <div className="w-full rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="w-full">
+            <Table className="w-full text-center table-fixed ">
+              <TableHeader className="border-b text-center border-gray-100 dark:border-white/[0.05]">
                 <TableRow>
                   <TableCell isHeader>Sl.No</TableCell>
-                  <TableCell isHeader>Customer Name</TableCell>
+                  <TableCell isHeader>Customer</TableCell>
                   <TableCell isHeader>Mobile</TableCell>
                   <TableCell isHeader>Email</TableCell>
                   <TableCell isHeader>Flat No</TableCell>
@@ -68,20 +67,20 @@ const BookingsDone = () => {
               </TableHeader>
               <TableBody>
                 {completedBookings.map((booking) => (
-                  <TableRow key={booking.id}>
+                  <TableRow key={booking.id} className="text-sm">
                     <TableCell>{booking.id}</TableCell>
-                    <TableCell>{booking.name}</TableCell>
+                    <TableCell className="truncate">{booking.name}</TableCell>
                     <TableCell>{booking.mobile}</TableCell>
-                    <TableCell>{booking.email}</TableCell>
+                    <TableCell className="truncate">{booking.email}</TableCell>
                     <TableCell>{booking.flat_no}</TableCell>
                     <TableCell>{booking.floor}</TableCell>
                     <TableCell>{booking.block}</TableCell>
-                    <TableCell>{booking.project_name}</TableCell>
+                    <TableCell className="truncate">{booking.project_name}</TableCell>
                     <TableCell>{booking.sqft}</TableCell>
                     <TableCell>
                       <Button
-                        size="sm"
-                        className="bg-blue-900 hover:bg-blue-900 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
+                        size="xs"
+                        className="bg-blue-900 hover:bg-blue-900 text-white font-medium rounded-md px-3 py-1 transition-colors duration-200"
                         onClick={() => handleViewDetails(booking)}
                       >
                         View

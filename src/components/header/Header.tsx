@@ -142,6 +142,7 @@ const Header: React.FC<HeaderProps> = ({ onClick, onToggle }) => {
           <UserDropdown />
         </div>
       </div>
+      </div>
     </header>
   );
 };

@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route } from "react-router"; // Updated import
+import { BrowserRouter as Router, Routes, Route } from "react-router"; 
 
 import SignIn from "./pages/AuthPages/SignIn";
 import SignUp from "./pages/AuthPages/SignUp";
@@ -33,6 +33,7 @@ import UpComingProjects from "./pages/Project/UpComingProjects";
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import AllEmployees from "./pages/Employee/AllEmployees";
+import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
 export default function App() {
@@ -71,11 +72,11 @@ export default function App() {
 
             <Route path="/employee/:status" element={<EmployeesScreen />} />
             <Route path="/create-employee" element={<CreateEmployee />} />
+              <Route path="/employees/:id" element={<EmployeeDetail />} />
 
             <Route path ="/employee/employees" element={<AllEmployees/>} />
 
 
-            {/* Other Pages */}
             <Route path="/profile" element={<UserProfiles />} />
             <Route path="/support" element={<Support />} />
 

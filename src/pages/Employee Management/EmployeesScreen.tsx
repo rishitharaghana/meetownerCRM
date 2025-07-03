@@ -1,18 +1,18 @@
-import { useState, useEffect } from "react";
-import { useLocation } from "react-router";
-import { Table,TableBody,
-    TableCell,
-    TableHeader,
-    TableRow, } from "../../components/ui/table";
+import { useState } from "react";
+import { useLocation, useNavigate } from "react-router";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHeader,
+  TableRow,
+} from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
-
 import { MoreVertical } from "lucide-react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Pagination from "../../components/ui/pagination/Pagination";
 
-
-// User type mapping
 const userTypeMap: { [key: number]: string } = {
   3: "Builder",
   4: "Agent",
@@ -20,7 +20,6 @@ const userTypeMap: { [key: number]: string } = {
   6: "Channel Partner",
 };
 
-// Interface for user data
 interface User {
   id: number;
   name: string;
@@ -34,8 +33,10 @@ interface User {
   gst_number?: string;
   rera_number?: string;
   created_date: string;
-  status: number; 
+  status: number;
 }
+
+
 
 const staticUsers: User[] = [
   {
@@ -203,8 +204,8 @@ export default function EmployeesScreen() {
 
   const itemsPerPage = 5;
 
-  // Hardcode userType to focus on partners (Builder, Agent, Owner, Channel Partner)
-  const userType = "3,4,5,6"; // Represents Builder, Agent, Owner, Channel Partner
+  const navigate = useNavigate();
+  const userType = "3,4,5,6"; 
   const categoryLabel = "Partners";
 
   const showGstNumber = true;
@@ -212,7 +213,6 @@ export default function EmployeesScreen() {
 
   const showMobileAndEmail = false;
 
-  // Filter users based on search input
   const filteredUsers = staticUsers.filter((user) => {
     const searchableFields = [
       user.name,
@@ -245,7 +245,11 @@ export default function EmployeesScreen() {
   };
 
   const handleStatusChange = (user: User) => {
-    console.log(`Change status for user with ID: ${user.id} to ${user.status === 0 ? "Suspend" : "Activate"}`);
+    console.log(
+      `Change status for user with ID: ${user.id} to ${
+        user.status === 0 ? "Suspend" : "Activate"
+      }`
+    );
     setActiveMenu(null);
   };
 
@@ -256,29 +260,6 @@ export default function EmployeesScreen() {
   const handleFilter = (value: string) => {
     setFilterValue(value);
     setCurrentPage(1);
-  };
-
-  const getPaginationItems = () => {
-    const pages = [];
-    const totalVisiblePages = 7;
-    let startPage = Math.max(1, currentPage - Math.floor(totalVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
-
-    if (endPage - startPage + 1 < totalVisiblePages) {
-      startPage = Math.max(1, endPage - totalVisiblePages + 1);
-    }
-
-    if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push("...");
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    if (endPage < totalPages - 1) pages.push("...");
-    if (endPage < totalPages) pages.push(totalPages);
-
-    return pages;
   };
 
   return (
@@ -292,30 +273,82 @@ export default function EmployeesScreen() {
         <ComponentCard title={`${categoryLabel} Table`}>
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
-              <Table >
+              <Table>
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Sl.No</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Partner</TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Sl.No
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Partner
+                    </TableCell>
                     {!showMobileAndEmail && (
                       <>
-                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Mobile</TableCell>
-                        <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Email</TableCell>
+                        <TableCell
+                          isHeader
+                          className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                          Mobile
+                        </TableCell>
+                        <TableCell
+                          isHeader
+                          className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                        >
+                          Email
+                        </TableCell>
                       </>
                     )}
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Address</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">City</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">State</TableCell>
-                   
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Since</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Status</TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400">Actions</TableCell>
+                    {/* <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Address
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      City
+                    </TableCell> */}
+                    {/* <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      State
+                    </TableCell> */}
+
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Since
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Status
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
+                    >
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                   {paginatedUsers.map((user) => (
                     <TableRow key={user.id}>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.id}</TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.id}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start">
                         <div className="flex items-center gap-3">
                           <div>
@@ -330,15 +363,27 @@ export default function EmployeesScreen() {
                       </TableCell>
                       {!showMobileAndEmail && (
                         <>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.mobile}</TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.email}</TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                            {user.mobile}
+                          </TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                            {user.email}
+                          </TableCell>
                         </>
                       )}
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.address}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.city}</TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{user.state}</TableCell>
-                     
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">{formatDate(user.created_date)}</TableCell>
+                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.address}
+                      </TableCell>
+                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.city}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {user.state}
+                      </TableCell> */} 
+
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                        {formatDate(user.created_date)}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         <span
                           className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${
@@ -351,16 +396,36 @@ export default function EmployeesScreen() {
                               : "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200"
                           }`}
                         >
-                          {user.status === 0 ? "Active" : user.status === 2 ? "Suspended" : user.status === 3 ? "Blocked" : "Inactive"}
+                          {user.status === 0
+                            ? "Active"
+                            : user.status === 2
+                            ? "Suspended"
+                            : user.status === 3
+                            ? "Blocked"
+                            : "Inactive"}
                         </span>
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative">
-                        <Button variant="outline" size="sm" onClick={() => toggleMenu(user.id)}>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={() => toggleMenu(user.id)}
+                        >
                           <MoreVertical className="size-5 text-gray-500 dark:text-gray-400" />
                         </Button>
                         {activeMenu === user.id && (
                           <div className="absolute right-2 top-10 z-10 w-32 rounded-lg shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                             <div className="py-2">
+                              <button
+  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+  onClick={() => {
+    setActiveMenu(null);
+    navigate(`/employees/${user.id}`);
+  }}
+>
+  View
+</button>
+
                               <button
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
                                 onClick={() => handleEdit(user.id)}
@@ -390,14 +455,13 @@ export default function EmployeesScreen() {
             </div>
           </div>
 
-{totalItems > itemsPerPage && (
-  <Pagination
-    currentPage={currentPage}
-    totalPages={totalPages}
-    onPageChange={(page: number) => setCurrentPage(page)}
-  />
-)}
-
+          {totalItems > itemsPerPage && (
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page: number) => setCurrentPage(page)}
+            />
+          )}
         </ComponentCard>
       </div>
     </div>
