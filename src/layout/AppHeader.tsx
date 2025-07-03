@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
+import Filter from "../components/ui/filter/Filter";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -111,7 +112,7 @@ const AppHeader: React.FC = () => {
           </button>
         </div>
 
-        <div
+        {/* <div
           className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
             isApplicationMenuOpen ? "block" : "hidden"
           } lg:block shadow-theme-md`}
@@ -119,7 +120,18 @@ const AppHeader: React.FC = () => {
           <div className="flex items-center gap-2 2xsm:gap-3">
           </div>
           <UserDropdown />
-        </div>
+        </div> */}
+        <div
+  className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
+    isApplicationMenuOpen ? "block" : "hidden"
+  } lg:block shadow-theme-md`}
+>
+  <div className="flex items-center gap-3">
+    <Filter />
+    <UserDropdown />
+  </div>
+</div>
+
       </div>
     </header>
   );

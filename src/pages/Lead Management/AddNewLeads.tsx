@@ -56,6 +56,7 @@ interface FormData {
   leadSource: string;
   channelPartner: string;
   campaign: string;
+  propertyType: string; // ✅ added
 }
 
 interface Errors {
@@ -66,6 +67,7 @@ interface Errors {
   leadSource?: string;
   channelPartner?: string;
   campaign?: string;
+  propertyType?: string; // ✅ added
 }
 
 const LeadForm = () => {
@@ -78,6 +80,7 @@ const LeadForm = () => {
     leadSource: "",
     channelPartner: "",
     campaign: "",
+    propertyType: "", // ✅ added
   });
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -107,11 +110,17 @@ const LeadForm = () => {
     { value: "meta_ads", label: "Meta/Facebook Ads" },
   ];
 
+  const propertyTypeOptions = [
+    { value: "1bhk", label: "1 BHK" },
+    { value: "2bhk", label: "2 BHK" },
+    { value: "3bhk", label: "3 BHK" },
+    { value: "4bhk", label: "4 BHK" },
+  ]; // ✅ added
+
   const handleInputChange =
     (field: keyof FormData) =>
     (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
       const value = e.target.value;
-      console.log(`Field: ${field}, Value: ${value}`);
       setFormData((prev) => {
         if (field === "leadSource") {
           return {
@@ -164,6 +173,10 @@ const LeadForm = () => {
       newErrors.campaign = "Please select a campaign";
     }
 
+    if (!formData.projectType) {
+      newErrors.projectType = "Please select a project type";
+    } // ✅ validation
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -190,6 +203,7 @@ const LeadForm = () => {
         leadSource: "",
         channelPartner: "",
         campaign: "",
+        propertyType: "", // ✅ reset
       });
     } catch (error) {
       setSubmitError("Failed to create lead. Please try again.");
@@ -334,6 +348,43 @@ const LeadForm = () => {
                 />
               )}
             </div>
+
+<div className="space-y-6 pt-6 border-t border-realty-200">
+  <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
+    <Building className="w-5 h-5" />
+    Property
+  </h2>
+  <div className="space-y-1">
+    <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+      Select BHK Type
+    </label>
+    <div className="flex gap-3 flex-wrap">
+      {propertyTypeOptions.map((option) => (
+        <button
+          type="button"
+          key={option.value}
+          onClick={() =>
+            handleInputChange("propertyType")({
+              target: { value: option.value } as any,
+            } as React.ChangeEvent<HTMLInputElement>)
+          }
+          className={`px-4 py-2 rounded-md border transition-all ${
+            formData.propertyType === option.value
+              ? "bg-blue-900 text-white border-blue-900"
+              : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
+          }`}
+        >
+          {option.label}
+        </button>
+      ))}
+    </div>
+    {errors.propertyType && (
+      <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>
+    )}
+  </div>
+</div>
+
+
 
             <div className="pt-6">
               <button

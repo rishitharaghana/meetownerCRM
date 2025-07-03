@@ -5,6 +5,7 @@ import SignUp from "./pages/AuthPages/SignUp";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
 
+
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
@@ -33,8 +34,11 @@ import UpComingProjects from "./pages/Project/UpComingProjects";
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import AllEmployees from "./pages/Employee/AllEmployees";
+import { Filter } from "lucide-react";
 import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
+import Filter from "./components/ui/filter/Filter";
+import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 
 export default function App() {
   return (
@@ -62,6 +66,8 @@ export default function App() {
               path="/partners/addpartners"
               element={<AddChannelPartner />}
             />
+            <Route path="/filter" element={<Filter />} />
+
 
             <Route
               path="/partners/addpartners"
