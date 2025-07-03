@@ -11,14 +11,12 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
   const [showFilter, setShowFilter] = useState<boolean>(false);
   const filterRef = useRef<HTMLDivElement>(null);
 
-  // Combine date and time to ISO string
   const getCombinedDateTime = () => {
     return selectedDate && selectedTime
       ? new Date(`${selectedDate}T${selectedTime}`).toISOString()
       : "";
   };
 
-  // Close popup when clicking outside
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
@@ -54,7 +52,6 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
 
   return (
     <div ref={filterRef} className="relative inline-block">
-      {/* Filter Icon Button */}
       <button
         onClick={() => setShowFilter(!showFilter)}
         className={`p-2 rounded-full transition ${
@@ -67,10 +64,8 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
         <FilterIcon className="w-5 h-5" />
       </button>
 
-      {/* Filter Panel */}
       {showFilter && (
         <div className="absolute z-50 mt-2 right-0 bg-white border border-gray-300 shadow-lg rounded-md p-4 w-72 space-y-3">
-          {/* Date Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Date
@@ -83,7 +78,6 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
             />
           </div>
 
-          {/* Time Input */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Time
@@ -96,7 +90,6 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
             />
           </div>
 
-          {/* Selected Date-Time */}
           {(selectedDate || selectedTime) && (
             <p className="text-xs text-gray-600">
               Selected:{" "}
@@ -104,7 +97,6 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
             </p>
           )}
 
-          {/* Actions */}
           <div className="flex justify-between pt-2">
             <button
               onClick={handleClear}
@@ -114,7 +106,7 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
             </button>
             <button
               onClick={handleApply}
-              className="px-3 py-1 text-xs bg-blue-500 text-white rounded hover:bg-blue-600"
+              className="px-3 py-1 text-xs bg-blue-900 text-white rounded hover:bg-blue-900"
             >
               Apply
             </button>
