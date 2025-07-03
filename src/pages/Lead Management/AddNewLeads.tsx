@@ -213,7 +213,7 @@ const LeadForm = () => {
         )}
 
         <div className="text-center mb-6 animate-fade-in">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-900 rounded-full mb-4 shadow-lg">
             <Building className="w-8 h-8 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
@@ -339,7 +339,7 @@ const LeadForm = () => {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-3 bg-gradient-to-r from-[#1D3A76] to-purple-700 text-white font-semibold rounded-xl hover:from-purple-800 hover:to-purple-600 transition-all duration-300"
+                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl  transition-all duration-300"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center gap-2">

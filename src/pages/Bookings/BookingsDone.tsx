@@ -80,7 +80,7 @@ const BookingsDone = () => {
                   <TableCell>
                     <Button
                       size="sm"
-                      className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
+                      className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
                       onClick={() => handleViewDetails(booking)}
                     >
                       View

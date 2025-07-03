@@ -470,7 +470,7 @@ const LeadsType: React.FC = () => {
               variant="primary"
               size="sm"
               onClick={handleAddNewLead}
-              className="bg-purple-600 hover:bg-purple-700 text-white"
+              className="bg-blue-900 hover:bg-blue-800 text-white"
             >
               Add New Lead
             </Button>
@@ -500,7 +500,7 @@ const LeadsType: React.FC = () => {
               <div className="max-w-full overflow-x-auto">
                 <Table className="w-full table-layout-fixed overflow-x-auto">
   <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-    <TableRow className="bg-purple-500 text-white">
+    <TableRow className="bg-blue-900 text-white">
       <TableCell
         isHeader
         className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]"

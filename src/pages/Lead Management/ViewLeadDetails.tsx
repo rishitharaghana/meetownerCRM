@@ -2,7 +2,7 @@ import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
 import Button from "../../components/ui/button/Button";
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
-import Timeline, { TimelineEvent } from "../../components/ui/timeline/timeline";
+import Timeline, { TimelineEvent } from "../../components/ui/timeline/Timeline";
 
 const ViewLeadDetails = () => {
   const location = useLocation();
@@ -68,7 +68,7 @@ const ViewLeadDetails = () => {
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-3xl font-bold text-purple-800 dark:text-white mb-4">
+      <h2 className="text-3xl font-bold text-blue-9 00 dark:text-white mb-4">
         Lead Details: {property.property_name}
       </h2>
 
@@ -95,7 +95,7 @@ const ViewLeadDetails = () => {
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-purple-700">Lead Timeline</h2>
+          <h2 className="text-xl font-semibold mb-4 text-blue-900">Lead Timeline</h2>
           <Timeline data={timeline} />
         </div>
       </div>

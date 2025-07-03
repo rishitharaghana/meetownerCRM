@@ -1,16 +1,10 @@
 import React from "react";
-import { CheckCircle, Clock } from "lucide-react";
-
-interface BookingEvent {
-  label: string;
-  timestamp: string;
-  status: "completed" | "pending";
-  description?: string;
-}
+import { TimelineEvent } from "../../components/ui/timeline/Timeline"; // Adjust path if needed
+import Timeline from "../../components/ui/timeline/Timeline"; // Your reusable component
 
 const BookingDetails = () => {
   const booking = {
-    id: "",
+    id: "12345",
     customerName: "Neha Gupta",
     mobile: "8901234567",
     email: "neha.gupta@example.com",
@@ -21,7 +15,7 @@ const BookingDetails = () => {
     amount: "₹75,00,000",
   };
 
-  const timelineData: BookingEvent[] = [
+  const timelineData: TimelineEvent[] = [
     {
       label: "Booking Initiated",
       timestamp: "2025-06-20 10:00 AM",
@@ -55,10 +49,11 @@ const BookingDetails = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        {/* Summary Section */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold text-purple-700 mb-4">Summary</h2>
+          <h2 className="text-xl font-semibold text-blue-900 mb-4">Summary</h2>
           <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
-            <p><strong>Sl.No:</strong>{booking.id}</p>
+            <p><strong>Sl.No:</strong> {booking.id}</p>
             <p><strong>Customer Name:</strong> {booking.customerName}</p>
             <p><strong>Mobile:</strong> {booking.mobile}</p>
             <p><strong>Email:</strong> {booking.email}</p>
@@ -70,31 +65,10 @@ const BookingDetails = () => {
           </div>
         </div>
 
-          <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-purple-700">Booking Timeline</h2>
-          <ol className="relative border-l border-purple-300 dark:border-purple-600">
-            {timelineData.map((event, index) => (
-              <li key={index} className="mb-10 ml-6">
-                <span className="absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white ring-4 ring-white dark:ring-gray-900">
-                  {event.status === "completed" ? <CheckCircle size={14} /> : <Clock size={14} />}
-                </span>
-                <h3 className="flex items-center mb-1 text-sm font-semibold text-gray-900 dark:text-white">
-                  {event.label}
-                  {event.status === "pending" && (
-                    <span className="bg-yellow-100 text-yellow-800 text-xs font-medium px-2 py-0.5 rounded ml-2">
-                      Pending
-                    </span>
-                  )}
-                </h3>
-                <time className="block mb-2 text-xs text-gray-400 dark:text-gray-500">
-                  {event.timestamp}
-                </time>
-                {event.description && (
-                  <p className="text-sm text-gray-600 dark:text-gray-300">{event.description}</p>
-                )}
-              </li>
-            ))}
-          </ol>
+        {/* Timeline Section */}
+        <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
+          <h2 className="text-xl font-semibold mb-4 text-blue-900">Booking Timeline</h2>
+          <Timeline data={timelineData} />
         </div>
       </div>
     </div>

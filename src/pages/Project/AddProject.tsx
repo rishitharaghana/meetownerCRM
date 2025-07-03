@@ -587,7 +587,7 @@ export default function AddProject() {
 
           <div className="min-h-[80px]">
             <Label htmlFor="status">Construction Status</Label>
-            <div className="flex space-x-4 ">
+            <div className="flex space-x-4">
               {["Under Construction", "Ready to Move"].map((statusOption) => (
                 <button
                   key={statusOption}
@@ -601,7 +601,7 @@ export default function AddProject() {
                   }
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                     formData.status === statusOption
-                      ? " text-white bg-purple-600 hover:bg-purple-700"
+                      ? "bg-[#1D3A76] text-white border-blue-600"
                       : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                   }`}
                 >
@@ -636,7 +636,7 @@ export default function AddProject() {
                 }
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   formData.isUpcoming
-                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    ? "bg-[#1D3A76] text-white border-blue-600"
                     : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                 }`}
               >
@@ -649,7 +649,7 @@ export default function AddProject() {
                 }
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   !formData.isUpcoming
-                    ? "bg-purple-600 hover:bg-purple-700 text-white"
+                    ? "bg-[#1D3A76] text-white border-blue-600"
                     : "bg-white text-gray-700 border-gray-300 dark:bg-gray-800 dark:text-gray-300 dark:border-gray-700"
                 }`}
               >
@@ -734,7 +734,7 @@ export default function AddProject() {
                       id={`floorPlan-${size.id}`}
                       accept="image/*,application/pdf"
                       onChange={handleFileChange(size.id)}
-                      className="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-700"
+                      className="block w-full  text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-800"
                     />
                     {size.floorPlan && (
                       <button
@@ -775,7 +775,7 @@ export default function AddProject() {
             <button
               type="button"
               onClick={handleAddSize}
-              className="px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               Add Size
             </button>
@@ -805,7 +805,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={handleAddAroundProperty}
-                className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 w-[20%]"
+                className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-900 transition-colors duration-200 w-[20%]"
               >
                 Add
               </button>
@@ -854,7 +854,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={handleBrochureButtonClick}
-                className="px-4 py-2 text-sm font-semibold text-white  rounded-md bg-purple-600 hover:bg-purple-700 "
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
               >
                 Choose File
               </button>
@@ -907,7 +907,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={handlePriceSheetButtonClick}
-                className="px-4 py-2 text-sm font-semibold text-white rounded-md bg-purple-600 hover:bg-purple-700"
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
               >
                 Choose File
               </button>
@@ -949,7 +949,7 @@ export default function AddProject() {
           <div className="flex justify-center">
             <button
               type="submit"
-              className="w-[60%] px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
+              className="w-[60%] px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:opacity-50"
             >
               Submit
             </button>

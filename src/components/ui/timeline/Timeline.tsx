@@ -15,10 +15,10 @@ const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
   }
 
   return (
-    <ol className="relative border-l border-purple-300 dark:border-purple-600">
+    <ol className="relative border-l border-blue-600 dark:border-blue-600">
       {data.map((event, index) => (
         <li key={index} className="mb-10 ml-6">
-          <span className="absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full bg-purple-600 text-white ring-4 ring-white dark:ring-gray-900">
+          <span className="absolute -left-3 flex items-center justify-center w-6 h-6 rounded-full bg-blue-900 text-white ring-4 ring-white dark:ring-gray-900">
             {event.status === "completed" || event.current ? (
               <CheckCircle size={14} />
             ) : (

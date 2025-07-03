@@ -489,7 +489,7 @@ const SiteVisit: React.FC = () => {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-24">
                         <Button
                           size="sm"
-                          className="bg-purple-600 hover:bg-purple-700 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
+                          className="bg-blue-900 hover:bg-blue-800 text-white font-medium rounded-md px-4 py-2 transition-colors duration-200"
                           onClick={() => handleViewDetails(item)}
                         >
                           View

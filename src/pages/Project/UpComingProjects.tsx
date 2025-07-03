@@ -134,7 +134,7 @@ const UpcomingProjects: React.FC = () => {
           return (
             <div
               key={project.id}
-              className="bg-white border border-purple-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
               <img
                 src={project.image}
@@ -149,7 +149,7 @@ const UpcomingProjects: React.FC = () => {
                     </h3>
                     <p className="text-sm text-gray-500">{project.location}</p>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-purple-100 text-purple-800">
+                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
                     {project.status}
                   </span>
                 </div>
@@ -175,7 +175,7 @@ const UpcomingProjects: React.FC = () => {
                     {initialAmenities.map((item) => (
                       <span
                         key={item}
-                        className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded-full"
+                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                       >
                         {item}
                       </span>
@@ -183,7 +183,7 @@ const UpcomingProjects: React.FC = () => {
                     {hiddenAmenities.length > 0 && !isExpanded && (
                       <button
                         onClick={() => toggleExpand(project.id)}
-                        className="text-xs text-purple-600 underline"
+                        className="text-xs text-blue-600 underline"
                       >
                         +{hiddenAmenities.length} more
                       </button>
@@ -194,14 +194,14 @@ const UpcomingProjects: React.FC = () => {
                       {hiddenAmenities.map((item) => (
                         <span
                           key={item}
-                          className="text-xs bg-purple-50 text-purple-800 px-2 py-1 rounded-full"
+                          className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                         >
                           {item}
                         </span>
                       ))}
                       <button
                         onClick={() => toggleExpand(project.id)}
-                        className="text-xs text-purple-600 underline w-full text-left"
+                        className="text-xs text-blue-600 underline w-full text-left"
                       >
                         Show less
                       </button>
@@ -213,7 +213,7 @@ const UpcomingProjects: React.FC = () => {
                     variant="primary"
                     size="sm"
                     onClick={() => navigate(`/upcoming/${project.id}`)}
-                    className="bg-[#7D23E0] hover:bg-purple-800 text-white"
+                    className="bg-blue-1000 hover:bg-blue-900 text-white"
                   >
                     View Details
                   </Button>

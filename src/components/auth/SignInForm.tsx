@@ -119,7 +119,7 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
-            <h1 className="mb-2 font-bold text-2xl text-[#7700ff]">Sign In</h1>
+            <h1 className="mb-2 font-bold text-2xl text-blue-900">Sign In</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
               Enter your mobile number, password, and select user type to sign in!
             </p>
@@ -136,7 +136,6 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
                 <Input
                   type="tel"
                   name="mobile"
-                  autoComplete="off"
                   placeholder="Enter Mobile number"
                   value={formData.mobile}
                   maxLength={10}
@@ -180,7 +179,7 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
 
               <div>
                 <Button
-                  className="w-full px-5 py-3 font-semibold text-white bg-[#7700ff] hover:bg-purple-800 rounded-md text-sm shadow-md"
+                  className="w-full px-5 py-3 font-semibold text-white bg-blue-900 hover:bg-blue-800 rounded-md text-sm shadow-md"
                   size="sm"
                 >
                   Sign in

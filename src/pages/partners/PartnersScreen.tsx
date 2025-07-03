@@ -367,7 +367,7 @@ export default function PartnerScreen() {
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
             <div className="max-w-full overflow-x-auto">
               <Table className="w-full table-layout-fixed overflow-x-auto">
-                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-purple-500">
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-blue-900">
                   <TableRow>
                     <TableCell
                       isHeader
@@ -396,7 +396,7 @@ export default function PartnerScreen() {
                     <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                    >
+                    > 
                       Location
                     </TableCell>
                     <TableCell
@@ -431,10 +431,10 @@ export default function PartnerScreen() {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                         <div className="flex items-center gap-3">
                           <div>
-                            <span className="block font-medium text-purple-600 text-theme-sm dark:text-purple-400">
+                            <span className="block font-medium text-gray-500 text-theme-sm dark:text-gray-400">
                               {user.name}
                             </span>
-                            <span className="block text-purple-500 text-theme-sm dark:text-purple-400">
+                            <span className="block text-gray-500 text-theme-sm dark:text-gray-400">
                               {userTypeMap[user.user_type] || "Unknown"}
                             </span>
                           </div>

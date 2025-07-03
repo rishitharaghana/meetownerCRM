@@ -151,7 +151,7 @@ const CreateEmployee = () => {
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-r from-[#1D3A76] to-purple-600 rounded-full mb-4 shadow-lg">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-blue-900 rounded-full mb-4 shadow-lg">
             <Users className="w-6 h-6 text-white" />
           </div>
           <h1 className="text-2xl font-bold text-gray-800 mb-2">Create Employee</h1>
@@ -284,7 +284,7 @@ const CreateEmployee = () => {
               <button
                 type="submit"
                 disabled={createLoading}
-                className="w-full py-3 bg-gradient-to-r from-[#1D3A76] to-purple-700 text-white font-semibold rounded-xl hover:from-purple-800 hover:to-purple-600"
+                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl "
               >
                 {createLoading ? "Creating..." : "Create Employee"}
               </button>
