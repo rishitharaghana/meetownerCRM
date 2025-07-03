@@ -1,9 +1,8 @@
 import React, { useState } from "react";
 import { User, Building, Target, Users } from "lucide-react";
 import Input from "../../components/form/input/InputField";
-import Button from "../../components/ui/button/Button";
-import { useDispatch } from "react-redux";
-import { AppDispatch } from "../../store/store";
+// import { useDispatch } from "react-redux";
+// import { AppDispatch } from "../../store/store";
 
 interface SelectProps {
   label: string;
@@ -75,7 +74,7 @@ interface Errors {
 
 
 const LeadForm = () => {
-  const dispatch = useDispatch<AppDispatch>();
+  // const dispatch = useDispatch<AppDispatch>();
   const [formData, setFormData] = useState<FormData>({
     name: "",
     mobile: "",

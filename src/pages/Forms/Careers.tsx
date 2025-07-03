@@ -192,10 +192,10 @@ const CareersPage: React.FC = () => {
     description: `1. Rentals: Find the perfect place to call home with our extensive rental listings.\n2. Sales: Explore properties for sale, whether you're looking for a new home or an investment opportunity.\n3. Plots: Discover vacant plots to build your dream home or invest in future development.\n4. Commercial: Searching for the ideal location for your business? We've got you covered with commercial property listings.`,
   });
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
-  };
+  // const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  //   const { name, value } = e.target;
+  //   setFormData((prev) => ({ ...prev, [name]: value }));
+  // };
 
   const handleDescriptionChange = (value: string) => {
     setFormData((prev) => ({ ...prev, description: value }));

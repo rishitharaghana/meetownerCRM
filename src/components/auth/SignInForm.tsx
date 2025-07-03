@@ -60,7 +60,7 @@ export default function SignInForm() {
 const handleSubmit = (e: { preventDefault: () => void }) => {
   e.preventDefault();
 
-  let newErrors = { mobile: "", password: "", userType: "", general: "" };
+  const newErrors = { mobile: "", password: "", userType: "", general: "" };
   let hasError = false;
 
   if (!formData.mobile.trim()) {
@@ -101,13 +101,12 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
       existingUsers[formData.userType].push(newUser);
     }
 
-    localStorage.setItem("users", JSON.stringify(existingUsers)); // ✅ Keep this
-    // localStorage.setItem("userData", JSON.stringify(newUser)); ❌ Remove this line
+    localStorage.setItem("users", JSON.stringify(existingUsers)); 
   } catch (err) {
     console.error("Error saving user:", err);
   }
 
-  setFormData({ mobile: "", password: "", userType: "tele_callers" }); // Or your default type
+  setFormData({ mobile: "", password: "", userType: "tele_callers" }); 
   setFormKey(Date.now());
   navigate("/");
 };
@@ -155,7 +154,7 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
                   <Input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    autoComplete="new-password"
+                    
                     value={formData.password}
                     onChange={handleInputChange}
                     placeholder="Enter your password"
