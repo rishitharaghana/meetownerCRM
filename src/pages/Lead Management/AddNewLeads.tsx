@@ -56,8 +56,10 @@ interface FormData {
   leadSource: string;
   channelPartner: string;
   campaign: string;
-  propertyType: string; // ✅ added
+  propertyType: string;
+  squareFeet: string; // ✅ add this line
 }
+
 
 interface Errors {
   name?: string;
@@ -67,8 +69,10 @@ interface Errors {
   leadSource?: string;
   channelPartner?: string;
   campaign?: string;
-  propertyType?: string; // ✅ added
+  propertyType?: string;
+  squareFeet?: string; // ✅ add this line
 }
+
 
 const LeadForm = () => {
   const dispatch = useDispatch<AppDispatch>();
@@ -80,8 +84,10 @@ const LeadForm = () => {
     leadSource: "",
     channelPartner: "",
     campaign: "",
-    propertyType: "", // ✅ added
+    propertyType: "",
+    squareFeet: "", // ✅ added
   });
+  
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
@@ -173,10 +179,10 @@ const LeadForm = () => {
       newErrors.campaign = "Please select a campaign";
     }
 
-    if (!formData.projectType) {
-      newErrors.projectType = "Please select a project type";
-    } // ✅ validation
-
+    if (!formData.propertyType) {
+      newErrors.propertyType = "Please select a property type";
+    }
+    
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -203,8 +209,10 @@ const LeadForm = () => {
         leadSource: "",
         channelPartner: "",
         campaign: "",
-        propertyType: "", // ✅ reset
+        propertyType: "",
+        squareFeet: "", 
       });
+      
     } catch (error) {
       setSubmitError("Failed to create lead. Please try again.");
     } finally {
@@ -383,6 +391,22 @@ const LeadForm = () => {
     )}
   </div>
 </div>
+<div className="space-y-1">
+  <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+    Square Feet
+  </label>
+  <Input
+    type="text"
+    value={formData.squareFeet}
+    onChange={handleInputChange("squareFeet")}
+    placeholder="Enter square feet area"
+    className={errors.squareFeet ? "border-red-500" : ""}
+  />
+  {errors.squareFeet && (
+    <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>
+  )}
+</div>
+
 
 
 
