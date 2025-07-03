@@ -3,6 +3,7 @@ import ComponentCard from '../../components/common/ComponentCard';
 import Label from '../../components/form/Label';
 import Input from '../../components/form/input/InputField';
 import Button from '../../components/ui/button/Button';
+import { useNavigate } from 'react-router';
 
 const faqs = [
   { question: "How do I reset my password?", answer: "Go to the login page and click 'Forgot Password' to reset it via email." },
@@ -16,7 +17,7 @@ const Support = () => {
   const [message, setMessage] = useState('');
   const [currentDate] = useState(new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' }));
 const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
-
+const navigate = useNavigate();
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     console.log('Support request submitted:', { name, email, message });
@@ -105,7 +106,9 @@ const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
   </div>
 ))}
 
-
+  <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          Back
+        </Button>
             </div>
           </div>
         </div>
