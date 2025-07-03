@@ -34,6 +34,8 @@ import UpComingProjects from "./pages/Project/UpComingProjects";
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import AllEmployees from "./pages/Employee/AllEmployees";
+import { Filter } from "lucide-react";
+import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 
 export default function App() {
