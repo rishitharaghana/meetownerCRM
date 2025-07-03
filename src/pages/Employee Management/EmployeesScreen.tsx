@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useLocation, useNavigate } from "react-router";
+import { useNavigate } from "react-router";
 import {
   Table,
   TableBody,
@@ -35,8 +35,6 @@ interface User {
   created_date: string;
   status: number;
 }
-
-
 
 const staticUsers: User[] = [
   {
@@ -197,19 +195,19 @@ const formatDate = (dateString: string): string => {
 };
 
 export default function EmployeesScreen() {
-  const location = useLocation();
+  // const location = useLocation();
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   const navigate = useNavigate();
-  const userType = "3,4,5,6"; 
+  // const userType = "3,4,5,6";
   const categoryLabel = "Partners";
 
-  const showGstNumber = true;
-  const showReraNumber = true;
+  // const showGstNumber = true;
+  // const showReraNumber = true;
 
   const showMobileAndEmail = false;
 
@@ -315,8 +313,8 @@ export default function EmployeesScreen() {
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
                       City
-                    </TableCell> 
-                     <TableCell
+                    </TableCell>
+                    <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
@@ -374,12 +372,12 @@ export default function EmployeesScreen() {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.address}
                       </TableCell>
-                     <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.city}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.state}
-                      </TableCell> 
+                      </TableCell>
 
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {formatDate(user.created_date)}
@@ -417,14 +415,14 @@ export default function EmployeesScreen() {
                           <div className="absolute right-2 top-10 z-10 w-32 rounded-lg shadow-md bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700">
                             <div className="py-2">
                               <button
-  className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
-  onClick={() => {
-    setActiveMenu(null);
-    navigate(`/employees/${user.id}`);
-  }}
->
-  View
-</button>
+                                className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"
+                                onClick={() => {
+                                  setActiveMenu(null);
+                                  navigate(`/employees/${user.id}`);
+                                }}
+                              >
+                                View
+                              </button>
 
                               <button
                                 className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"

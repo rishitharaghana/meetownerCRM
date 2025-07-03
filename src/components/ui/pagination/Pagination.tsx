@@ -13,12 +13,13 @@ const Pagination: React.FC<PaginationProps> = ({
 }) => {
   const getPaginationItems = (): (number | "...")[] => {
     const pages: (number | "...")[] = [];
-    const totalVisiblePages = 7;
+    const totalVisiblePages = 10;
 
     let startPage = Math.max(1, currentPage - Math.floor(totalVisiblePages / 2));
-    let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
+    let endPage = startPage + totalVisiblePages - 1;
 
-    if (endPage - startPage + 1 < totalVisiblePages) {
+    if (endPage > totalPages) {
+      endPage = totalPages;
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
 
@@ -57,7 +58,6 @@ const Pagination: React.FC<PaginationProps> = ({
         Previous
       </button>
 
-      {/* Page Numbers */}
       {getPaginationItems().map((page, index) =>
         typeof page === "number" ? (
           <button
@@ -81,7 +81,6 @@ const Pagination: React.FC<PaginationProps> = ({
         )
       )}
 
-      {/* Next Button */}
       <button
         onClick={handleNext}
         disabled={currentPage === totalPages}
