@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Filter as FilterIcon } from "lucide-react";
+import { Filter as FilterIcon, Clock } from "lucide-react";
+import DatePicker from "../../form/date-picker"; 
 
 interface FilterProps {
   onFilterChange?: (datetime: string) => void;
@@ -51,7 +52,7 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
   };
 
   return (
-    <div ref={filterRef} className="relative inline-block">
+    <div ref={filterRef} className="relative inline-block text-left">
       <button
         onClick={() => setShowFilter(!showFilter)}
         className={`p-2 rounded-full transition ${
@@ -65,20 +66,40 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
       </button>
 
       {showFilter && (
-        <div className="absolute z-50 mt-2 right-0 bg-white border border-gray-300 shadow-lg rounded-md p-4 w-72 space-y-3">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Select Date
-            </label>
-            <input
-              type="date"
-              value={selectedDate}
-              onChange={(e) => setSelectedDate(e.target.value)}
-              className="w-full border border-gray-300 rounded-md text-sm p-2"
+        <div className="absolute z-50 mt-2 right-0 w-72 bg-white border border-gray-200 shadow-lg rounded-xl p-4 space-y-4">
+          {/* DatePicker with outer size styling only */}
+          {/* <div className="text-xs">
+            <DatePicker
+              id="filter-datepicker"
+              label="Select Date"
+              placeholder="Pick a date"
+              defaultDate={selectedDate || undefined}
+              onChange={([date]) => {
+                if (date instanceof Date) {
+                  const iso = date.toISOString().split("T")[0];
+                  setSelectedDate(iso);
+                }
+              }}
             />
-          </div>
+          </div> */}
+          <div className="text-xs flatpickr-sm">
+  <DatePicker
+    id="filter-datepicker"
+    label="Select Date"
+    placeholder="Pick a date"
+    defaultDate={selectedDate || undefined}
+    onChange={([date]) => {
+      if (date instanceof Date) {
+        const iso = date.toISOString().split("T")[0];
+        setSelectedDate(iso);
+      }
+    }}
+  />
+</div>
 
-          <div>
+
+          {/* Time Picker */}
+          <div className="relative text-xs">
             <label className="block text-sm font-medium text-gray-700 mb-1">
               Select Time
             </label>
@@ -86,14 +107,14 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
               type="time"
               value={selectedTime}
               onChange={(e) => setSelectedTime(e.target.value)}
-              className="w-full border border-gray-300 rounded-md text-sm p-2"
+              className="w-full h-9 border border-gray-300 rounded-md px-2 pr-9 text-xs"
             />
+            <Clock className="absolute right-3 top-9 text-gray-500 w-4 h-4 pointer-events-none" />
           </div>
 
           {(selectedDate || selectedTime) && (
             <p className="text-xs text-gray-600">
-              Selected:{" "}
-              <span className="font-medium">{selectedDate} {selectedTime}</span>
+              Selected: <span className="font-medium">{selectedDate} {selectedTime}</span>
             </p>
           )}
 
@@ -106,7 +127,7 @@ const Filter: React.FC<FilterProps> = ({ onFilterChange }) => {
             </button>
             <button
               onClick={handleApply}
-              className="px-3 py-1 text-xs bg-blue-900 text-white rounded hover:bg-blue-900"
+              className="px-3 py-1 text-xs bg-blue-900 text-white rounded hover:bg-blue-800"
             >
               Apply
             </button>
