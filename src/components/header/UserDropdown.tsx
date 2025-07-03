@@ -8,13 +8,21 @@ export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
 
-  function toggleDropdown() {
-    setIsOpen(!isOpen);
-  }
+   const toggleDropdown = () => {
+    setIsOpen((prev) => !prev);
+  };
 
   function closeDropdown() {
-    setIsOpen(false);
+    setIsOpen(false); 
   }
+  const handleClickOutside = (event: MouseEvent) => {
+    if (
+      dropdownRef.current &&
+      !(dropdownRef.current as HTMLElement).contains(event.target as Node)
+    ) {
+      setIsOpen(false);
+    }
+  };
 const handleLogout = () => {
   localStorage.removeItem("userData");
   localStorage.removeItem("users"); 
@@ -25,6 +33,7 @@ const handleLogout = () => {
 
   return (
     <div className="relative">
+
       <button
         onClick={toggleDropdown}
         className="flex items-center px-3 py-2 text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"

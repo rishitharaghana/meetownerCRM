@@ -14,15 +14,21 @@ const Pagination: React.FC<PaginationProps> = ({
   const getPaginationItems = (): (number | "...")[] => {
     const pages: (number | "...")[] = [];
     const totalVisiblePages = 7;
+
     let startPage = Math.max(1, currentPage - Math.floor(totalVisiblePages / 2));
-    const endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
+    let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
+
     if (endPage - startPage + 1 < totalVisiblePages) {
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
 
     if (startPage > 1) pages.push(1);
     if (startPage > 2) pages.push("...");
-    for (let i = startPage; i <= endPage; i++) pages.push(i);
+
+    for (let i = startPage; i <= endPage; i++) {
+      pages.push(i);
+    }
+
     if (endPage < totalPages - 1) pages.push("...");
     if (endPage < totalPages) pages.push(totalPages);
 
@@ -38,7 +44,7 @@ const Pagination: React.FC<PaginationProps> = ({
   };
 
   return (
-    <div className="flex justify-center gap-2 mt-4  sm:justify-end w-full">
+    <div className="flex justify-center sm:justify-end items-center gap-2 w-full mt-4">
       <button
         onClick={handlePrevious}
         disabled={currentPage === 1}
@@ -51,6 +57,7 @@ const Pagination: React.FC<PaginationProps> = ({
         Previous
       </button>
 
+      {/* Page Numbers */}
       {getPaginationItems().map((page, index) =>
         typeof page === "number" ? (
           <button
@@ -74,6 +81,7 @@ const Pagination: React.FC<PaginationProps> = ({
         )
       )}
 
+      {/* Next Button */}
       <button
         onClick={handleNext}
         disabled={currentPage === totalPages}
