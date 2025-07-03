@@ -366,7 +366,6 @@ const AppSidebar: React.FC = () => {
       onMouseEnter={() => !isExpanded && setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
-      {/* Logo Section */}
       <div className={`px-6 py-6 border-b border-gray-100 ${!shouldShowText ? "lg:px-4" : ""}`}>
         <Link to="/" className="flex items-center">
           {shouldShowText ? (

@@ -95,7 +95,6 @@ export default function App() {
             <Route path="/adds/upload-ads" element={<CreateAds />} />
           </Route>
 
-          {/* Public Routes */}
           <Route path="/signin" element={<SignIn />} />
           <Route path="/signup" element={<SignUp />} />
           <Route path="*" element={<NotFound />} />
