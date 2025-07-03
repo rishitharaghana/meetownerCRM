@@ -18,11 +18,11 @@ const ViewLeadDetails = () => {
   if (!property) return null;
 
   const statusMap: Record<number, number> = {
-    0: 0, // Lead Created
-    1: 1, // Today Follow-Up
-    2: 2, // Site Visit
-    3: 3, // Won
-    4: 3, // Lost
+    0: 0,
+    1: 1,
+    2: 2, 
+    3: 3, 
+    4: 3,
   };
 
   const currentStepIndex = statusMap[property.status] ?? 0;

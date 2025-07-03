@@ -12,6 +12,7 @@ import { MoreVertical } from "lucide-react";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { Modal } from "../../components/ui/modal";
+import Pagination from "../../components/ui/pagination/Pagination";
 
 const userTypeMap: { [key: number]: string } = {
   3: "Builder",
@@ -260,6 +261,7 @@ const formatDate = (dateString: string): string => {
   return date.toISOString().split("T")[0];
 };
 
+
 export default function PartnerScreen() {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
@@ -329,31 +331,6 @@ export default function PartnerScreen() {
     setCurrentPage(1);
   };
 
-  const getPaginationItems = () => {
-    const pages = [];
-    const totalVisiblePages = 7;
-    let startPage = Math.max(
-      1,
-      currentPage - Math.floor(totalVisiblePages / 2)
-    );
-    let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
-
-    if (endPage - startPage + 1 < totalVisiblePages) {
-      startPage = Math.max(1, endPage - totalVisiblePages + 1);
-    }
-
-    if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push("...");
-
-    for (let i = startPage; i <= endPage; i++) {
-      pages.push(i);
-    }
-
-    if (endPage < totalPages - 1) pages.push("...");
-    if (endPage < totalPages) pages.push(totalPages);
-
-    return pages;
-  };
 
   return (
     <div className="relative min-h-screen">
@@ -505,49 +482,18 @@ export default function PartnerScreen() {
           </div>
 
           {totalItems > itemsPerPage && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-              </div>
-              <div className="flex gap-2 flex-wrap justify-center">
-                <Button
-                  variant={currentPage === 1 ? "outline" : "primary"}
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage - 1)}
-                  disabled={currentPage === 1}
-                >
-                  Previous
-                </Button>
-                {getPaginationItems().map((page, index) =>
-                  page === "..." ? (
-                    <span
-                      key={index}
-                      className="px-3 py-1 text-gray-500 dark:text-gray-400"
-                    >
-                      ...
-                    </span>
-                  ) : (
-                    <Button
-                      key={page}
-                      variant={page === currentPage ? "primary" : "outline"}
-                      size="sm"
-                      onClick={() => setCurrentPage(page as number)}
-                    >
-                      {page}
-                    </Button>
-                  )
-                )}
-                <Button
-                  variant={currentPage === totalPages ? "outline" : "primary"}
-                  size="sm"
-                  onClick={() => setCurrentPage(currentPage + 1)}
-                  disabled={currentPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
-            </div>
-          )}
+  <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
+    <div className="text-sm text-gray-500 dark:text-gray-400">
+      Showing {startIndex + 1} to {endIndex} of {totalItems} entries
+    </div>
+    <Pagination
+      currentPage={currentPage}
+      totalPages={totalPages}
+      onPageChange={(page) => setCurrentPage(page)}
+    />
+  </div>
+)}
+
         </ComponentCard>
       </div>
 

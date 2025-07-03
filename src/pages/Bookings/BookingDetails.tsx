@@ -1,6 +1,8 @@
 import React from "react";
+import { useNavigate } from "react-router";
 import { TimelineEvent } from "../../components/ui/timeline/Timeline"; // Adjust path if needed
 import Timeline from "../../components/ui/timeline/Timeline"; // Your reusable component
+import Button from "../../components/ui/button/Button";
 
 const BookingDetails = () => {
   const booking = {
@@ -14,6 +16,9 @@ const BookingDetails = () => {
     status: "Payment Pending",
     amount: "₹75,00,000",
   };
+  const navigate = useNavigate();
+
+// const handle
 
   const timelineData: TimelineEvent[] = [
     {
@@ -49,7 +54,7 @@ const BookingDetails = () => {
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Summary Section */}
+        
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold text-blue-900 mb-4">Summary</h2>
           <div className="text-sm text-gray-700 dark:text-gray-300 space-y-2">
@@ -65,12 +70,16 @@ const BookingDetails = () => {
           </div>
         </div>
 
-        {/* Timeline Section */}
         <div className="bg-white dark:bg-gray-900 p-6 rounded-lg shadow border border-gray-200 dark:border-gray-700">
           <h2 className="text-xl font-semibold mb-4 text-blue-900">Booking Timeline</h2>
           <Timeline data={timelineData} />
         </div>
+
       </div>
+     
+      <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          Back
+        </Button>
     </div>
   );
 };

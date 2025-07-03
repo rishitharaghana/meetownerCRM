@@ -133,7 +133,6 @@ const BasicTables: React.FC = () => {
     setDropdownOpen(null);
   };
 
-  // Handle Edit form submission
   const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (editMember) {
