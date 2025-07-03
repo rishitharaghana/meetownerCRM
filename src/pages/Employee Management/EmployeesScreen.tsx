@@ -304,7 +304,7 @@ export default function EmployeesScreen() {
                         </TableCell>
                       </>
                     )}
-                    {/* <TableCell
+                    <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
@@ -315,13 +315,13 @@ export default function EmployeesScreen() {
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
                       City
-                    </TableCell> */}
-                    {/* <TableCell
+                    </TableCell> 
+                     <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400"
                     >
                       State
-                    </TableCell> */}
+                    </TableCell>
 
                     <TableCell
                       isHeader
@@ -371,15 +371,15 @@ export default function EmployeesScreen() {
                           </TableCell>
                         </>
                       )}
-                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.address}
                       </TableCell>
-                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
+                     <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.city}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {user.state}
-                      </TableCell> */} 
+                      </TableCell> 
 
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400">
                         {formatDate(user.created_date)}

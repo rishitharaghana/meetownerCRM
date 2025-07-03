@@ -415,24 +415,24 @@ const SiteVisit: React.FC = () => {
                     >
                       Customer Name
                     </TableCell>
-                    {/* <TableCell
+                    <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-40"
                     >
                       Customer Number
-                    </TableCell> */}
+                    </TableCell>
                     <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-40"
                     >
                       Channel Partner Name
                     </TableCell>
-                    {/* <TableCell
+                    <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-40"
                     >
                       Channel Partner Number
-                    </TableCell> */}
+                    </TableCell>
                     <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-gray-500 text-start text-theme-xs dark:text-gray-400 w-48"
@@ -468,15 +468,15 @@ const SiteVisit: React.FC = () => {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
                         {item.user.name || "N/A"}
                       </TableCell>
-                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
                         {item.user.mobile || "N/A"}
-                      </TableCell> */}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
                         {item.channel_partner.name || "N/A"}
                       </TableCell>
-                      {/* <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-40 truncate">
                         {item.channel_partner.mobile || "N/A"}
-                      </TableCell> */}
+                      </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 w-48 truncate">
                         {item.property_name || "N/A"}
                       </TableCell>

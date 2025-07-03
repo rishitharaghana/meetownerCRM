@@ -2,7 +2,9 @@ import { useLocation, useNavigate } from "react-router";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import Button from "../../components/ui/button/Button";
-import Timeline, { TimelineEvent } from "../../components/ui/timeline/timeline"; // Adjust path if needed
+import Timeline, { TimelineEvent } from "../../components/ui/timeline/Timeline"; 
+import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
+
 
 interface SiteVisit {
   id: number;
@@ -105,10 +107,14 @@ const SiteVisitDetails: React.FC = () => {
       <PageBreadcrumb pageTitle="Site Visit Details" />
 
       <div className="flex flex-col md:flex-row gap-4">
-        {/* Left - Property Details */}
         <div className="w-full md:w-1/2 bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">Property Details</h2>
-          <div className="space-y-2 text-[15px]">
+           <img
+              src={sunriseImg}
+              alt="Booking Preview"
+              className="w-full h-48 object-cover transition-transform duration-300 hover:scale-105"
+            />
+          <div className="space-y-4 mt-4  text-[16px]">
             <p><strong>Property ID:</strong> {siteVisit.unique_property_id}</p>
             <p><strong>Property Name:</strong> {siteVisit.property_name}</p>
             <p><strong>Budget:</strong> {siteVisit.budget}</p>
