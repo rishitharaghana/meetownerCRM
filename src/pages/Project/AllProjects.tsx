@@ -29,7 +29,7 @@ const sampleProjects = [
     type: "Villa",
     priceRange: "₹2.5Cr - ₹4Cr",
     possessionDate: "6/30/2025",
-    status: "Pre-Launch",
+    status: "Under-Construction",
     image: greenValleyImg,
     amenities: ["Clubhouse", "Tennis Court", "Spa", "Yoga Deck", "Pet Area"],
   },
@@ -70,7 +70,7 @@ const sampleProjects = [
     type: "Villa",
     priceRange: "₹1.8Cr - ₹3.2Cr",
     possessionDate: "11/30/2025",
-    status: "Pre-Launch",
+    status: "Ready To Move",
     image: "https://via.placeholder.com/600x300?text=Palm+Grove",
     amenities: ["Tennis Court", "Spa", "Jogging Track"],
   },
@@ -166,8 +166,8 @@ const AllProjects: React.FC = () => {
     switch (status) {
       case "Under Construction":
         return "bg-yellow-100 text-yellow-800";
-      case "Pre-Launch":
-        return "bg-blue-100 text-blue-800";
+      // case "Pre-Launch":
+      //   return "bg-blue-100 text-blue-800";
       case "Ready to Move":
         return "bg-green-100 text-green-800";
       default:

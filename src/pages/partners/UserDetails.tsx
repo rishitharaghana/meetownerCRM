@@ -1,7 +1,10 @@
+import { useState } from "react";
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
 import greenValley from "../../components/ui/Images/GreenValleyVillas.jpeg";
 import blueSky from "../../components/ui/Images/BlueSkyResidencies.jpeg";
 import techPlaza from "../../components/ui/Images/TechParkplaza.jpeg";
+import Pagination from "../../components/ui/pagination/Pagination";
+ import { useNavigate } from "react-router";
 
 const sampleListings = [
   {
@@ -32,14 +35,16 @@ const sampleListings = [
     image: blueSky,
   },
   {
-    id: 3,
-    property_name: "Blue Sky Residency",
+    id: 4,
+    property_name: "Tech Plaza Residency",
     lead_type: "Contacted",
     budget: "75L-1Cr",
     created_date: "05-06-2025",
     registerd_by: "John Doe",
     image: techPlaza,
   },
+    
+
 ];
 
 const UserDetailsPage = () => {
@@ -48,19 +53,41 @@ const UserDetailsPage = () => {
   const userLeads = sampleListings.filter(
     (lead) => lead.registerd_by === personName
   );
+const navigate = useNavigate()
+
+  const [currentPage, setCurrentPage] = useState(1);
+  const leadsPerPage = 10;
+  const totalPages = Math.ceil(userLeads.length / leadsPerPage);
+
+  const paginatedLeads = userLeads.slice(
+    (currentPage - 1) * leadsPerPage,
+    currentPage * leadsPerPage
+  );
 
   return (
     <div className="p-6 max-w-7xl mx-auto">
-      <h1 className="text-2xl font-bold text-gray-800 dark:text-white mb-2">
-        Registrations Done By:{" "}
-        <span className="underline text-blue-600">{personName}</span>
-      </h1>
+    <div className="flex justify-between items-center mb-4">
+  <h1 className="text-2xl font-bold text-gray-800 dark:text-white">
+    Registrations Done By:{" "}
+    <span className="underline text-blue-900">{personName}</span>
+  </h1>
+  
+  <button
+    onClick={() => navigate(-1)}
+    className="px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-900 transition"
+  >
+    Back
+  </button>
+</div>
+
+      
       <p className="mb-6 text-lg text-gray-700 dark:text-gray-300">
         Total Registrations: {userLeads.length}
+        
       </p>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {userLeads.map((lead, index) => (
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6">
+        {paginatedLeads.map((lead, index) => (
           <div
             key={index}
             className="bg-white dark:bg-gray-900 rounded-xl shadow hover:shadow-lg transition-shadow duration-300 overflow-hidden"
@@ -87,6 +114,14 @@ const UserDetailsPage = () => {
           </div>
         ))}
       </div>
+
+      {userLeads.length > leadsPerPage && (
+        <Pagination
+          currentPage={currentPage}
+          totalPages={totalPages}
+          onPageChange={setCurrentPage}
+        />
+      )}
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect, ChangeEvent, FormEvent } from "react";
-import { useNavigate, useParams, useLocation, Link } from "react-router";
+import { useNavigate, useParams, useLocation } from "react-router";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageMeta from "../../components/common/PageMeta";
@@ -109,7 +109,7 @@ const sampleListings: Listing[] = [
     updated_date: "2025-04-12",
     updated_time: "14:45:00",
     location_id: "Downtown",
-    lead_source: "Google Ads",
+    lead_source: "Google Ads",                                                                                                                                                                                                                                                        
     status: 0,
     budget: "50L-75L",
     property_type: "Residential",
@@ -345,7 +345,7 @@ const LeadsType: React.FC = () => {
     setFormErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-  const handleLeadPullSubmit = (e: FormEvent<HTMLFormElement>) => {
+ const handleLeadPullSubmit = (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (validateLeadPullForm()) {
       console.log("Lead Assign Form Data:", leadPullFormData);
@@ -456,164 +456,175 @@ const LeadsType: React.FC = () => {
             </div>
           )}
         </div>
-        <div className="space-y-6">
+        <div className="space-y-6"> 
           <ComponentCard title={getPageTitle()}>
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
               <div className="max-w-full overflow-x-auto">
                 <Table className="w-full table-layout-fixed overflow-x-auto">
-                  <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                    <TableRow className="bg-blue-900 text-white">
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]"
-                      >
-                        Sl. No
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Customer Name
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Customer Number
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                        Email
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                        Interested Project
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Lead Type
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Actions
-                      </TableCell>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {currentListings.map((item, index) => (
-                      <TableRow
-                        key={item.id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
-                          {(localPage - 1) * itemsPerPage + index + 1}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start underline text-blue-700 dark:text-blue-400 whitespace-nowrap w-[5%]">
-                          <Link
-                            to={`/leads/user-details`}
-                          >
-                            {item.user.name || "N/A"}
-                          </Link>
-                        </TableCell>
-
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                          {item.user.mobile || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                          {item.user.email || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                          {item.property_name || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                          {item.lead_type || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                            onClick={() =>
-                              setDropdownOpen(
-                                dropdownOpen === item.id.toString()
-                                  ? null
-                                  : item.id.toString()
-                              )
-                            }
-                          >
-                            <svg
-                              className="w-5 h-5 text-gray-500 dark:text-gray-400"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                          </Button>
-                          {dropdownOpen === item.id.toString() && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute top-full right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-20"
-                            >
-                              <ul className="py-2">
-                                <li>
-                                  <button
-                                    onClick={() => handleLeadAssign(item)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    Lead Assign
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    onClick={() => handleViewProperty(item)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    View History
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    onClick={() => {
-                                      setSelectedListing(item);
-                                      setBookingForm({
-                                        flat_no: item.flat_no || "",
-                                        floor: item.floor || "",
-                                        block: item.block || "",
-                                        project_name: item.project_name || "",
-                                      });
-                                      setIsBookingModalOpen(true);
-                                    }}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    Bookings Done
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    onClick={() =>
-                                      handleDelete(item.unique_property_id)
-                                    }
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
-                                  >
-                                    Delete
-                                  </button>
-                                </li>
-                              </ul>
-                            </div>
-                          )}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
+  <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+    <TableRow className="bg-blue-900 text-white">
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]"
+      >
+        Sl. No
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
+      >
+        Customer Name
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
+      >
+        Customer Number
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
+      >
+        Email
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
+      >
+        Interested Project
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
+      >
+        Lead Type
+      </TableCell>
+      <TableCell
+        isHeader
+        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
+      >
+        Actions
+      </TableCell>
+    </TableRow>
+  </TableHeader>
+  <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+    {currentListings.map((item, index) => (
+      <TableRow
+        key={item.id}
+        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+      >
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]"
+        >
+          {(localPage - 1) * itemsPerPage + index + 1}
+        </TableCell>
+        
+        <TableCell
+        
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
+        >
+          {item.user.name || "N/A"}
+        </TableCell>
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
+        >
+          {item.user.mobile || "N/A"}
+        </TableCell>
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
+        >
+          {item.user.email || "N/A"}
+        </TableCell>
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
+        >
+          {item.property_name || "N/A"}
+        </TableCell>
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
+        >
+          {item.lead_type || "N/A"}
+        </TableCell>
+        <TableCell
+          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]"
+        >
+          <Button
+            variant="outline"
+            size="sm"
+            className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
+            onClick={() =>
+              setDropdownOpen(
+                dropdownOpen === item.id.toString()
+                  ? null
+                  : item.id.toString()
+              )
+            }
+          >
+            <svg
+              className="w-5 h-5 text-gray-500 dark:text-gray-400"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
+            </svg>
+          </Button>
+          {dropdownOpen === item.id.toString() && (
+            <div
+              ref={dropdownRef}
+              className="absolute top-full right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-20"
+            >
+              <ul className="py-2">
+                <li>
+                  <button
+                    onClick={() => handleLeadAssign(item)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+                  >
+                    Lead Assign
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => handleViewProperty(item)}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+                  >
+                    View History
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() => {
+                      setSelectedListing(item);
+                      setBookingForm({
+                        flat_no: item.flat_no || "",
+                        floor: item.floor || "",
+                        block: item.block || "",
+                        project_name: item.project_name || "",
+                      });
+                      setIsBookingModalOpen(true);
+                    }}
+                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+                  >
+                    Bookings Done
+                  </button>
+                </li>
+                <li>
+                  <button
+                    onClick={() =>
+                      handleDelete(item.unique_property_id)
+                    }
+                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
+                  >
+                    Delete
+                  </button>
+                </li>
+              </ul>
+            </div>
+          )}
+        </TableCell>
+      </TableRow>
+    ))}
+  </TableBody>
+</Table>
               </div>
             </div>
             {filteredListings.length > itemsPerPage && (

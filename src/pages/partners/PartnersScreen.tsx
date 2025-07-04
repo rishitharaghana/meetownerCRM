@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import {
   Table,
   TableBody,
@@ -261,7 +261,6 @@ const formatDate = (dateString: string): string => {
   return date.toISOString().split("T")[0];
 };
 
-
 export default function PartnerScreen() {
   const navigate = useNavigate();
   const [activeMenu, setActiveMenu] = useState<number | null>(null);
@@ -331,7 +330,6 @@ export default function PartnerScreen() {
     setCurrentPage(1);
   };
 
-
   return (
     <div className="relative min-h-screen">
       <PageBreadcrumbList
@@ -373,7 +371,7 @@ export default function PartnerScreen() {
                     <TableCell
                       isHeader
                       className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                    > 
+                    >
                       Location
                     </TableCell>
                     <TableCell
@@ -408,9 +406,12 @@ export default function PartnerScreen() {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                         <div className="flex items-center gap-3">
                           <div>
-                            <span className="block font-medium text-gray-500 text-theme-sm dark:text-gray-400">
+                            <Link
+                              to={`/leads/user-details`}
+                              className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
+                            >
                               {user.name}
-                            </span>
+                            </Link>
                             <span className="block text-gray-500 text-theme-sm dark:text-gray-400">
                               {userTypeMap[user.user_type] || "Unknown"}
                             </span>
@@ -482,18 +483,17 @@ export default function PartnerScreen() {
           </div>
 
           {totalItems > itemsPerPage && (
-  <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-    <div className="text-sm text-gray-500 dark:text-gray-400">
-      Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-    </div>
-    <Pagination
-      currentPage={currentPage}
-      totalPages={totalPages}
-      onPageChange={(page) => setCurrentPage(page)}
-    />
-  </div>
-)}
-
+            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">
+                Showing {startIndex + 1} to {endIndex} of {totalItems} entries
+              </div>
+              <Pagination
+                currentPage={currentPage}
+                totalPages={totalPages}
+                onPageChange={(page) => setCurrentPage(page)}
+              />
+            </div>
+          )}
         </ComponentCard>
       </div>
 

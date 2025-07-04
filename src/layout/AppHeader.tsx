@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
-import Filter from "../components/ui/filter/Filter";
+// import Filter from "../components/ui/filter/Filter";
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -127,7 +127,7 @@ const AppHeader: React.FC = () => {
   } lg:block shadow-theme-md`}
 >
   <div className="flex items-center gap-3">
-    <Filter />
+    
     <UserDropdown />
   </div>
 </div>

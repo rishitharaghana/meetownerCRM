@@ -37,7 +37,8 @@ import AllEmployees from "./pages/Employee/AllEmployees";
 import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 import Filter from "./components/ui/filter/Filter";
-import UserDetailsPage from "./pages/Lead Management/UserDetails";
+import ProjectDetailsPage from "./pages/Project/ProjectDetails"
+import UserDetailsPage from "./pages/partners/UserDetails";
 
 export default function App() {
   return (
@@ -89,6 +90,8 @@ export default function App() {
 
             <Route path="/projects/add-projects" element={<CreateProperty />} />
             <Route path="/projects/allprojects" element={<AllProjects />} />
+            <Route path="/project/:id" element={<ProjectDetailsPage />} />
+
             <Route
               path="/projects/upcoming-projects"
               element={<UpComingProjects />}
