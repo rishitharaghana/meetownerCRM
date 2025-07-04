@@ -7,6 +7,7 @@ import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
 import greenValleyImg from "../../components/ui/Images/GreenValleyVillas.jpeg";
 import techPlazaImg from "../../components/ui/Images/TechParkplaza.jpeg";
 import blueskyImg from "../../components/ui/Images/BlueSkyResidencies.jpeg";
+import Pagination from "../../components/ui/pagination/Pagination";
 
 const sampleProjects = [
   {
@@ -29,7 +30,7 @@ const sampleProjects = [
     type: "Villa",
     priceRange: "₹2.5Cr - ₹4Cr",
     possessionDate: "6/30/2025",
-    status: "Under-Construction",
+    status: "Under Construction",
     image: greenValleyImg,
     amenities: ["Clubhouse", "Tennis Court", "Spa", "Yoga Deck", "Pet Area"],
   },
@@ -70,7 +71,7 @@ const sampleProjects = [
     type: "Villa",
     priceRange: "₹1.8Cr - ₹3.2Cr",
     possessionDate: "11/30/2025",
-    status: "Ready To Move",
+    status: "Ready to Move",
     image: "https://via.placeholder.com/600x300?text=Palm+Grove",
     amenities: ["Tennis Court", "Spa", "Jogging Track"],
   },
@@ -98,6 +99,7 @@ const sampleProjects = [
     image: "https://via.placeholder.com/600x300?text=Skyline+Tower",
     amenities: ["Parking", "Business Lounge", "High-speed Elevators"],
   },
+  
 ];
 
 const AllProjects: React.FC = () => {
@@ -130,37 +132,7 @@ const AllProjects: React.FC = () => {
   const paginatedProjects = filtered.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
-  const goToPreviousPage = () =>
-    currentPage > 1 && setCurrentPage(currentPage - 1);
-  const goToNextPage = () =>
-    currentPage < totalPages && setCurrentPage(currentPage + 1);
-
-  const getPaginationItems = () => {
-    const pages: (number | string)[] = [];
-    const totalVisiblePages = 5;
-
-    if (totalPages <= totalVisiblePages + 2) {
-      for (let i = 1; i <= totalPages; i++) pages.push(i);
-    } else {
-      let start = Math.max(2, currentPage - 2);
-      let end = Math.min(totalPages - 1, currentPage + 2);
-      if (currentPage <= 3) {
-        start = 2;
-        end = 5;
-      }
-      if (currentPage >= totalPages - 2) {
-        start = totalPages - 4;
-        end = totalPages - 1;
-      }
-      pages.push(1);
-      if (start > 2) pages.push("...");
-      for (let i = start; i <= end; i++) pages.push(i);
-      if (end < totalPages - 1) pages.push("...");
-      pages.push(totalPages);
-    }
-
-    return pages;
-  };
+ 
 
   const statusColor = (status: string) => {
     switch (status) {
@@ -314,55 +286,14 @@ const AllProjects: React.FC = () => {
         })}
       </div>
 
-      {totalItems > itemsPerPage && (
-        <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
-          <div className="text-sm text-gray-500">
-            Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-          </div>
-          <div className="flex gap-2 flex-wrap justify-center">
-            <Button
-              variant={currentPage === 1 ? "outline" : "primary"}
-              size="sm"
-              onClick={goToPreviousPage}
-              disabled={currentPage === 1}
-            >
-              Previous
-            </Button>
-            {getPaginationItems().map((page, index) =>
-              page === "..." ? (
-                <span
-                  key={`ellipsis-${index}`}
-                  className="px-3 py-1 text-gray-500"
-                >
-                  ...
-                </span>
-              ) : (
-                <Button
-                  key={page}
-                  variant={page === currentPage ? "primary" : "outline"}
-                  size="sm"
-                  onClick={() => goToPage(page as number)}
-                  className={
-                    page === currentPage
-                      ? "bg-[#1D3A76] text-white"
-                      : "text-gray-500"
-                  }
-                >
-                  {page}
-                </Button>
-              )
-            )}
-            <Button
-              variant={currentPage === totalPages ? "outline" : "primary"}
-              size="sm"
-              onClick={goToNextPage}
-              disabled={currentPage === totalPages}
-            >
-              Next
-            </Button>
-          </div>
-        </div>
-      )}
+      {totalPages > 1 && (
+  <Pagination
+    currentPage={currentPage}
+    totalPages={totalPages}
+    onPageChange={goToPage}
+  />
+)}
+
     </div>
   );
 };

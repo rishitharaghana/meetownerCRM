@@ -39,6 +39,7 @@ const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 import Filter from "./components/ui/filter/Filter";
 import ProjectDetailsPage from "./pages/Project/ProjectDetails"
 import UserDetailsPage from "./pages/partners/UserDetails";
+import UpcomingProjectDetails from './pages/Project/UpComingProjectDetails'
 
 export default function App() {
   return (
@@ -95,6 +96,11 @@ export default function App() {
             <Route
               path="/projects/upcoming-projects"
               element={<UpComingProjects />}
+            />
+            
+            <Route
+              path="/projects/upcoming-projectsdetails"
+              element={<UpcomingProjectDetails />}
             />
 
             <Route path="/adds/all-ads" element={<AllAdsPage />} />

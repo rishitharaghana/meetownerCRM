@@ -212,8 +212,11 @@ const UpcomingProjects: React.FC = () => {
                   <Button
                     variant="primary"
                     size="sm"
-                    onClick={() => navigate(`/upcoming/${project.id}`)}
-                    className="bg-blue-1000 hover:bg-blue-900 text-white"
+                    onClick={() =>
+                      navigate("/projects/upcoming-projectsdetails", {
+                        state: { project },
+                      })
+                    }
                   >
                     View Details
                   </Button>
@@ -224,7 +227,6 @@ const UpcomingProjects: React.FC = () => {
         })}
       </div>
 
-      {/* Pagination */}
       {totalItems > itemsPerPage && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
           <div className="text-sm text-gray-500">
