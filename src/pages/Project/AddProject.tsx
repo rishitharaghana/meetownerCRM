@@ -461,8 +461,23 @@ export default function AddProject() {
 
   return (
     <div className="relative min-h-screen">
+      
       <ComponentCard title="Create Property">
         <form onSubmit={handleSubmit} className="space-y-6">
+          <div className="min-h-[80px]">
+            <Label htmlFor="builderName">Builder Name</Label>
+            <Input
+              type="text"
+              id="builderName"
+              value={formData.builderName}
+              onChange={handleInputChange("builderName")}
+              placeholder="Enter builder name"
+              className="dark:bg-gray-800"
+            />
+            {errors.builderName && (
+              <p className="text-red-500 text-sm mt-1">{errors.builderName}</p>
+            )}
+          </div>
           <div>
             <Dropdown
               id="state"
@@ -570,20 +585,7 @@ export default function AddProject() {
             )}
           </div>
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="builderName">Builder Name</Label>
-            <Input
-              type="text"
-              id="builderName"
-              value={formData.builderName}
-              onChange={handleInputChange("builderName")}
-              placeholder="Enter builder name"
-              className="dark:bg-gray-800"
-            />
-            {errors.builderName && (
-              <p className="text-red-500 text-sm mt-1">{errors.builderName}</p>
-            )}
-          </div>
+          
 
           <div className="min-h-[80px]">
             <Label htmlFor="status">Construction Status</Label>

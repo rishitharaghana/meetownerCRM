@@ -22,6 +22,7 @@ const userTypeMap: { [key: string]: string } = {
   marketing_executors: "Marketing Executors",
   sales_manager: "Sales Manager",
   receptionist: "Receptionist",
+  upcoming_projects:"Up-Coming Projects",
 };
 
 const userTypeRoutes: { [key: string]: string } = {
@@ -34,6 +35,7 @@ const userTypeRoutes: { [key: string]: string } = {
   marketing_executors: "/employee/2",
   sales_manager: "/employee/3",
   receptionist: "/employee/4",
+  upcoming_projects:"/projects/upcoming-projects"
 };
 
 const projectRoutes: { [key: string]: string } = {
@@ -51,6 +53,7 @@ const iconMap: { [key: string]: any } = {
   marketing_executors: CircleUser,
   sales_manager: User,
   receptionist: UserRound,
+  upcoming_projects: FolderKanban,
 };
 
 const staticOwnerEmployeesCounts = [
@@ -58,11 +61,13 @@ const staticOwnerEmployeesCounts = [
   { user_type: "today_leads", count: 15, trend: "up", percentage: 2 },
   { user_type: "site_visits", count: 30, trend: "down", percentage: 1 },
   { user_type: "bookings", count: 30, trend: "down", percentage: 1 },
+   { user_type: "upcoming_projects", count: 5, trend: "up", percentage: 1 },
   { user_type: "7", count: 25, trend: "down", percentage: 3 },
   { user_type: "tele_callers", count: 10, trend: "up", percentage: 5 },
   { user_type: "marketing_executors", count: 10, trend: "down", percentage: 5 },
   { user_type: "sales_manager", count: 15, trend: "up", percentage: 5 },
   { user_type: "receptionist", count: 5, trend: "up", percentage: 1 },
+  
 ];
 
 const staticProjectCounts = [

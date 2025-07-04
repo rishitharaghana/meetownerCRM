@@ -56,7 +56,9 @@ interface FormData {
   channelPartner: string;
   campaign: string;
   propertyType: string;
-  squareFeet: string; // ✅ add this line
+  squareFeet: string;
+  budget: string;
+
 }
 
 
@@ -69,7 +71,8 @@ interface Errors {
   channelPartner?: string;
   campaign?: string;
   propertyType?: string;
-  squareFeet?: string; // ✅ add this line
+  squareFeet?: string; 
+  budget?: string;
 }
 
 
@@ -84,7 +87,8 @@ const LeadForm = () => {
     channelPartner: "",
     campaign: "",
     propertyType: "",
-    squareFeet: "", // ✅ added
+    squareFeet: "", 
+    budget: "",
   });
   
   const [errors, setErrors] = useState<Errors>({});
@@ -210,6 +214,7 @@ const LeadForm = () => {
         campaign: "",
         propertyType: "",
         squareFeet: "", 
+        budget: "",
       });
       
     } catch (error) {
@@ -406,7 +411,21 @@ const LeadForm = () => {
   )}
 </div>
 
-
+<div className="space-y-1">
+  <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+    Budget
+  </label>
+  <Input
+    type="text"
+    value={formData.budget}
+    onChange={handleInputChange("budget")}
+    placeholder="Enter your budget"
+    className={errors.budget ? "border-red-500" : ""}
+  />
+  {errors.budget && (
+    <p className="text-red-500 text-sm mt-1">{errors.budget}</p>
+  )}
+</div>
 
 
             <div className="pt-6">
