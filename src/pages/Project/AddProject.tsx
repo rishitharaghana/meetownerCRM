@@ -364,7 +364,9 @@ export default function AddProject() {
   const handleLaunchDateChange = (selectedDates: Date[]) => {
     const selectedDate = selectedDates[0];
     const formattedDate = selectedDate
-      ? `${selectedDate.getFullYear()}-${String(selectedDate.getMonth() + 1).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      ? `${selectedDate.getFullYear()}-${String(
+          selectedDate.getMonth() + 1
+        ).padStart(2, "0")}-${String(selectedDate.getDate()).padStart(2, "0")}`
       : "";
     setFormData((prev) => ({ ...prev, launchDate: formattedDate }));
     setErrors((prev) => ({ ...prev, launchDate: undefined }));
@@ -420,6 +422,8 @@ export default function AddProject() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -448,7 +452,10 @@ export default function AddProject() {
           floorPlan: size.floorPlan ? size.floorPlan.name : null,
           isUpcoming: formData.isUpcoming,
           status: formData.status,
-          launchDate: formData.status === "Under Construction" ? formData.launchDate : null,
+          launchDate:
+            formData.status === "Under Construction"
+              ? formData.launchDate
+              : null,
         })),
         aroundProperty: formData.aroundProperty,
         brochure: formData.brochure ? formData.brochure.name : null,
@@ -460,11 +467,10 @@ export default function AddProject() {
   };
 
   return (
-    <div className="relative min-h-screen">
-      
+    <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <ComponentCard title="Create Property">
         <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="min-h-[80px]">
+          <div className="min-h-[80px] w-full max-w-md">
             <Label htmlFor="builderName">Builder Name</Label>
             <Input
               type="text"
@@ -478,7 +484,21 @@ export default function AddProject() {
               <p className="text-red-500 text-sm mt-1">{errors.builderName}</p>
             )}
           </div>
-          <div>
+          <div className="min-h-[80px] w-full max-w-md">
+            <Label htmlFor="projectName">Project Name</Label>
+            <Input
+              type="text"
+              id="projectName"
+              value={formData.projectName}
+              onChange={handleInputChange("projectName")}
+              placeholder="Enter project name"
+              className="dark:bg-gray-800"
+            />
+            {errors.projectName && (
+              <p className="text-red-500 text-sm mt-1">{errors.projectName}</p>
+            )}
+          </div>
+          <div className="min-h-[80px] w-full max-w-md">
             <Dropdown
               id="state"
               label="Select State"
@@ -490,7 +510,7 @@ export default function AddProject() {
             />
           </div>
 
-          <div>
+          <div className="min-h-[80px] w-full max-w-md">
             <Dropdown
               id="city"
               label="Select City"
@@ -503,7 +523,7 @@ export default function AddProject() {
             />
           </div>
 
-          <div>
+          <div className="min-h-[80px] w-full max-w-md">
             <Dropdown
               id="locality"
               label="Select Locality"
@@ -570,21 +590,6 @@ export default function AddProject() {
             </div>
           )}
 
-          <div className="min-h-[80px]">
-            <Label htmlFor="projectName">Project Name</Label>
-            <Input
-              type="text"
-              id="projectName"
-              value={formData.projectName}
-              onChange={handleInputChange("projectName")}
-              placeholder="Enter project name"
-              className="dark:bg-gray-800"
-            />
-            {errors.projectName && (
-              <p className="text-red-500 text-sm mt-1">{errors.projectName}</p>
-            )}
-          </div>
-
           
 
           <div className="min-h-[80px]">
@@ -598,7 +603,8 @@ export default function AddProject() {
                     setFormData((prev) => ({
                       ...prev,
                       status: statusOption as FormData["status"],
-                      launchDate: statusOption === "Ready to Move" ? "" : prev.launchDate,
+                      launchDate:
+                        statusOption === "Ready to Move" ? "" : prev.launchDate,
                     }))
                   }
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
@@ -728,32 +734,44 @@ export default function AddProject() {
                   )}
                 </div>
 
-                <div className="min-h-[80px]">
-                  <Label htmlFor={`floorPlan-${size.id}`}>Floor Plan</Label>
-                  <div className="flex items-center space-x-2">
-                    <input
-                      type="file"
-                      id={`floorPlan-${size.id}`}
-                      accept="image/*,application/pdf"
-                      onChange={handleFileChange(size.id)}
-                      className="block w-full  text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-md file:border-0 file:text-sm file:font-semibold file:bg-[#1D3A76] file:text-white hover:file:bg-blue-800"
-                    />
-                    {size.floorPlan && (
-                      <button
-                        type="button"
-                        onClick={handleDeleteFile(size.id)}
-                        className="text-red-500 hover:text-red-700"
-                      >
-                        Delete
-                      </button>
-                    )}
-                  </div>
-                  {errors.sizes?.[size.id]?.floorPlan && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.sizes[size.id].floorPlan}
-                    </p>
-                  )}
-                </div>
+   <div className="min-h-[80px]">
+  <Label>Floor Plan</Label>
+  <div className="flex items-center space-x-2">
+    <input
+      type="file"
+      id={`floorPlan-${size.id}`}
+      accept="image/*,application/pdf"
+      onChange={handleFileChange(size.id)}
+      ref={(el) => (fileInputRefs.current[size.id] = el)}
+      className="hidden"
+    />
+    <button
+      type="button"
+      onClick={() => fileInputRefs.current[size.id]?.click()}
+      className="px-2 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
+    >
+      Choose File
+    </button>
+    {size.floorPlan && (
+      <button
+        type="button"
+        onClick={handleDeleteFile(size.id)}
+        className="text-red-500 hover:text-red-700"
+      >
+        Delete
+      </button>
+    )}
+    <span className="text-sm text-gray-500 truncate max-w-[200px]">
+      {size.floorPlan?.name || "No file chosen"}
+    </span>
+  </div>
+  {errors.sizes?.[size.id]?.floorPlan && (
+    <p className="text-red-500 text-sm mt-1">
+      {errors.sizes[size.id].floorPlan}
+    </p>
+  )}
+</div>
+
 
                 <div className="min-h-[80px] flex items-end">
                   {size.floorPlan ? (
@@ -843,7 +861,7 @@ export default function AddProject() {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="brochure">Brochure</Label>
+            <Label >Upload Brochure</Label>
             <div className="flex items-center space-x-2">
               <input
                 type="file"
@@ -896,7 +914,7 @@ export default function AddProject() {
           </div>
 
           <div className="space-y-1">
-            <Label htmlFor="priceSheet">Price Sheet</Label>
+            <Label >Upload Price Sheet</Label>
             <div className="flex items-center space-x-2">
               <input
                 type="file"
@@ -923,7 +941,9 @@ export default function AddProject() {
                 </button>
               )}
               <span className="text-sm text-gray-500">
-                {formData.priceSheet ? formData.priceSheet.name : "No file chosen"}
+                {formData.priceSheet
+                  ? formData.priceSheet.name
+                  : "No file chosen"}
               </span>
             </div>
             {errors.priceSheet && (
