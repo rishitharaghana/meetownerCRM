@@ -1,31 +1,47 @@
+// components/UserDropdown.tsx
 import { useState, useEffect, useRef } from "react";
-import { DropdownItem } from "../ui/dropdown/DropdownItem";
+import { useSelector, useDispatch } from "react-redux";
 import { useNavigate } from "react-router";
+import { DropdownItem } from "../ui/dropdown/DropdownItem";
 import Button from "../ui/button/Button";
+import { AppDispatch, RootState } from "../../store/store";
+import { isTokenExpired, logout } from "../../store/slices/authSlice";
+
 
 export default function UserDropdown() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
-  const dropdownRef = useRef(null);
+  const dispatch = useDispatch<AppDispatch>();
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, token, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+ 
   function toggleDropdown() {
     setIsOpen((prev) => !prev);
   }
 
+ 
   function closeDropdown() {
     setIsOpen(false);
   }
 
   const handleLogout = () => {
-    localStorage.removeItem("userData");
-    localStorage.removeItem("users");
+    dispatch(logout()); 
+    closeDropdown();
     navigate("/signin");
   };
 
-  // Close dropdown when clicking outside
   useEffect(() => {
-    function handleClickOutside(event) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+    if (isAuthenticated && token && isTokenExpired(token)) {
+      dispatch(logout());
+      navigate("/signin");
+    }
+  }, [isAuthenticated, token, dispatch, navigate]);
+
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         closeDropdown();
       }
     }
@@ -35,6 +51,15 @@ export default function UserDropdown() {
     };
   }, []);
 
+
+  const getInitials = (name: string | null) => {
+    if (!name) return "?";
+    const names = name.trim().split(" ");
+    return names.length > 1
+      ? `${names[0][0]}${names[1][0]}`.toUpperCase()
+      : names[0][0].toUpperCase();
+  };
+
   return (
     <div className="relative" ref={dropdownRef}>
       <button
@@ -42,9 +67,9 @@ export default function UserDropdown() {
         className="flex items-center px-3 py-2 text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
       >
         <div className="flex items-center justify-center w-10 h-10 mr-3 text-lg font-semibold text-white bg-blue-900 rounded-full shadow-md">
-          J
+          {getInitials(user!.name)}
         </div>
-        <span className="mr-2 font-medium text-gray-900">Person</span>
+        <span className="mr-2 font-medium text-gray-900">{user?.name || "Person"}</span>
         <svg
           className={`w-4 h-4 text-gray-500 transition-transform duration-200 ${
             isOpen ? "rotate-180" : ""
@@ -67,11 +92,11 @@ export default function UserDropdown() {
           <div className="bg-blue-50 px-6 py-4 border-b border-gray-100">
             <div className="flex items-center space-x-3">
               <div className="flex items-center justify-center w-12 h-12 text-xl font-semibold text-white bg-blue-900 rounded-full shadow-md">
-                ?
+                {getInitials(user!.name)}
               </div>
               <div>
-                <p className="font-semibold text-gray-900">John Doe</p>
-                <p className="text-sm text-gray-600">john.doe@gmail.com</p>
+                <p className="font-semibold text-gray-900">{user?.name || "John Doe"}</p>
+                <p className="text-sm text-gray-600">{user?.email || "john.doe@gmail.com"}</p>
               </div>
             </div>
           </div>
@@ -105,12 +130,12 @@ export default function UserDropdown() {
                   to="/support"
                   className="flex items-center w-full px-4 py-3 text-sm font-medium text-gray-700 rounded-lg transition-all duration-200 hover:bg-gray-50 hover:text-gray-900 group"
                 >
-                  <div className="flex items-center justify-center w-8 h-8 mr-3 text-gray-500 bg-gray-100 rounded-lg group-hover:bg-blue-100 group-hover:text-blue-600">
+                  <div className="flex items-center justify-center w-8 h-8 mr-3 text-gray-500 bg-gray-100 rounded-lg group-hover:bg-blue- Duv100 group-hover:text-blue-600">
                     <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">
                       <path
                         fillRule="evenodd"
                         clipRule="evenodd"
-                        d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM11.0991 7.52507C11.0991 8.02213 11.5021 8.42507 11.9991 8.42507H12.0001C12.4972 8.42507 12.9001 8.02213 12.9001 7.52507C12.9001 7.02802 12.4972 6.62507 12.0001 6.62507H11.9991C11.5021 6.62507 11.0991 7.02802 11.0991 7.52507ZM12.0001 17.3714C11.5859 17.3714 11.2501 17.0356 11.2501 16.6214V10.9449C11.2501 10.5307 11.5859 10.1949 12.0001 10.1949C12.4143 10.1949 12.7501 10.5307 12.7501 10.9449V16.6214C12.7501 17.0356 12.4143 17.3714 12.0001 17.3714Z"
+                        d="M3.5 12C3.5 7.30558 7.30558 3.5 12 3.5C16.69416.6944 3.5 20.5 7.30558 20.5 12C20.5 16.6944 16.6944 20.5 12 20.5C7.30558 20.5 3.5 16.6944 3.5 12ZM12 2C6.47715 2 2 6.47715 2 12C2 17.5228 6.47715 22 12 22C17.5228 22 22 17.5228 22 12C22 6.47715 17.5228 2 12 2ZM11.0991 7.52507C11.0991 8.02213 11.5021 8.42507 11.9991 8.42507H12.0001C12.4972 8.42507 12.9001 8.02213 12.9001 7.52507C12.9001 7.02802 12.4972 6.62507 12.0001 6.62507H11.9991C11.5021 6.62507 11.0991 7.02802 11.0991 7.52507ZM12.0001 17.3714C11.5859 17.3714 11.2501 17.0356 11.2501 16.6214V10.9449C11.2501 10.5307 11.5859 10.1949 12.0001 10.1949C12.4143 10.1949 12.7501 10.5307 12.7501 10.9449V16.6214C12.7501 17.0356 12.4143 17.3714 12.0001 17.3714Z"
                       />
                     </svg>
                   </div>
@@ -123,7 +148,7 @@ export default function UserDropdown() {
           <div className="px-2 pb-2 border-t border-gray-100 bg-gray-50">
             <Button
               onClick={handleLogout}
-              className="flex items-center w-full px-4 py-3 mt-2 text-sm font-medium text-white rounded-lg bg-blue-900 transition-all duration-200"
+              className="flex items-center w-full px-4 py-3 text-sm font-medium text-white rounded-lg bg-blue-900 transition-all duration-200"
             >
               <div className="flex items-center justify-center w-8 h-8 mr-3 bg-white/20 rounded-lg">
                 <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24">

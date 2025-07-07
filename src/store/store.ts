@@ -1,13 +1,13 @@
 import { configureStore } from "@reduxjs/toolkit";
 
-import propertyDetails from "./slices/propertyDetails";
+
 import authentication from './slices/authSlice';
-import listingReducer from './slices/listings';
-import usersReducers from './slices/users';
-import leadsReducers from './slices/leads';
-import employeeReducer from './slices/employee'
-import uploadReducer from './slices/uploadSlice';
-import approvedReducer from './slices/approve_listings';
+import userSlice from './slices/userslice';
+import propertyDetails from './slices/propertyDetails';
+import leadSlice from './slices/leadslice';
+
+
+
 import { initializeAuthState } from "../utils/authutils";
 
 const preloadedState = {
@@ -16,14 +16,10 @@ const preloadedState = {
 
 const store =  configureStore({
     reducer : {
-        property:propertyDetails,
         auth:authentication,
-        listings: listingReducer,
-        users:usersReducers,
-        leads:leadsReducers,
-        employee:employeeReducer,
-        upload:uploadReducer,
-        approved:approvedReducer,
+        user:userSlice,
+        property:propertyDetails,
+        lead:leadSlice,
     },
     preloadedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false}),

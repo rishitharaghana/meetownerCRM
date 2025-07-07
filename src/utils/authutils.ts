@@ -1,47 +1,75 @@
-import { AuthState } from "../store/slices/authSlice";
+import { AuthState, User } from "../types/UserModel";
+
 
 export const initializeAuthState = (): AuthState => {
-  const token = localStorage.getItem('token');
-  const name = localStorage.getItem('name');
-  const userType = localStorage.getItem('userType');
-  const email = localStorage.getItem('email');
-  const mobile = localStorage.getItem('mobile');
-  const city = localStorage.getItem('city');
-  const state = localStorage.getItem('state');
-  const userId = localStorage.getItem('userId');
-  const photo = localStorage.getItem('photo')!;
+  const token = localStorage.getItem("token");
+  const name = localStorage.getItem("name");
+  const userType = localStorage.getItem("userType");
+  const email = localStorage.getItem("email");
+  const mobile = localStorage.getItem("mobile");
+  const city = localStorage.getItem("city");
+  const state = localStorage.getItem("state");
+  const userId = localStorage.getItem("userId");
+  const photo = localStorage.getItem("photo");
+  const location = localStorage.getItem("location");
+  const address = localStorage.getItem("address");
+  const pincode = localStorage.getItem("pincode");
+  const gst_number = localStorage.getItem("gst_number");
+  const rera_number = localStorage.getItem("rera_number");
+  const company_name = localStorage.getItem("company_name");
+  const company_number = localStorage.getItem("company_number");
+  const company_address = localStorage.getItem("company_address");
+  const representative_name = localStorage.getItem("representative_name");
+  const pan_card_number = localStorage.getItem("pan_card_number");
+  const aadhar_number = localStorage.getItem("aadhar_number");
 
+  // Check if all required fields are present
   if (token && name && userType && email && mobile && city && state && userId) {
     return {
       isAuthenticated: true,
       user: {
-        user_id: parseInt(userId),
-        name,
+        id: parseInt(userId),
         user_type: parseInt(userType),
-        email,
+        name,
         mobile,
+        email,
+        photo: photo || null,
+        status: 1,
+        created_date: "", 
+        created_time: "",
+        updated_date: "",
+        updated_time: "",
         state,
         city,
-        pincode: '', // Add default value or get from localStorage if needed
-        status: 0,   // Default value
-        created_userID: 0, // Default value
-        created_by: '' ,
-        photo,   // Default empty string
-      },
+        location: location || "",
+        address: address || "",
+        pincode: pincode || "",
+        gst_number: gst_number || "",
+        rera_number: rera_number || "",
+        created_by: "", 
+        created_user_id: 0,
+        company_name: company_name || "",
+        company_number: company_number || "",
+        company_address: company_address || "",
+        representative_name: representative_name || "",
+        pan_card_number: pan_card_number || "",
+        aadhar_number: aadhar_number || "",
+        feedback: null, 
+      } as User,
       token,
       loading: false,
       error: null,
-      userCounts: null
+      
     };
   }
 
-  // If no token exists or any required field is missing
+ 
   return {
     isAuthenticated: false,
     user: null,
     token: null,
     loading: false,
     error: null,
-    userCounts: null
+    
   };
 };

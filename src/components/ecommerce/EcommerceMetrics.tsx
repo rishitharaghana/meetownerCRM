@@ -1,3 +1,6 @@
+// pages/Home.tsx
+import { useEffect } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router";
 import {
   Users,
@@ -11,74 +14,51 @@ import {
   UserRound,
   BookCheck,
 } from "lucide-react";
+import { AppDispatch, RootState } from "../../store/store";
+import { getTypesCount } from "../../store/slices/userslice";
+
 
 const userTypeMap: { [key: string]: string } = {
   new_leads: "New Leads",
   today_leads: "Today Leads",
-  site_visits: "Site Visits",
-  bookings: "Bookings",
-  "7": "Channel Partners",
-  tele_callers: "TeleCallers",
-  marketing_executors: "Marketing Executors",
-  sales_manager: "Sales Manager",
-  receptionist: "Receptionist",
-  upcoming_projects:"Up-Coming Projects",
+  today_follow_ups: "Today Follow-Ups",
+  site_visit_done: "Site Visits",
+  booked: "Bookings",
+  projects: "Total Projects",
+  "3": "Channel Partner",
+  "4": "Sales Manager",
+  "5": "Telecallers",
+  "6": "Marketing Agent",
+  "7": "Receptionists",
 };
 
 const userTypeRoutes: { [key: string]: string } = {
   new_leads: "/leads/new/0",
   today_leads: "/leads/today/1",
-  site_visits: "/sitevists/site-visit",
-  bookings: "/bookings/bookings-done",
-  "7": "/partners",
-  tele_callers: "/employee/1",
-  marketing_executors: "/employee/2",
-  sales_manager: "/employee/3",
-  receptionist: "/employee/4",
-  upcoming_projects:"/projects/upcoming-projects"
-};
-
-const projectRoutes: { [key: string]: string } = {
-  total_projects: "/projects/allprojects",
+  today_follow_ups: "/leads/follow-ups",
+  site_visit_done: "/sitevists/site-visit",
+  booked: "/bookings/bookings-done",
+  projects: "/projects/allprojects",
+  "3": "/partners",
+  "4": "/employee/3",
+  "5": "/employee/5",
+  "6": "/employee/6",
+  "7": "/employee/7",
 };
 
 const iconMap: { [key: string]: any } = {
   new_leads: UserPlus,
   today_leads: Clock,
-  site_visits: MapPin,
-  bookings: BookCheck,
-  "7": Users,
-  total_projects: FolderKanban,
-  tele_callers: Headset,
-  marketing_executors: CircleUser,
-  sales_manager: User,
-  receptionist: UserRound,
-  upcoming_projects: FolderKanban,
+  today_follow_ups: Clock,
+  site_visit_done: MapPin,
+  booked: BookCheck,
+  projects: FolderKanban,
+  "3": Users,
+  "4": User,
+  "5": Headset,
+  "6": CircleUser,
+  "7": UserRound,
 };
-
-const staticOwnerEmployeesCounts = [
-  { user_type: "new_leads", count: 50, trend: "up", percentage: 5 },
-  { user_type: "today_leads", count: 15, trend: "up", percentage: 2 },
-  { user_type: "site_visits", count: 30, trend: "down", percentage: 1 },
-  { user_type: "bookings", count: 30, trend: "down", percentage: 1 },
-   { user_type: "upcoming_projects", count: 5, trend: "up", percentage: 1 },
-  { user_type: "7", count: 25, trend: "down", percentage: 3 },
-  { user_type: "tele_callers", count: 10, trend: "up", percentage: 5 },
-  { user_type: "marketing_executors", count: 10, trend: "down", percentage: 5 },
-  { user_type: "sales_manager", count: 15, trend: "up", percentage: 5 },
-  { user_type: "receptionist", count: 5, trend: "up", percentage: 1 },
-  
-];
-
-const staticProjectCounts = [
-  {
-    id: "total_projects",
-    title: "Total Projects",
-    count: 120,
-    trend: "down",
-    percentage: 2,
-  },
-];
 
 const cardColors = [
   "from-blue-500/10 to-cyan-500/10 border-blue-200/50",
@@ -97,7 +77,20 @@ const iconBgColors = [
 ];
 
 export default function Home() {
-  const user = { name: "John Doe", user_type: "1" };
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { userCounts, loading, error } = useSelector((state: RootState) => state.user);
+
+  
+  useEffect(() => {
+    if (isAuthenticated && user?.id && user?.user_type) {
+      dispatch(getTypesCount({ admin_user_id: user.id, admin_user_type: user.user_type }));
+    }
+  }, [isAuthenticated, user, dispatch]);
+
+  // Separate project counts and employee counts
+  const projectCounts = userCounts?.filter(item => item.user_type === "projects") || [];
+  const employeeCounts = userCounts?.filter(item => item.user_type !== "projects") || [];
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-6">
@@ -105,7 +98,7 @@ export default function Home() {
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            Welcome back, {user?.name}!
+            Welcome back, {user?.name || "User"}!
           </h1>
         </div>
         <p className="text-slate-600 ml-5">
@@ -113,13 +106,30 @@ export default function Home() {
         </p>
       </div>
 
+      {loading && (
+        <div className="text-center text-slate-600 dark:text-slate-400 mb-8">
+          Loading counts...
+        </div>
+      )}
+      {error && (
+        <div className="text-center text-red-500 mb-8">
+          {error}
+          <button
+            onClick={() => dispatch(getTypesCount({ admin_user_id: user!.id, admin_user_type: user!.user_type }))}
+            className="ml-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-md"
+          >
+            Retry
+          </button>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-2 gap-6 mb-8">
-        {staticProjectCounts.map((item) => {
-          const IconComponent = iconMap[item.id] || FolderKanban;
-          const route = projectRoutes[item.id] || "#";
+        {projectCounts.map((item, index) => {
+          const IconComponent = iconMap[item.user_type] || FolderKanban;
+          const route = userTypeRoutes[item.user_type] || "#";
 
           return (
-            <Link key={item.id} to={route} className="group cursor-pointer">
+            <Link key={index} to={route} className="group cursor-pointer">
               <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 p-8 shadow-2xl shadow-slate-900/20 hover:shadow-3xl hover:-translate-y-1 transition-all duration-500">
                 <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-transparent to-indigo-600/10"></div>
                 <div className="absolute -top-24 -right-24 w-48 h-48 bg-gradient-to-br from-blue-500/20 to-indigo-500/20 rounded-full blur-3xl"></div>
@@ -133,10 +143,10 @@ export default function Home() {
                     </div>
                     <div>
                       <h3 className="text-white/80 text-lg font-medium mb-1">
-                        {item.title}
+                        {userTypeMap[item.user_type] || "Total Projects"}
                       </h3>
                       <div className="text-4xl font-bold text-white mb-2">
-                        {item.count.toLocaleString()}
+                        {Number(item.count).toLocaleString()}
                       </div>
                     </div>
                   </div>
@@ -151,7 +161,7 @@ export default function Home() {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-        {staticOwnerEmployeesCounts.map((item, index) => {
+        {employeeCounts.map((item, index) => {
           const IconComponent = iconMap[item.user_type] || Users;
           const route = userTypeRoutes[item.user_type] || "#";
 
@@ -179,10 +189,10 @@ export default function Home() {
                 <div className="space-y-3">
                   <div>
                     <h4 className="text-slate-600 text-sm font-medium mb-1">
-                      {userTypeMap[item.user_type]}
+                      {userTypeMap[item.user_type] || `User Type ${item.user_type}`}
                     </h4>
                     <div className="text-2xl font-bold text-slate-800">
-                      {item.count.toLocaleString()}
+                      {Number(item.count).toLocaleString()}
                     </div>
                   </div>
                 </div>

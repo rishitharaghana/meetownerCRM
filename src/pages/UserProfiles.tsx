@@ -30,8 +30,8 @@ export default function UserProfiles() {
         </h3>
 
         <div className="space-y-6">
-          <UserMetaCard userData={userData} />
-          <UserInfoCard userData={userData} />
+          {/* <UserMetaCard userData={userData} />
+          <UserInfoCard userData={userData} /> */}
           <UserAddressCard />
         </div>
       </div>

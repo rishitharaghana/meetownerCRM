@@ -39,10 +39,14 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Lead Management",
     subItems: [
-      { name: "New Leads", path: "/leads/new/0", data: { "lead_in": "New", "status": 0} },
-      { name: "Today Folow-Ups", path: "/leads/today/1", data: { "lead_in": "Today",  "status": 1} },
-      { name: "Won Leads", path: "/leads/won/3", data: { "lead_in": "Won",  "status": 3} },
-      { name: "Total Leads", path: "/leads/total/5", data: { "lead_in": "Total","status": 5 } },
+      { name: "Today Leads", path: "/leads/new/0", data: { "lead_in": "Today", "status": 0} },
+      { name: "Open Leads", path: "/leads/open/1", data: { "lead_in": "Open", "status": 1} },
+      { name: "Today Folow Ups", path: "/leads/today/2", data: { "lead_in": "Today",  "status": 2} },
+      { name: "In Progress", path: "/leads/InProgress/3", data: { "lead_in": "In Progress",  "status": 3} },
+      { name: "Site Visit Scheduled", path: "/leads/SiteVisitScheduled/4", data: { "lead_in": "Site Visit Scheduled",  "status": 4} },
+      { name: "Site Visit Done", path: "/leads/SiteVisitDone/5", data: { "lead_in": "Site Visit done","status": 5 } },
+      { name: "Won Leads", path: "/leads/WonLeads/6", data: { "lead_in": "Won Leads","status": 6 } },
+      { name: "Lost Leads", path: "/leads/LostLeads/7", data: { "lead_in": "Lost Leads","status": 7 } },
       { name: "Add New Lead", path: "/leads/addlead", },
      
     ],
@@ -92,10 +96,10 @@ const navItems: NavItem[] = [
     name: "Employee Management",
     icon: <FaUserTie />,
     subItems: [
-      { name: "Telecallers", path: "/employee/1", pro: false },
-      { name: "Marketing Executors", path: "/employee/2", pro: false },
-      { name: "Sales Manger", path: "/employee/3", pro: false },
-      { name: "Receptionists", path: "/employee/4", pro: false },
+      { name: "Sales Manger", path: "/employee/4", pro: false },
+      { name: "Telecallers", path: "/employee/5", pro: false },
+      { name: "Marketing Executors", path: "/employee/6", pro: false },
+      { name: "Receptionists", path: "/employee/7", pro: false },
       {name:"Add Employee",path:"/create-employee"}
     ],
   },
@@ -195,7 +199,7 @@ const AppSidebar: React.FC = () => {
     if (openNestedSubmenu) {
       const key = `${openNestedSubmenu.type}-${openNestedSubmenu.index}-${openNestedSubmenu.subIndex}`;
       if (nestedSubMenuRefs.current[key]) {
-        setNestedSubMenuHeight((prev) => ({ ...prev, [key]: nestedSubMenuRefs.current[key]?.scrollHeight || 0 }));
+        setDeepNestedSubMenuHeight((prev) => ({ ...prev, [key]: nestedSubMenuRefs.current[key]?.scrollHeight || 0 }));
       }
     }
     if (openDeepNestedSubmenu) {
