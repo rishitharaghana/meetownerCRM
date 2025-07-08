@@ -1,4 +1,3 @@
-
 export interface ErrorResponse {
   message?: string;
 }
@@ -59,9 +58,36 @@ export interface LeadUpdatesResponse {
   results: LeadUpdate[];
 }
 
+
+export interface LeadStatus {
+  status_id: number;
+  status_name: string;
+  is_default: number;
+}
+
+export interface LeadStatusResponse {
+  status: string;
+  results: LeadStatus[];
+}
+
+
+export interface LeadSource {
+  source_id: number;
+  source_name: string;
+  is_default?: number;
+}
+
+export interface LeadSourceResponse {
+  status: string;
+  results: LeadSource[];
+}
+
 export interface LeadState {
   leads: Lead[] | null;
   leadUpdates: LeadUpdate[] | null;
+  bookedLeads: Lead[] | null;
+  leadStatuses: LeadStatus[] | null; 
+  leadSources: LeadSource[] | null;
   loading: boolean;
   error: string | null;
 }

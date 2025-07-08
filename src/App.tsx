@@ -12,32 +12,31 @@ import { lazy } from "react";
 import UserActivities from "./components/tables/userActivities";
 import CreateProperty from "./pages/Project/AddProject";
 import AllProjects from "./pages/Project/AllProjects";
-import PartnerScreen from "./pages/partners/PartnersScreen";
-import AddChannelPartner from "./pages/partners/AddChannelPartners";
+import PartnerScreen from "./pages/Channel Partners/AllChannelPartnersScreen";
+import AddChannelPartner from "./pages/Channel Partners/AddChannelPartners";
 import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
 
 import Support from "./pages/Support/Support";
-import CreateEmployee from "./pages/Employee/CreateEmployee";
 import SiteVisit from "./pages/SiteVists/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
 import SiteVisitDetails from "./pages/SiteVists/SiteVisit-details.";
 
 import BookingsDone from "./pages/Bookings/BookingsDone";
-import BookingDetails from "./pages/Bookings/BookingDetails";
+
 import AllEmployees from "./pages/Employee/AllEmployees";
 import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 import Filter from "./components/ui/filter/Filter";
 import ProjectDetailsPage from "./pages/Project/ProjectDetails"
-import UserDetailsPage from "./pages/partners/UserDetails";
+import UserDetailsPage from "./pages/Channel Partners/UserDetails";
 import UpcomingProjects from "./pages/Project/UpComingProjects";
 import OnGoingProjects from "./pages/Project/OnGoingProjects";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import { isTokenExpired } from "./store/slices/authSlice";
-import PartnerProfile from "./pages/partners/PartnerProfileScreen";
+import PartnerProfile from "./pages/Channel Partners/ChannelPartnerProfileScreen";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -67,7 +66,6 @@ export default function App() {
               <Route path="/partners/addpartners" element={<AddChannelPartner />} />
               <Route path="/filter" element={<Filter />} />
               <Route path="/bookings/bookings-done" element={<BookingsDone />} />
-              <Route path="/bookings-done/details/:id" element={<BookingDetails />} />
               <Route path="/employee/:status" element={<EmployeesScreen />} />
               {/* <Route path="/create-employee" element={<CreateEmployee />} /> */}
               <Route  path="/employeedetails/:status/:id"  element={<EmployeeDetail />} />

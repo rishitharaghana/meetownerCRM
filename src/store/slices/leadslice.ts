@@ -1,13 +1,15 @@
-
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState } from "../../types/LeadModel";
+import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource } from "../../types/LeadModel";
 
 const initialState: LeadState = {
   leads: null,
   leadUpdates: null,
+  bookedLeads: null,
+  leadStatuses: null, 
+  leadSources: null, 
   loading: false,
   error: null,
 };
@@ -135,6 +137,162 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
   }
 );
 
+
+export const getBookedLeads = createAsyncThunk<
+  Lead[],
+  {
+    
+    lead_added_user_id: number;
+    lead_added_user_type: number;
+  },
+  { rejectValue: string }
+>(
+  "lead/getBookedLeads",
+  async ({ lead_added_user_id, lead_added_user_type }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const queryParams = new URLSearchParams({
+       
+        lead_added_user_id: lead_added_user_id.toString(),
+        lead_added_user_type: lead_added_user_type.toString(),
+      });
+
+      const response = await ngrokAxiosInstance.get<LeadsResponse>(
+        `/api/v1/leads/bookedleads?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.results || response.data.results.length === 0) {
+        return rejectWithValue("No booked leads found");
+      }
+
+      return response.data.results;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get booked leads error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("No booked leads found for this lead");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch booked leads");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
+export const getLeadStatuses = createAsyncThunk<
+  LeadStatus[],
+  void,
+  { rejectValue: string }
+>(
+  "lead/getLeadStatuses",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.get<LeadStatusResponse>(
+        `/api/v1/leads/leadstatus`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.results || response.data.results.length === 0) {
+        return rejectWithValue("No lead statuses found");
+      }
+
+      return response.data.results;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get lead statuses error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("No lead statuses found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch lead statuses");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
+export const getLeadSources = createAsyncThunk<
+  LeadSource[],
+  void,
+  { rejectValue: string }
+>(
+  "lead/getLeadSources",
+  async (_, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.get<LeadSourceResponse>(
+        `/api/v1/leads/leadsource`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.results || response.data.results.length === 0) {
+        return rejectWithValue("No lead sources found");
+      }
+
+      return response.data.results;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get lead sources error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("No lead sources found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch lead sources");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
+
 const leadSlice = createSlice({
   name: "lead",
   initialState,
@@ -142,6 +300,9 @@ const leadSlice = createSlice({
     clearLeads: (state) => {
       state.leads = null;
       state.leadUpdates = null;
+      state.bookedLeads = null;
+      state.leadStatuses = null; 
+      state.leadSources = null; 
       state.error = null;
     },
   },
@@ -158,7 +319,6 @@ const leadSlice = createSlice({
       .addCase(getLeadsByUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-       
       })
       .addCase(getLeadUpdatesByLeadId.pending, (state) => {
         state.loading = true;
@@ -171,7 +331,43 @@ const leadSlice = createSlice({
       .addCase(getLeadUpdatesByLeadId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        
+      })
+      .addCase(getBookedLeads.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getBookedLeads.fulfilled, (state, action) => {
+        state.loading = false;
+        state.bookedLeads = action.payload;
+      })
+      .addCase(getBookedLeads.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(getLeadStatuses.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getLeadStatuses.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leadStatuses = action.payload;
+      })
+      .addCase(getLeadStatuses.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      
+      .addCase(getLeadSources.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getLeadSources.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leadSources = action.payload;
+      })
+      .addCase(getLeadSources.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
       });
   },
 });

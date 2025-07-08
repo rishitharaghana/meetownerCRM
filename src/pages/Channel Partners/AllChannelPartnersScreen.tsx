@@ -17,16 +17,10 @@ import { Modal } from "../../components/ui/modal";
 import Pagination from "../../components/ui/pagination/Pagination";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUserById, getUsersByType } from "../../store/slices/userslice";
+import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 
 
-const userTypeMap: { [key: number]: string } = {
-  3: "Channel Partner",
-  4: "Sales Manager",
-  5: "Telecallers",
-  6: "Marketing Agent",
-  7: "Receptionists",
-};
+
 
 export default function PartnerScreen() {
   const navigate = useNavigate();
@@ -54,8 +48,8 @@ export default function PartnerScreen() {
 
   const filteredUsers = users?.filter((user) => {
     const searchableFields = [
-      user.name,
-      user.mobile,
+     user.name,
+      user.mobile, 
       user.email,
       user.city,
       user.state,
@@ -222,9 +216,7 @@ export default function PartnerScreen() {
                               >
                                 {user.name}
                               </Link>
-                              <span className="block text-gray-500 text-theme-sm dark:text-gray-400">
-                                {userTypeMap[user.user_type] || "Unknown"}
-                              </span>
+                          
                             </div>
                           </div>
                         </TableCell>
