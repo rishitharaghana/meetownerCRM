@@ -22,7 +22,7 @@ import CreateEmployee from "./pages/Employee/CreateEmployee";
 import SiteVisit from "./pages/SiteVists/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
 import SiteVisitDetails from "./pages/SiteVists/SiteVisit-details.";
-import UpComingProjects from "./pages/Project/UpComingProjects";
+
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import AllEmployees from "./pages/Employee/AllEmployees";
@@ -31,7 +31,8 @@ const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
 import Filter from "./components/ui/filter/Filter";
 import ProjectDetailsPage from "./pages/Project/ProjectDetails"
 import UserDetailsPage from "./pages/partners/UserDetails";
-import UpcomingProjectDetails from './pages/Project/UpComingProjectDetails'
+import UpcomingProjects from "./pages/Project/UpComingProjects";
+import OnGoingProjects from "./pages/Project/OnGoingProjects";
 import { useSelector } from "react-redux";
 import { RootState } from "./store/store";
 import ProtectedRoute from "./hooks/ProtectedRoute";
@@ -75,9 +76,10 @@ export default function App() {
               <Route path="/support" element={<Support />} />
               <Route path="/projects/add-projects" element={<CreateProperty />} />
               <Route path="/projects/allprojects" element={<AllProjects />} />
-              <Route path="/project/:id" element={<ProjectDetailsPage />} />
-              <Route path="/projects/upcoming-projects" element={<UpComingProjects />} />
-              <Route path="/projects/upcoming-projectsdetails" element={<UpcomingProjectDetails />} />
+              <Route path="/projects/details/:id" element={<ProjectDetailsPage />} />
+              <Route path="/projects/upcoming-projects" element={<UpcomingProjects />} />
+              <Route path="/projects/ongoing-projects" element={<OnGoingProjects/>} />
+              
             </Route>
           </Route>
 

@@ -5,6 +5,7 @@ import authentication from './slices/authSlice';
 import userSlice from './slices/userslice';
 import propertyDetails from './slices/propertyDetails';
 import leadSlice from './slices/leadslice';
+import projectSlice from './slices/projectSlice';
 
 
 
@@ -20,6 +21,7 @@ const store =  configureStore({
         user:userSlice,
         property:propertyDetails,
         lead:leadSlice,
+        projects:projectSlice,
     },
     preloadedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false}),

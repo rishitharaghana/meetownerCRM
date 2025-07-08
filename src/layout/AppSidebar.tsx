@@ -4,7 +4,7 @@ import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
 import { FaFileInvoice,  FaUser, FaUserTie, FaSitemap, FaSwatchbook } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
-// import Logo from "../../public/favicon.jpeg";
+
 
 type NavItem = {
   name: string;
@@ -58,6 +58,7 @@ const navItems: NavItem[] = [
       { name: "Add Projects", path: "/projects/add-projects", pro: false },
       { name: "All Projects", path: "/projects/allprojects", pro: false },
       { name: "Up-Coming Projects", path: "/projects/upcoming-projects", pro: false },
+      { name: "On-Going Projects", path: "/projects/ongoing-projects", pro: false },
 
 
     ],
@@ -72,15 +73,15 @@ const navItems: NavItem[] = [
      
     ],
   },
-    {
-    name: "Site Visits",
-    icon: <FaSitemap />,
-    subItems: [
-      { name: "Site Visits Done", path: "/sitevists/site-visit", pro: false },
-      { name: "Site Visits Scheduled", path: "/employee/2", pro: false },
+  //   {
+  //   name: "Site Visits",
+  //   icon: <FaSitemap />,
+  //   subItems: [
+  //     { name: "Site Visits Done", path: "/sitevists/site-visit", pro: false },
+  //     { name: "Site Visits Scheduled", path: "/employee/2", pro: false },
      
-    ],
-  },
+  //   ],
+  // },
 
    {
     name: "Bookings",

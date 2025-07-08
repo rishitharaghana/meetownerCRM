@@ -1,7 +1,7 @@
 
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
-import { toast } from "react-hot-toast";
+
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
 import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState } from "../../types/LeadModel";
 
@@ -43,7 +43,7 @@ export const getLeadsByUser = createAsyncThunk<
       });
 
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
-        `http://localhost:3000/api/v1/getLeadsByUser?${queryParams}`,
+        `/api/v1/getLeadsByUser?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -101,7 +101,7 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
       });
 
       const response = await ngrokAxiosInstance.get<LeadUpdatesResponse>(
-        `http://localhost:3000/api/v1/leads/getLeadUpdatesByLeadId?${queryParams}`,
+        `/api/v1/leads/getLeadUpdatesByLeadId?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -158,7 +158,7 @@ const leadSlice = createSlice({
       .addCase(getLeadsByUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        toast.error(action.payload as string);
+       
       })
       .addCase(getLeadUpdatesByLeadId.pending, (state) => {
         state.loading = true;
@@ -171,7 +171,7 @@ const leadSlice = createSlice({
       .addCase(getLeadUpdatesByLeadId.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-        toast.error(action.payload as string);
+        
       });
   },
 });

@@ -1,122 +1,172 @@
-import { useParams, useNavigate } from "react-router";
 
-import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
-import greenValleyImg from "../../components/ui/Images/GreenValleyVillas.jpeg";
-import techPlazaImg from "../../components/ui/Images/TechParkplaza.jpeg";
-import blueskyImg from "../../components/ui/Images/BlueSkyResidencies.jpeg";
+import  { useEffect } from "react";
+import { useParams, useLocation, useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import Button from "../../components/ui/button/Button";
+import { AppDispatch, RootState } from "../../store/store";
+import { fetchProjectById } from "../../store/slices/projectSlice";
 
-const sampleProjects = [
-  {
-    id: 1,
-    project_name: "Sunrise Apartments",
-    location: "Bandra West, Mumbai",
-    developer: "ABC Developers",
-    type: "Residential",
-    priceRange: "₹75L - ₹1.2Cr",
-    possessionDate: "12/31/2024",
-    status: "Under Construction",
-    image: sunriseImg,
-    amenities: ["Swimming Pool", "Gym", "Garden", "Jogging Track", "Kids Zone"],
-  },
-  {
-    id: 2,
-    project_name: "Green Valley Villas",
-    location: "Whitefield, Bangalore",
-    developer: "XYZ Builders",
-    type: "Villa",
-    priceRange: "₹2.5Cr - ₹4Cr",
-    possessionDate: "6/30/2025",
-    status: "Pre-Launch",
-    image: greenValleyImg,
-    amenities: ["Clubhouse", "Tennis Court", "Spa", "Yoga Deck", "Pet Area"],
-  },
-  {
-    id: 3,
-    project_name: "Tech Park Plaza",
-    location: "Sector 62, Noida",
-    developer: "Commercial Builders",
-    type: "Commercial",
-    priceRange: "₹50L - ₹2Cr",
-    possessionDate: "3/31/2024",
-    status: "Ready to Move",
-    image: techPlazaImg,
-    amenities: [
-      "Conference Room",
-      "Cafeteria",
-      "Parking",
-      "High-speed Elevators",
-    ],
-  },
-  {
-    id: 4,
-    project_name: "Blue Sky Residences",
-    location: "Hinjewadi, Pune",
-    developer: "Elite Spaces",
-    type: "Apartment",
-    priceRange: "₹60L - ₹90L",
-    possessionDate: "5/31/2025",
-    status: "Under Construction",
-    image: blueskyImg,
-    amenities: ["Swimming Pool", "Clubhouse", "Kids Play Area"],
-  },
-];
 
 const ProjectDetailsPage = () => {
-  const { id } = useParams();
+  const { id } = useParams<{ id: string }>();
+  const location = useLocation();
   const navigate = useNavigate();
+  const dispatch = useDispatch<AppDispatch>();
+  const { selectedProject, loading, error } = useSelector((state: RootState) => state.projects);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  const project = sampleProjects.find((p) => p.id === Number(id));
 
-  if (!project) {
+  const { property_id, posted_by, user_id } = (location.state || {}) as {
+    property_id?: number;
+    posted_by?: string;
+    user_id?: string;
+  };
+
+
+  useEffect(() => {
+    if (isAuthenticated && user && property_id && posted_by && user_id) {
+      dispatch(
+        fetchProjectById({
+          property_id: Number(property_id),
+          admin_user_type: Number(posted_by), 
+          admin_user_id: Number(user_id), 
+        })
+      );
+    }
+  }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);
+
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="p-6 text-center text-red-600">
+        <p>Please log in to view project details.</p>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => navigate("/projects")}
+          className="mt-4"
+        >
+          Back to Projects
+        </Button>
+      </div>
+    );
+  }
+
+  if (loading) {
+    return <div className="p-6 text-center">Loading...</div>;
+  }
+
+  if (error) {
+    return (
+      <div className="p-6 text-center text-red-600">
+        <p>Error: {error}</p>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => navigate("/projects")}
+          className="mt-4"
+        >
+          Back to Projects
+        </Button>
+      </div>
+    );
+  }
+
+  if (!selectedProject || selectedProject.property_id !== Number(id)) {
     return (
       <div className="p-6 text-center text-red-600">
         <p>Project not found.</p>
-        <button
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => navigate("/projects")}
-          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700"
+          className="mt-4"
         >
           Back to Projects
-        </button>
+        </Button>
       </div>
     );
   }
 
   return (
-        <div className="max-w-4xl mx-auto p-6">
+    <div className="max-w-4xl mx-auto p-6">
       <div className="flex items-center justify-between mb-6">
-  <h1 className="text-3xl font-bold">{project.project_name}</h1>
-  <button
-    onClick={() => navigate(-1)}
-    className="ml-4 px-4 py-2 bg-blue-900 text-white rounded hover:bg-blue-800"
-  >
- Back
-  </button>
-
+        <h1 className="text-3xl font-bold">{selectedProject.project_name}</h1>
+        <Button
+          variant="primary"
+          size="sm"
+          onClick={() => navigate(-1)}
+          className="ml-4"
+        >
+          Back
+        </Button>
       </div>
 
-      <img
-        src={project.image}
-        alt={project.project_name}
-        className="w-full h-64 object-cover rounded mb-6"
-      />
+     
+      
 
       <div className="space-y-4 text-gray-700">
-        <p><strong>Location:</strong> {project.location}</p>
-        <p><strong>Developer:</strong> {project.developer}</p>
-        <p><strong>Type:</strong> {project.type}</p>
-        <p><strong>Status:</strong> {project.status}</p>
-        <p><strong>Price Range:</strong> {project.priceRange}</p>
-        <p><strong>Possession Date:</strong> {project.possessionDate}</p>
-        <p><strong>Amenities:</strong></p>
-        <div className="flex flex-wrap gap-2 ">
-          {project.amenities.map((a) => (
+        <p>
+          <strong>Location:</strong> {selectedProject.locality}, {selectedProject.city}, {selectedProject.state}
+        </p>
+        <p>
+          <strong>Builder:</strong> {selectedProject.builder_name}
+        </p>
+        <p>
+          <strong>Type:</strong> {selectedProject.property_type} ({selectedProject.property_subtype})
+        </p>
+        <p>
+          <strong>Status:</strong> {selectedProject.construction_status}
+        </p>
+        <p>
+          <strong>Possession Date:</strong>{" "}
+          {selectedProject.possession_end_date
+            ? new Date(selectedProject.possession_end_date).toLocaleDateString()
+            : "Ready to Move"}
+        </p>
+        <p>
+          <strong>Sizes:</strong>
+        </p>
+        <ul className="list-disc pl-5">
+          {selectedProject.sizes.map((size, index) => (
+            <li key={index}>
+              Build-up: {size.build_up_area} sqft, Carpet: {size.carpet_area} sqft
+            </li>
+          ))}
+        </ul>
+        <p>
+          <strong>Nearby Amenities:</strong>
+        </p>
+        <div className="flex flex-wrap gap-2">
+          {selectedProject.around_this.map((a) => (
             <span
-              key={a}
+              key={a.title}
               className="text-xs bg-blue-50 text-gray-700 px-2 py-1 rounded-full"
             >
-              {a}
+              {a.title} ({a.distance} km)
             </span>
           ))}
+        </div>
+        <div className="flex gap-4">
+          {selectedProject.brochure && (
+            <a
+              href={selectedProject.brochure}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              View Brochure
+            </a>
+          )}
+          {selectedProject.price_sheet && (
+            <a
+              href={selectedProject.price_sheet}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-blue-600 underline text-sm"
+            >
+              View Price Sheet
+            </a>
+          )}
         </div>
       </div>
     </div>

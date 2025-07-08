@@ -72,7 +72,7 @@ const LeadsType: React.FC = () => {
         assigned_user_type?: number;
         assigned_id?: number;
       } = {
-        lead_added_user_type: 2,
+        lead_added_user_type: user.user_type,
         lead_added_user_id: user.id,
         status_id: statusId,
       };
@@ -198,7 +198,7 @@ const LeadsType: React.FC = () => {
     setLocalPage(1);
   };
 
-  const handleViewProperty = (item: Lead) => {
+  const handleViewHistory = (item: Lead) => {
     navigate("/leads/view", { state: { property: item } });
   };
 
@@ -252,27 +252,6 @@ const LeadsType: React.FC = () => {
           {error && (
             <div className="text-center text-red-500 py-4">
               {error}
-              {/* <Button
-                variant="primary"
-                size="sm"
-                onClick={() =>
-                  dispatch(
-                    getLeadsByUser({
-                      lead_added_user_type: 2,
-                      lead_added_user_id: user!.id,
-                      status_id: statusId,
-                      ...(user!.user_type !== 2 &&
-                        selectedUserType && {
-                          assigned_user_type: parseInt(selectedUserType),
-                          assigned_id: user!.id,
-                        }),
-                    })
-                  )
-                }
-                className="ml-4"
-              >
-                Retry
-              </Button> */}
             </div>
           )}
           {!loading && !error && filteredLeads.length === 0 && (
@@ -405,7 +384,7 @@ const LeadsType: React.FC = () => {
                                 </li>
                                 <li>
                                   <button
-                                    onClick={() => handleViewProperty(item)}
+                                    onClick={() => handleViewHistory(item)}
                                     className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
                                   >
                                     View History
