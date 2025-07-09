@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { Link, useNavigate } from "react-router";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
-import Filter from "../../components/ui/filter/Filter";// Assuming Filter is the time filter component
+import Filter from "../../components/ui/filter/Filter";
 
 import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
 import greenValleyImg from "../../components/ui/Images/GreenValleyVillas.jpeg";
