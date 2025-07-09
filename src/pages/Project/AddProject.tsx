@@ -5,12 +5,11 @@ import Label from '../../components/form/Label';
 import Input from '../../components/form/input/InputField';
 import Dropdown from '../../components/form/Dropdown';
 import { AppDispatch, RootState } from '../../store/store';
-import {  insertProperty } from '../../store/slices/projectSlice';
+import { insertProperty } from '../../store/slices/projectSlice';
 import DatePicker from '../../components/form/date-picker';
 import toast from 'react-hot-toast';
 import Select from '../../components/form/Select';
 import { usePropertyQueries } from '../../hooks/PropertyQueries';
-
 
 interface SelectOption {
   value: string;
@@ -50,7 +49,8 @@ interface FormData {
   isUpcoming: boolean;
   status: 'Under Construction' | 'Ready to Move';
   launchType: 'Pre Launch' | 'Soft Launch' | 'Launched';
-  launchDate?: string;
+  launchDate?: string; // Separate field for Launch Date
+  possessionEndDate?: string; // Separate field for Possession End Date
   isReraRegistered: boolean;
   reraNumber: string;
   otpOptions: string[];
@@ -76,6 +76,7 @@ interface Errors {
   brochure?: string;
   priceSheet?: string;
   launchDate?: string;
+  possessionEndDate?: string; // Added for possession end date validation
   isReraRegistered?: string;
   reraNumber?: string;
   otpOptions?: string;
@@ -84,7 +85,7 @@ interface Errors {
 export default function AddProject() {
   const dispatch = useDispatch<AppDispatch>();
   const { cities, states } = useSelector((state: RootState) => state.property);
-   const { user} = useSelector((state: RootState) => state.auth);
+  const { user } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
     state: '',
@@ -110,6 +111,7 @@ export default function AddProject() {
     status: 'Ready to Move',
     launchType: 'Pre Launch',
     launchDate: '',
+    possessionEndDate: '',
     isReraRegistered: false,
     reraNumber: '',
     otpOptions: [],
@@ -122,9 +124,9 @@ export default function AddProject() {
   const brochureInputRef = useRef<HTMLInputElement>(null);
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
-   const { citiesQuery, statesQuery } = usePropertyQueries();
+  const { citiesQuery, statesQuery } = usePropertyQueries();
 
- useEffect(() => {
+  useEffect(() => {
     if (citiesQuery.isError) {
       toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || 'Unknown error'}`);
     }
@@ -260,7 +262,6 @@ export default function AddProject() {
           return;
         }
         if (file.size > 20 * 1024 * 1024) {
-          // 20MB limit
           setErrors((prev) => ({
             ...prev,
             sizes: {
@@ -307,7 +308,6 @@ export default function AddProject() {
         return;
       }
       if (file.size > 20 * 1024 * 1024) {
-        // Updated to 20MB
         setErrors((prev) => ({
           ...prev,
           brochure: 'File size must be less than 20MB',
@@ -358,7 +358,6 @@ export default function AddProject() {
         return;
       }
       if (file.size > 20 * 1024 * 1024) {
-        // Updated to 20MB
         setErrors((prev) => ({
           ...prev,
           priceSheet: 'File size must be less than 20MB',
@@ -445,6 +444,17 @@ export default function AddProject() {
     setErrors((prev) => ({ ...prev, launchDate: undefined }));
   };
 
+  const handlePossessionEndDateChange = (selectedDates: Date[]) => {
+    const selectedDate = selectedDates[0];
+    const formattedDate = selectedDate
+      ? `${selectedDate.getFullYear()}-${String(
+          selectedDate.getMonth() + 1
+        ).padStart(2, '0')}-${String(selectedDate.getDate()).padStart(2, '0')}`
+      : '';
+    setFormData((prev) => ({ ...prev, possessionEndDate: formattedDate }));
+    setErrors((prev) => ({ ...prev, possessionEndDate: undefined }));
+  };
+
   const handleOtpOptionsChange = (option: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -461,29 +471,20 @@ export default function AddProject() {
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.city) newErrors.city = 'City is required';
     if (!formData.locality) newErrors.locality = 'Locality is required';
-    if (!formData.propertyType)
-      newErrors.propertyType = 'Property Type is required';
-    if (!formData.propertySubType)
-      newErrors.propertySubType = 'Property Sub Type is required';
-    if (!formData.projectName.trim())
-      newErrors.projectName = 'Project Name is required';
-    if (!formData.builderName.trim())
-      newErrors.builderName = 'Builder Name is required';
+    if (!formData.propertyType) newErrors.propertyType = 'Property Type is required';
+    if (!formData.propertySubType) newErrors.propertySubType = 'Property Sub Type is required';
+    if (!formData.projectName.trim()) newErrors.projectName = 'Project Name is required';
+    if (!formData.builderName.trim()) newErrors.builderName = 'Builder Name is required';
     if (formData.aroundProperty.length === 0)
       newErrors.aroundProperty = 'At least one place around property is required';
     if (formData.isReraRegistered && !formData.reraNumber.trim())
       newErrors.reraNumber = 'RERA Number is required';
     if (formData.otpOptions.length === 0)
       newErrors.otpOptions = 'At least one payment mode is required';
-    if (
-      (formData.status === 'Under Construction' ||
-        formData.launchType === 'Launched') &&
-      !formData.launchDate
-    )
-      newErrors.launchDate =
-        formData.status === 'Under Construction'
-          ? 'Possession End Date is required'
-          : 'Launch Date is required';
+    if (formData.launchType === 'Launched' && !formData.launchDate)
+      newErrors.launchDate = 'Launch Date is required';
+    if (formData.status === 'Under Construction' && !formData.possessionEndDate)
+      newErrors.possessionEndDate = 'Possession End Date is required';
 
     const sizeErrors: {
       [key: string]: {
@@ -508,7 +509,6 @@ export default function AddProject() {
         errorsForSize.carpetArea = 'Carpet Area is required';
       else if (!/^\d+(\.\d{1,2})?$/.test(size.carpetArea.trim()))
         errorsForSize.carpetArea = 'Carpet Area must be a valid number';
-    
       if (!size.sqftPrice.trim())
         errorsForSize.sqftPrice = 'Square Foot Price is required';
       else if (!/^\d+(\.\d{1,2})?$/.test(size.sqftPrice.trim()))
@@ -530,14 +530,12 @@ export default function AddProject() {
     e.preventDefault();
     if (validateForm()) {
       const stateName =
-        stateOptions.find((option) => option.value === formData.state)?.text ||
-        formData.state;
+        stateOptions.find((option) => option.value === formData.state)?.text || formData.state;
       const cityName =
-        cityOptions.find((option) => option.value === formData.city)?.text ||
-        formData.city;
+        cityOptions.find((option) => option.value === formData.city)?.text || formData.city;
       const localityName =
-        localityOptions.find((option) => option.value === formData.locality)
-          ?.text || formData.locality;
+        localityOptions.find((option) => option.value === formData.locality)?.text ||
+        formData.locality;
 
       const formDataToSend = new FormData();
       formDataToSend.append('project_name', formData.projectName);
@@ -549,8 +547,8 @@ export default function AddProject() {
       formDataToSend.append('locality', localityName);
       formDataToSend.append('construction_status', formData.status);
       formDataToSend.append('upcoming_project', formData.isUpcoming ? 'Yes' : 'No');
-      formDataToSend.append('posted_by',user?.user_type);
-      formDataToSend.append('user_id', user?.user_type);
+      formDataToSend.append('posted_by', user?.user_type || '2');
+      formDataToSend.append('user_id', user?.user_type || '2');
       formDataToSend.append('rera_registered', formData.isReraRegistered ? 'Yes' : 'No');
       if (formData.isReraRegistered) {
         formDataToSend.append('rera_number', formData.reraNumber);
@@ -560,7 +558,7 @@ export default function AddProject() {
         formDataToSend.append('launched_date', formData.launchDate || '');
       }
       if (formData.status === 'Under Construction') {
-        formDataToSend.append('possession_end_date', formData.launchDate || '');
+        formDataToSend.append('possession_end_date', formData.possessionEndDate || '');
       }
       formDataToSend.append('payment_mode', JSON.stringify(formData.otpOptions));
       formDataToSend.append(
@@ -569,7 +567,7 @@ export default function AddProject() {
           formData.sizes.map((size) => ({
             build_up_area: size.buildupArea,
             carpet_area: size.carpetArea,
-            floorPlan: size.floorPlan ? size.floorPlan : null, // Send file object
+            floor_plan: size.floorPlan ? size.floorPlan.name : null,
             sqftprice: size.sqftPrice,
           }))
         )
@@ -591,7 +589,7 @@ export default function AddProject() {
       }
       formData.sizes.forEach((size, index) => {
         if (size.floorPlan) {
-          formDataToSend.append('floor_plan', size.floorPlan);
+          formDataToSend.append(`floor_plan_${index}`, size.floorPlan);
         }
       });
 
@@ -623,15 +621,21 @@ export default function AddProject() {
             status: 'Ready to Move',
             launchType: 'Pre Launch',
             launchDate: '',
+            possessionEndDate: '',
             isReraRegistered: false,
             reraNumber: '',
             otpOptions: [],
           });
           setPlaceAroundProperty('');
           setDistanceFromProperty('');
+          if (brochureInputRef.current) brochureInputRef.current.value = '';
+          if (priceSheetInputRef.current) priceSheetInputRef.current.value = '';
+          Object.keys(fileInputRefs.current).forEach((key) => {
+            if (fileInputRefs.current[key]) fileInputRefs.current[key]!.value = '';
+          });
         })
         .catch((error) => {
-          toast.error(`Error: ${error}`);
+          toast.error(`Error: ${error.message || 'Failed to insert property'}`);
         });
     }
   };
@@ -733,9 +737,7 @@ export default function AddProject() {
                   <button
                     key={option.value}
                     type="button"
-                    onClick={() =>
-                      handleSelectChange('propertySubType')(option.value)
-                    }
+                    onClick={() => handleSelectChange('propertySubType')(option.value)}
                     className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                       formData.propertySubType === option.value
                         ? 'bg-[#1D3A76] text-white border-blue-600'
@@ -762,11 +764,9 @@ export default function AddProject() {
                     setFormData((prev) => ({
                       ...prev,
                       status: statusOption as FormData['status'],
-                      launchDate:
-                        statusOption === 'Ready to Move' &&
-                        formData.launchType !== 'Launched'
-                          ? ''
-                          : prev.launchDate,
+                      ...(statusOption === 'Ready to Move' && prev.launchType !== 'Launched'
+                        ? { launchDate: '' }
+                        : {}),
                     }))
                   }
                   className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
@@ -788,19 +788,15 @@ export default function AddProject() {
               value={formData.launchType}
               onChange={handleDropdownChange('launchType')}
               placeholder="Select launch type..."
-              // error={errors.launchType}
+              // error={errors.launchType} // Uncomment if you add launchType to Errors interface
             />
           </div>
-          {(formData.status === 'Under Construction' || formData.launchType === 'Launched') && (
-            <div className="min-h-[80px]">
+          {formData.launchType === 'Launched' && (
+            <div className="min-h-[80px] w-full max-w-md">
               <DatePicker
                 id="launchDate"
-                label={
-                  formData.status === 'Under Construction'
-                    ? 'Possession End Date'
-                    : 'Launch Date'
-                }
-                placeholder="Select date"
+                label="Launch Date"
+                placeholder="Select launch date"
                 defaultDate={formData.launchDate || undefined}
                 onChange={handleLaunchDateChange}
               />
@@ -809,17 +805,26 @@ export default function AddProject() {
               )}
             </div>
           )}
+          {formData.status === 'Under Construction' && (
+            <div className="min-h-[80px] w-full max-w-md">
+              <DatePicker
+                id="possessionEndDate"
+                label="Possession End Date"
+                placeholder="Select possession end date"
+                defaultDate={formData.possessionEndDate || undefined}
+                onChange={handlePossessionEndDateChange}
+              />
+              {errors.possessionEndDate && (
+                <p className="text-red-500 text-sm mt-1">{errors.possessionEndDate}</p>
+              )}
+            </div>
+          )}
           <div className="min-h-[80px]">
             <Label htmlFor="isReraRegistered">Is this RERA Registered?</Label>
             <div className="flex space-x-4 mb-5">
               <button
                 type="button"
-                onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isReraRegistered: true,
-                  }))
-                }
+                onClick={() => setFormData((prev) => ({ ...prev, isReraRegistered: true }))}
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   formData.isReraRegistered
                     ? 'bg-[#1D3A76] text-white border-blue-600'
@@ -831,11 +836,7 @@ export default function AddProject() {
               <button
                 type="button"
                 onClick={() =>
-                  setFormData((prev) => ({
-                    ...prev,
-                    isReraRegistered: false,
-                    reraNumber: '',
-                  }))
+                  setFormData((prev) => ({ ...prev, isReraRegistered: false, reraNumber: '' }))
                 }
                 className={`px-4 py-2 rounded-lg border transition-colors duration-200 ${
                   !formData.isReraRegistered
@@ -953,9 +954,7 @@ export default function AddProject() {
                     className="dark:bg-gray-800"
                   />
                   {errors.sizes?.[size.id]?.buildupArea && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.sizes[size.id].buildupArea}
-                    </p>
+                    <p className="text-red-500 text-sm mt-1">{errors.sizes[size.id].buildupArea}</p>
                   )}
                 </div>
                 <div className="min-h-[80px]">
@@ -969,9 +968,7 @@ export default function AddProject() {
                     className="dark:bg-gray-800"
                   />
                   {errors.sizes?.[size.id]?.carpetArea && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.sizes[size.id].carpetArea}
-                    </p>
+                    <p className="text-red-500 text-sm mt-1">{errors.sizes[size.id].carpetArea}</p>
                   )}
                 </div>
                 <div className="min-h-[80px]">
@@ -985,9 +982,7 @@ export default function AddProject() {
                     className="dark:bg-gray-800"
                   />
                   {errors.sizes?.[size.id]?.sqftPrice && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.sizes[size.id].sqftPrice}
-                    </p>
+                    <p className="text-red-500 text-sm mt-1">{errors.sizes[size.id].sqftPrice}</p>
                   )}
                 </div>
                 <div className="min-h-[80px]">
@@ -1022,9 +1017,7 @@ export default function AddProject() {
                     </span>
                   </div>
                   {errors.sizes?.[size.id]?.floorPlan && (
-                    <p className="text-red-500 text-sm mt-1">
-                      {errors.sizes[size.id].floorPlan}
-                    </p>
+                    <p className="text-red-500 text-sm mt-1">{errors.sizes[size.id].floorPlan}</p>
                   )}
                 </div>
               </div>
