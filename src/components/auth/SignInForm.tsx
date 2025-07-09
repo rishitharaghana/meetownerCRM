@@ -1,44 +1,55 @@
 import { useEffect, useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
-import { useNavigate } from "react-router";
+import { LoginRequest } from "../../types/UserModel";
+import { AppDispatch, RootState } from "../../store/store";
+import { loginUser } from "../../store/slices/authSlice";
 
-const userTypes = [
-  { value: "builder", label: "Builder" },
-  { value: "channel_partner", label: "Channel Partner" },
-  { value: "tele_callers", label: "Tele Caller" },
-  { value: "sales_manager", label: "Sales Manager" },
-  { value: "receptionsit", label: "Receptionist" },
-  { value: "marketing_executors", label: "Marketing Executor" },
-];
 
 export default function SignInForm() {
   const navigate = useNavigate();
+ const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, error, loading } = useSelector((state: RootState) => state.auth);
+
   const [showPassword, setShowPassword] = useState(false);
   const [formKey, setFormKey] = useState(Date.now());
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<LoginRequest>({
     mobile: "",
     password: "",
-    userType: "",
   });
-
   const [errors, setErrors] = useState({
     mobile: "",
     password: "",
-    userType: "",
     general: "",
   });
 
-  useEffect(() => {
-    localStorage.removeItem("userData");
-    setFormData({ mobile: "", password: "", userType: "" });
-    setErrors({ mobile: "", password: "", userType: "", general: "" });
-    setFormKey(Date.now());
-  }, []);
 
-  const handleInputChange = (e: { target: { name: string; value: string } }) => {
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate("/"); 
+    } else {
+    
+      setFormData({ mobile: "", password: "" });
+      setErrors({ mobile: "", password: "", general: "" });
+      setFormKey(Date.now());
+    }
+  }, [isAuthenticated, navigate]);
+
+
+  useEffect(() => {
+    if (error) {
+      setErrors((prevErrors) => ({
+        ...prevErrors,
+        general: error,
+      }));
+    }
+  }, [error]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target;
 
     setFormData((prevState) => ({
@@ -57,73 +68,51 @@ export default function SignInForm() {
     return /^[6-9]\d{9}$/.test(mobile);
   };
 
-const handleSubmit = (e: { preventDefault: () => void }) => {
-  e.preventDefault();
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
 
-  const newErrors = { mobile: "", password: "", userType: "", general: "" };
-  let hasError = false;
+    const newErrors = { mobile: "", password: "", general: "" };
+    let hasError = false;
 
-  if (!formData.mobile.trim()) {
-    newErrors.mobile = "Mobile number is required";
-    hasError = true;
-  } else if (!isValidMobile(formData.mobile)) {
-    newErrors.mobile = "Enter a valid 10-digit mobile number";
-    hasError = true;
-  }
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+      hasError = true;
+    } else if (!isValidMobile(formData.mobile)) {
+      newErrors.mobile = "Enter a valid 10-digit mobile number";
+      hasError = true;
+    }
 
-  if (!formData.password.trim()) {
-    newErrors.password = "Password is required";
-    hasError = true;
-  }
+    if (!formData.password.trim()) {
+      newErrors.password = "Password is required";
+      hasError = true;
+    }
 
-  if (hasError) {
-    setErrors(newErrors);
-    return;
-  }
+    if (hasError) {
+      setErrors(newErrors);
+      return;
+    }
 
-  const newUser = {
-    mobile: formData.mobile,
-    userType: formData.userType,
+    // Dispatch loginUser action
+    const resultAction = await dispatch(loginUser(formData));
+
+    // Check if login was successful
+    if (loginUser.fulfilled.match(resultAction)) {
+      setFormData({ mobile: "", password: "" });
+      setFormKey(Date.now());
+      navigate("/"); // Navigate to home on success
+    }
   };
 
-  try {
-    const existingUsers = JSON.parse(localStorage.getItem("users") || "{}");
-
-    if (!existingUsers[formData.userType]) {
-      existingUsers[formData.userType] = [];
-    }
-
-    const alreadyExists = existingUsers[formData.userType].some(
-      (user: any) => user.mobile === newUser.mobile
-    );
-
-    if (!alreadyExists) {
-      existingUsers[formData.userType].push(newUser);
-    }
-
-    localStorage.setItem("users", JSON.stringify(existingUsers)); 
-  } catch (err) {
-    console.error("Error saving user:", err);
-  }
-
-  setFormData({ mobile: "", password: "", userType: "tele_callers" }); 
-  setFormKey(Date.now());
-  navigate("/");
-};
-
-
-
   return (
-    <div className="flex flex-col flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6">
+    <div className="flex flex-col flex-1 bg-white dark:bg-gray
+    -900 text-gray-900 dark:text-white p-6">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
             <h1 className="mb-2 font-bold text-2xl text-blue-900">Sign In</h1>
             <p className="text-sm text-gray-600 dark:text-gray-400">
-              Enter your mobile number, password, and select user type to sign in!
+              Enter your mobile number and password to sign in!
             </p>
-
-          
           </div>
 
           <form key={formKey} onSubmit={handleSubmit} autoComplete="off">
@@ -154,7 +143,6 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
                   <Input
                     type={showPassword ? "text" : "password"}
                     name="password"
-                    
                     value={formData.password}
                     onChange={handleInputChange}
                     placeholder="Enter your password"
@@ -180,8 +168,9 @@ const handleSubmit = (e: { preventDefault: () => void }) => {
                 <Button
                   className="w-full px-5 py-3 font-semibold text-white bg-blue-900 hover:bg-blue-800 rounded-md text-sm shadow-md"
                   size="sm"
+                  disabled={loading} // Disable button during API call
                 >
-                  Sign in
+                  {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </div>
             </div>

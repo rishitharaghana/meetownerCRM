@@ -1,19 +1,19 @@
 import { useEffect, useRef, useState } from "react";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
-// import Filter from "../components/ui/filter/Filter";
+
 
 const AppHeader: React.FC = () => {
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const inputRef = useRef<HTMLInputElement>(null);
 
-  // Handle sidebar toggle based on screen size
+
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
-      toggleSidebar(); // Toggle desktop sidebar (expanded/collapsed)
+      toggleSidebar(); 
     } else {
-      toggleMobileSidebar(); // Toggle mobile sidebar (open/closed)
+      toggleMobileSidebar(); 
     }
   };
 
@@ -112,15 +112,7 @@ const AppHeader: React.FC = () => {
           </button>
         </div>
 
-        {/* <div
-          className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
-            isApplicationMenuOpen ? "block" : "hidden"
-          } lg:block shadow-theme-md`}
-        >
-          <div className="flex items-center gap-2 2xsm:gap-3">
-          </div>
-          <UserDropdown />
-        </div> */}
+       
         <div
   className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
     isApplicationMenuOpen ? "block" : "hidden"

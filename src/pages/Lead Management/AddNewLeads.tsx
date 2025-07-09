@@ -1,51 +1,14 @@
-import React, { useState } from "react";
-import { User, Building, Target, Users } from "lucide-react";
+import React, { useState, useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { useNavigate } from "react-router";
+import { Building, Target, Users, User } from "lucide-react";
 import Input from "../../components/form/input/InputField";
-// import { useDispatch } from "react-redux";
-// import { AppDispatch } from "../../store/store";
+import { AppDispatch, RootState } from "../../store/store";
+import { fetchAllProjects } from "../../store/slices/projectSlice";
+import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 
-interface SelectProps {
-  label: string;
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
-  placeholder?: string;
-  error?: string;
-}
+import Select from "../../components/form/Select";
 
-const Select: React.FC<SelectProps> = ({
-  label,
-  options,
-  value,
-  onChange,
-  placeholder,
-  error,
-}) => (
-  <div className="space-y-1">
-    <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-      {label}
-    </label>
-    <select
-      value={value}
-      onChange={onChange}
-      className={`w-full p-3 border rounded-md focus:ring-2 focus:ring-realty-primary focus:border-realty-primary transition-colors ${
-        error ? "border-red-500" : "border-realty-200"
-      }`}
-    >
-      {placeholder && (
-        <option value="" disabled>
-          {placeholder}
-        </option>
-      )}
-      {options.map((option) => (
-        <option key={option.value} value={option.value}>
-          {option.label}
-        </option>
-      ))}
-    </select>
-    {error && <p className="text-red-500 text-sm mt-1">{error}</p>}
-  </div>
-);
 
 interface FormData {
   name: string;
@@ -58,9 +21,7 @@ interface FormData {
   propertyType: string;
   squareFeet: string;
   budget: string;
-
 }
-
 
 interface Errors {
   name?: string;
@@ -71,13 +32,33 @@ interface Errors {
   channelPartner?: string;
   campaign?: string;
   propertyType?: string;
-  squareFeet?: string; 
+  squareFeet?: string;
   budget?: string;
 }
 
+interface Project {
+  property_id: string | number;
+  project_name: string;
+  property_type: string;
+}
+
+interface ChannelPartner {
+  id: string | number;
+  name: string;
+  mobile: string;
+}
 
 const LeadForm = () => {
-  // const dispatch = useDispatch<AppDispatch>();
+  const dispatch = useDispatch<AppDispatch>();
+  
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { allProjects, loading: projectsLoading } = useSelector(
+    (state: RootState) => state.projects
+  );
+  const { users, loading: usersLoading } = useSelector(
+    (state: RootState) => state.user
+  );
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     mobile: "",
@@ -87,31 +68,41 @@ const LeadForm = () => {
     channelPartner: "",
     campaign: "",
     propertyType: "",
-    squareFeet: "", 
+    squareFeet: "",
     budget: "",
   });
-  
+
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const projectOptions = [
-    { value: "luxury-towers", label: "Luxury Towers - Premium Residential" },
-    { value: "garden-villas", label: "Garden Villas - Independent Houses" },
-    { value: "metro-heights", label: "Metro Heights - Apartment Complex" },
-    { value: "royal-estates", label: "Royal Estates - Luxury Condos" },
-  ];
+  
+  useEffect(() => {
+    if (isAuthenticated && user?.id) {
+      dispatch(fetchAllProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
+      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3 }));
+    }
+    return () => {
+      dispatch(clearUsers());
+    };
+  }, [isAuthenticated, user, dispatch]);
+
+ 
+  const projectOptions = allProjects?.map((project: Project) => ({
+    value: project.property_id.toString(),
+    label: `${project.project_name} - ${project.property_type}`,
+  })) || [];
+
+
+  const channelPartnerOptions = users?.map((partner: ChannelPartner) => ({
+    value: partner.id.toString(),
+    label: `${partner.name} - ${partner.mobile}`,
+  })) || [];
 
   const leadSourceOptions = [
     { value: "channel_partner", label: "Channel Partner" },
     { value: "campaign", label: "Marketing Campaign" },
-  ];
-
-  const channelPartnerOptions = [
-    { value: "partner_1", label: "Premium Real Estate Partners" },
-    { value: "partner_2", label: "Elite Property Consultants" },
-    { value: "partner_3", label: "Prime Realty Associates" },
   ];
 
   const campaignOptions = [
@@ -124,28 +115,26 @@ const LeadForm = () => {
     { value: "2bhk", label: "2 BHK" },
     { value: "3bhk", label: "3 BHK" },
     { value: "4bhk", label: "4 BHK" },
-  ]; // ✅ added
+  ];
 
-  const handleInputChange =
-    (field: keyof FormData) =>
-    (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      const value = e.target.value;
-      setFormData((prev) => {
-        if (field === "leadSource") {
-          return {
-            ...prev,
-            [field]: value,
-            channelPartner: "",
-            campaign: "",
-          };
-        }
-        return { ...prev, [field]: value };
-      });
-
-      if (errors[field]) {
-        setErrors((prev) => ({ ...prev, [field]: undefined }));
+  // Updated handleInputChange to accept a string directly
+  const handleInputChange = (field: keyof FormData) => (value: string) => {
+    setFormData((prev) => {
+      if (field === "leadSource") {
+        return {
+          ...prev,
+          [field]: value,
+          channelPartner: "",
+          campaign: "",
+        };
       }
-    };
+      return { ...prev, [field]: value };
+    });
+
+    if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
+  };
 
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
@@ -185,7 +174,7 @@ const LeadForm = () => {
     if (!formData.propertyType) {
       newErrors.propertyType = "Please select a property type";
     }
-    
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -213,10 +202,9 @@ const LeadForm = () => {
         channelPartner: "",
         campaign: "",
         propertyType: "",
-        squareFeet: "", 
+        squareFeet: "",
         budget: "",
       });
-      
     } catch (error) {
       setSubmitError("Failed to create lead. Please try again.");
     } finally {
@@ -245,7 +233,7 @@ const LeadForm = () => {
           <h1 className="text-2xl font-bold text-gray-800 mb-2">
             Add New Lead
           </h1>
-          <p className="text-gray-600 text-sm ">
+          <p className="text-gray-600 text-sm">
             Capture potential client information for your real estate projects
           </p>
         </div>
@@ -265,7 +253,7 @@ const LeadForm = () => {
                 <Input
                   type="text"
                   value={formData.name}
-                  onChange={handleInputChange("name")}
+                  onChange={(e) => handleInputChange("name")(e.target.value)}
                   placeholder="Enter customer's full name"
                   className={errors.name ? "border-red-500" : ""}
                 />
@@ -281,7 +269,7 @@ const LeadForm = () => {
                 <Input
                   type="tel"
                   value={formData.mobile}
-                  onChange={handleInputChange("mobile")}
+                  onChange={(e) => handleInputChange("mobile")(e.target.value)}
                   placeholder="Enter 10-digit mobile number"
                   className={errors.mobile ? "border-red-500" : ""}
                 />
@@ -297,7 +285,7 @@ const LeadForm = () => {
                 <Input
                   type="email"
                   value={formData.email}
-                  onChange={handleInputChange("email")}
+                  onChange={(e) => handleInputChange("email")(e.target.value)}
                   placeholder="Enter email address"
                   className={errors.email ? "border-red-500" : ""}
                 />
@@ -318,7 +306,9 @@ const LeadForm = () => {
                 options={projectOptions}
                 value={formData.interestedProject}
                 onChange={handleInputChange("interestedProject")}
-                placeholder="Search or select a project"
+                placeholder={
+                  projectsLoading ? "Loading projects..." : "Search or select a project"
+                }
                 error={errors.interestedProject}
               />
             </div>
@@ -344,7 +334,9 @@ const LeadForm = () => {
                   options={channelPartnerOptions}
                   value={formData.channelPartner}
                   onChange={handleInputChange("channelPartner")}
-                  placeholder="Select channel partner"
+                  placeholder={
+                    usersLoading ? "Loading partners..." : "Select channel partner"
+                  }
                   error={errors.channelPartner}
                 />
               )}
@@ -361,78 +353,73 @@ const LeadForm = () => {
               )}
             </div>
 
-<div className="space-y-6 pt-6 border-t border-realty-200">
-  <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
-    <Building className="w-5 h-5" />
-    Property
-  </h2>
-  <div className="space-y-1">
-    <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-      Select BHK Type
-    </label>
-    <div className="flex gap-3 flex-wrap">
-      {propertyTypeOptions.map((option) => (
-        <button
-          type="button"
-          key={option.value}
-          onClick={() =>
-            handleInputChange("propertyType")({
-              target: { value: option.value } as any,
-            } as React.ChangeEvent<HTMLInputElement>)
-          }
-          className={`px-4 py-2 rounded-md border transition-all ${
-            formData.propertyType === option.value
-              ? "bg-blue-900 text-white border-blue-900"
-              : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
-          }`}
-        >
-          {option.label}
-        </button>
-      ))}
-    </div>
-    {errors.propertyType && (
-      <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>
-    )}
-  </div>
-</div>
-<div className="space-y-1">
-  <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-    Square Feet
-  </label>
-  <Input
-    type="text"
-    value={formData.squareFeet}
-    onChange={handleInputChange("squareFeet")}
-    placeholder="Enter square feet area"
-    className={errors.squareFeet ? "border-red-500" : ""}
-  />
-  {errors.squareFeet && (
-    <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>
-  )}
-</div>
+            <div className="space-y-6 pt-6 border-t border-realty-200">
+              <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
+                <Building className="w-5 h-5" />
+                Property
+              </h2>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Select BHK Type
+                </label>
+                <div className="flex gap-3 flex-wrap">
+                  {propertyTypeOptions.map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => handleInputChange("propertyType")(option.value)}
+                      className={`px-4 py-2 rounded-md border transition-all ${
+                        formData.propertyType === option.value
+                          ? "bg-blue-900 text-white border-blue-900"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.propertyType && (
+                  <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>
+                )}
+              </div>
+            </div>
 
-<div className="space-y-1">
-  <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-    Budget
-  </label>
-  <Input
-    type="text"
-    value={formData.budget}
-    onChange={handleInputChange("budget")}
-    placeholder="Enter your budget"
-    className={errors.budget ? "border-red-500" : ""}
-  />
-  {errors.budget && (
-    <p className="text-red-500 text-sm mt-1">{errors.budget}</p>
-  )}
-</div>
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                Square Feet
+              </label>
+              <Input
+                type="text"
+                value={formData.squareFeet}
+                onChange={(e) => handleInputChange("squareFeet")(e.target.value)}
+                placeholder="Enter square feet area"
+                className={errors.squareFeet ? "border-red-500" : ""}
+              />
+              {errors.squareFeet && (
+                <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>
+              )}
+            </div>
 
+            <div className="space-y-1">
+              <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+Ν
+              <Input
+                type="text"
+                value={formData.budget}
+                onChange={(e) => handleInputChange("budget")(e.target.value)}
+                placeholder="Enter your budget"
+                className={errors.budget ? "border-red-500" : ""}
+              />
+              {errors.budget && (
+                <p className="text-red-500 text-sm mt-1">{errors.budget}</p>
+              )}
+            </div>
 
             <div className="pt-6">
               <button
                 type="submit"
-                disabled={isSubmitting}
-                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl  transition-all duration-300"
+                disabled={isSubmitting || projectsLoading || usersLoading}
+                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl transition-all duration-300"
               >
                 {isSubmitting ? (
                   <div className="flex items-center justify-center gap-2">

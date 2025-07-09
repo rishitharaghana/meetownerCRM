@@ -4,17 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import {  fetchAllProjects, } from "../../store/slices/projectSlice";
+import { fetchOngoingProjects } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 
-const AllProjects: React.FC = () => {
+const OnGoingProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
-  const { allProjects, loading, error } = useSelector((state: RootState) => state.projects);
+  const { ongoingProjects, loading, error } = useSelector((state: RootState) => state.projects);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const itemsPerPage = 4;
@@ -22,7 +22,7 @@ const AllProjects: React.FC = () => {
   
   useEffect(() => {
     if (isAuthenticated && user) {
-      dispatch(fetchAllProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
+      dispatch(fetchOngoingProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
     }
   }, [dispatch, user, isAuthenticated]);
 
@@ -31,11 +31,11 @@ const AllProjects: React.FC = () => {
   };
 
   
-  const totalItems = allProjects.length;
+  const totalItems = ongoingProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const paginatedProjects = allProjects.slice(startIndex, endIndex);
+  const paginatedProjects = ongoingProjects.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
@@ -71,7 +71,7 @@ const AllProjects: React.FC = () => {
   
 
   if (!isAuthenticated || !user) {
-    return <div className="p-6 text-center">Please log in to view AllProjects projects.</div>;
+    return <div className="p-6 text-center">Please log in to view ongoing projects.</div>;
   }
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error) return <div className="p-6 text-center text-red-500">Error: {error}</div>;
@@ -170,7 +170,7 @@ const AllProjects: React.FC = () => {
                   )}
                 </div>
                 <div className="flex justify-end items-center mt-4">
-                  <Button
+                   <Button
                     variant="primary"
                     size="sm"
                     onClick={() =>
@@ -245,4 +245,4 @@ const AllProjects: React.FC = () => {
   );
 };
 
-export default AllProjects;
+export default OnGoingProjects;

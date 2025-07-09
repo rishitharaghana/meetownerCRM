@@ -1,96 +1,106 @@
 import { useLocation, useNavigate } from "react-router";
 import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
-import sunriseImg from "../../components/ui/Images/SunriseApartments.jpeg";
+
 import Timeline, { TimelineEvent } from "../../components/ui/timeline/Timeline";
+import { AppDispatch, RootState } from "../../store/store";
+import { getLeadUpdatesByLeadId } from "../../store/slices/leadslice";
+import { Lead, LeadUpdate } from "../../types/LeadModel";
 
 const ViewLeadDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const property = location.state?.property;
+  const dispatch = useDispatch<AppDispatch>();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { leads, leadUpdates, loading, error } = useSelector((state: RootState) => state.lead);
+  const property = location.state?.property as Lead;
 
   useEffect(() => {
     if (!property) {
       navigate("/leads");
+      return;
     }
-  }, [property, navigate]);
+    dispatch(
+        getLeadUpdatesByLeadId({
+          lead_id: property!.lead_id,
+          lead_added_user_type:user!.user_type,
+          lead_added_user_id: user!.id,
+        })
+      );
 
-  if (!property) return null;
+  }, [property, navigate, dispatch, isAuthenticated, user]);
 
-  const statusMap: Record<number, number> = {
-    0: 0,
-    1: 1,
-    2: 2, 
-    3: 3, 
-    4: 3,
-  };
 
-  const currentStepIndex = statusMap[property.status] ?? 0;
+  const lead = typeof property === "number" ? leads?.find((l) => l.lead_id === property) : property;
 
-  const eventStatus = (stepIndex: number): "completed" | "pending" => {
-    return currentStepIndex >= stepIndex ? "completed" : "pending";
-  };
+  if (!lead) {
+    return (
+      <div className="p-6 space-y-6">
+        {loading && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            Loading lead details...
+          </div>
+        )}
+        {error && (
+          <div className="text-center text-red-500 py-4">
+            {error}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate("/leads")}
+              className="ml-4"
+            >
+              Go Back
+            </Button>
+          </div>
+        )}
+      </div>
+    );
+  }
 
- const timeline: TimelineEvent[] = [
-  {
-    label: "Lead Created",
-    timestamp: `${property.created_date} ${property.created_time}`,
-    status: eventStatus(0),
-    description: `Lead created for ${property.property_name}.`,
-    current: currentStepIndex === 0,
-  },
-  {
-    label: "Today Follow-Up",
-    timestamp: `${property.updated_date} ${property.updated_time}`,
-    status: eventStatus(1),
-    description: `Follow-up scheduled for ${property.user.name}.`,
-    current: currentStepIndex === 1,
-  },
-  {
-    label: "Site Visit",
-    timestamp: `${property.updated_date} ${property.updated_time}`,
-    status: eventStatus(2),
-    description: `Site visit planned for ${property.property_name}.`,
-    current: currentStepIndex === 2,
-  },
-  {
-    label: property.status === 3 ? "Lead Won" : "Lead Lost",
-    timestamp: `${property.updated_date} ${property.updated_time}`,
-    status: eventStatus(3),
-    description:
-      property.status === 3
-        ? `${property.property_name} lead converted.`
-        : `${property.property_name} lead not converted.`,
-    current: currentStepIndex === 3,
-  },
-];
 
+  const timeline: TimelineEvent[] = leadUpdates?.length
+    ? leadUpdates.map((update: LeadUpdate, index: number) => ({
+        label: update.status_name || `Update ${index + 1}`,
+        timestamp: `${update.update_date} ${update.update_time}`,
+        status: update.status_id && lead.status_id && update.status_id <= lead.status_id ? "completed" : "pending",
+        description: update.feedback || `Update for ${lead.interested_project_name}`,
+        current: update.status_id === lead.status_id,
+      }))
+    : [ ];
 
   return (
     <div className="p-6 space-y-6">
-      <h2 className="text-3xl font-bold text-blue-9 00 dark:text-white mb-4">
-        Lead Details: {property.property_name}
+      <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-4">
+        Lead Details: {lead.interested_project_name}
       </h2>
 
+      {loading && (
+        <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+          Loading lead updates...
+        </div>
+      )}
+      {error && (
+        <div className="text-center text-red-500 py-4">
+          {error}
+        </div>
+      )}
+
       <div className="bg-white dark:bg-dark-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
-        {/* Left: Image + Info */}
+       
         <div className="space-y-6">
-          <img
-            src={property.image || sunriseImg}
-            alt={property.property_name}
-            className="w-full rounded-lg shadow border border-gray-300 dark:border-gray-700"
-          />
+        
           <div className="space-y-2 text-[16px] text-gray-800 dark:text-gray-100 leading-relaxed">
-            <p><strong>Name:</strong> {property.user.name}</p>
-            <p><strong>Mobile:</strong> {property.user.mobile}</p>
-            <p><strong>Email:</strong> {property.user.email || "N/A"}</p>
-            <p><strong>Project:</strong> {property.property_name}</p>
-            <p><strong>Type:</strong> {property.property_type}</p>
-            <p><strong>Sub Type:</strong> {property.sub_type}</p>
-            <p><strong>Budget:</strong> {property.budget}</p>
-            <p><strong>Lead Type:</strong> {property.lead_type}</p>
-            <p><strong>Lead Source:</strong> {property.lead_source}</p>
-            <p><strong>Created:</strong> {property.created_date} {property.created_time}</p>
+            <p><strong>Name:</strong> {lead.customer_name}</p>
+            <p><strong>Mobile:</strong> {lead.customer_phone_number}</p>
+            <p><strong>Email:</strong> {lead.customer_email || "N/A"}</p>
+            <p><strong>Project:</strong> {lead.interested_project_name}</p>
+            <p><strong>Budget:</strong> {lead.budget || "N/A"}</p>
+            <p><strong>Lead Source:</strong> {lead.lead_source_id}</p>
+            <p><strong>Created:</strong> {lead.created_date} {lead.created_time}</p>
+            <p><strong>Assigned:</strong> {lead.assigned_name} ({lead.assigned_emp_number})</p>
+            <p><strong>Status:</strong> {lead.status_name}</p>
           </div>
         </div>
 

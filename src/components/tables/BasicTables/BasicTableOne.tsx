@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useLocation,useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
-import { fetchUsersByType } from "../../../store/slices/users";
+import { fetchUsersByType } from "../../../store/slices/userslice";
 import { RootState, AppDispatch } from "../../../store/store";
 import {
   Table,

@@ -2,8 +2,7 @@ import React from 'react';
 
 interface Option {
   value: string;
-  label: string; // Primary property for option label
-  text?: string; // Optional for backward compatibility
+  label: string;
 }
 
 interface SelectProps {
@@ -13,8 +12,8 @@ interface SelectProps {
   className?: string;
   defaultValue?: string;
   value?: string;
-  label?: string; // Added label prop
-  error?: string; // Added error prop
+  label?: string;
+  error?: string;
 }
 
 const Select: React.FC<SelectProps> = ({
@@ -28,11 +27,6 @@ const Select: React.FC<SelectProps> = ({
   error,
 }) => {
   const controlledValue = value !== undefined ? value : defaultValue;
-
-  const handleChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const selectedValue = e.target.value;
-    onChange(selectedValue);
-  };
 
   return (
     <div className="space-y-1">
@@ -48,7 +42,7 @@ const Select: React.FC<SelectProps> = ({
             : "text-gray-400 dark:text-gray-400"
         } ${className} ${error ? "border-red-500" : ""}`}
         value={controlledValue}
-        onChange={handleChange}
+        onChange={(e) => onChange(e.target.value)}
       >
         <option
           value=""
@@ -63,7 +57,7 @@ const Select: React.FC<SelectProps> = ({
             value={option.value}
             className="text-gray-700 dark:bg-gray-900 dark:text-gray-400"
           >
-            {option.label || option.text} {/* Use label, fallback to text */}
+            {option.label}
           </option>
         ))}
       </select>
