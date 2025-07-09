@@ -11,9 +11,11 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
-import { getCities, getStates } from "../../store/slices/propertyDetails";
+
 import Input from "../../components/form/input/InputField";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import toast from "react-hot-toast";
 
 interface FormData {
   name: string;
@@ -55,11 +57,16 @@ const AddChannelPartner = () => {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
+   const { citiesQuery, statesQuery } = usePropertyQueries();
 
-  useEffect(() => {
-    dispatch(getCities());
-    dispatch(getStates());
-  }, [dispatch]);
+   useEffect(() => {
+    if (citiesQuery.isError) {
+      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || 'Unknown error'}`);
+    }
+    if (statesQuery.isError) {
+      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
+    }
+  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
 
   const cityOptions =
     cities?.map((city: any) => ({ value: city.value, text: city.label })) || [];

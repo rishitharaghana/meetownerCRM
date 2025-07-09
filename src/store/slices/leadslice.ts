@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource } from "../../types/LeadModel";
+import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse } from "../../types/LeadModel";
 
 const initialState: LeadState = {
   leads: null,
@@ -292,6 +292,167 @@ export const getLeadSources = createAsyncThunk<
   }
 );
 
+export const insertLead = createAsyncThunk<
+  InsertLeadResponse,
+  {
+    customer_name: string;
+    customer_phone_number: string;
+    customer_email: string;
+    interested_project_id: number;
+    interested_project_name: string;
+    lead_source_id: number;
+    sqft: string;
+    budget: string;
+    lead_added_user_type: number;
+    lead_added_user_id: number;
+    assigned_user_type?: number;
+    assigned_id?: number;
+    assigned_name?: string;
+    assigned_emp_number?: string;
+  },
+  { rejectValue: string }
+>(
+  "lead/insertLead",
+  async (leadData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const payload: any = {
+        customer_name: leadData.customer_name,
+        customer_phone_number: leadData.customer_phone_number,
+        customer_email: leadData.customer_email,
+        interested_project_id: leadData.interested_project_id,
+        interested_project_name: leadData.interested_project_name,
+        lead_source_id: leadData.lead_source_id,
+        sqft: leadData.sqft,
+        budget: leadData.budget,
+        lead_added_user_type: leadData.lead_added_user_type,
+        lead_added_user_id: leadData.lead_added_user_id,
+      };
+
+  
+      if (leadData.lead_source_id === 6) {
+        if (
+          !leadData.assigned_user_type ||
+          !leadData.assigned_id ||
+          !leadData.assigned_name ||
+          !leadData.assigned_emp_number
+        ) {
+          return rejectWithValue("All assigned fields are required for lead source ID 6");
+        }
+        payload.assigned_user_type = leadData.assigned_user_type;
+        payload.assigned_id = leadData.assigned_id;
+        payload.assigned_name = leadData.assigned_name;
+        payload.assigned_emp_number = leadData.assigned_emp_number;
+      }
+
+      const response = await ngrokAxiosInstance.post<InsertLeadResponse>(
+        `/api/v1/insertLead`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status !== "success") {
+        return rejectWithValue(response.data.message || "Failed to insert lead");
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Insert lead error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 400:
+            return rejectWithValue("Invalid lead data provided");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to insert lead");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
+export const assignLeadToEmployee = createAsyncThunk<
+  AssignLeadResponse,
+  {
+    lead_id: number;
+    assigned_user_type: number;
+    assigned_id: number;
+    assigned_name: string;
+    assigned_emp_number: string;
+    assigned_priority: string;
+    followup_feedback: string;
+    next_action: string;
+    lead_added_user_type: number;
+    lead_added_user_id: number;
+    status_id?: number;
+  },
+  { rejectValue: string }
+>(
+  "lead/assignLeadToEmployee",
+  async (assignData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+     
+      const payload = {
+        ...assignData,
+        status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
+      };
+
+      const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
+        `/api/v1/leads/assignLeadToEmployee`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status !== "success") {
+        return rejectWithValue(response.data.message || "Failed to assign lead");
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Assign lead error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 400:
+            return rejectWithValue("Invalid lead data provided");
+          case 404:
+            return rejectWithValue("Lead not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to assign lead");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 
 const leadSlice = createSlice({
   name: "lead",
@@ -366,6 +527,35 @@ const leadSlice = createSlice({
         state.leadSources = action.payload;
       })
       .addCase(getLeadSources.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+       .addCase(insertLead.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(insertLead.fulfilled, (state) => {
+        state.loading = false;
+        
+      })
+      .addCase(insertLead.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(assignLeadToEmployee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(assignLeadToEmployee.fulfilled, (state, action) => {
+        state.loading = false;
+        if (action.payload.data && state.leads) {
+          // Update the lead in the state
+          state.leads = state.leads.map((lead) =>
+            lead.lead_id === action.payload.data.lead_id ? action.payload.data : lead
+          );
+        }
+      })
+      .addCase(assignLeadToEmployee.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
