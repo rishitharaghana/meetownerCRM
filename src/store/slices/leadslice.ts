@@ -21,7 +21,7 @@ export const getLeadsByUser = createAsyncThunk<
     lead_added_user_id: number;
     assigned_user_type?: number;
     assigned_id?: number;
-    status_id: number;
+    status_id?: number; // Made optional
   },
   { rejectValue: string }
 >(
@@ -39,9 +39,9 @@ export const getLeadsByUser = createAsyncThunk<
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
-        status_id: status_id.toString(),
         ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
         ...(assigned_id && { assigned_id: assigned_id.toString() }),
+        ...(status_id !== undefined && { status_id: status_id.toString() }), // Conditionally include status_id
       });
 
       const response = await ngrokAxiosInstance.get<LeadsResponse>(

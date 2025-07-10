@@ -28,6 +28,7 @@ import ProtectedRoute from "./hooks/ProtectedRoute";
 import { isTokenExpired } from "./store/slices/authSlice";
 import PartnerProfile from "./pages/Channel Partners/ChannelPartnerProfileScreen";
 import CreateEmployee from "./pages/Employee Management/CreateEmployee";
+import AllLeadDetails from "./pages/Lead Management/AllLeadDetails";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -48,6 +49,8 @@ export default function App() {
               <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
               <Route path="/leads/addlead" element={<AddNewLead />} />
               <Route path="/leads/view" element={<ViewLeadDetails />} />
+
+              <Route path="/lead/allLeads" element={<AllLeadDetails/>}/>
             
              
               <Route path="/partners" element={<PartnerScreen />} />

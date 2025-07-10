@@ -1,6 +1,6 @@
 import { Link } from "react-router";
 import { useState } from "react";
-import Filter from "../ui/filter/Filter";
+
 
 interface BreadcrumbProps {
   pageTitle: string;
@@ -86,7 +86,7 @@ const PageBreadcrumbList: React.FC<BreadcrumbProps> = ({
           )}
         </div>
 
-        <Filter onFilterChange={(datetime) => console.log("Filtered at:", datetime)} />
+       
       </div>
 
       {/* Right: Home breadcrumb */}

@@ -13,7 +13,7 @@ import {
 import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-import { Modal } from "../../components/ui/modal";
+
 import Pagination from "../../components/ui/pagination/Pagination";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
@@ -75,16 +75,13 @@ export default function EmployeesScreen() {
   const [dropdownOpen, setDropdownOpen] = useState<{ userId: string; x: number; y: number } | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
-  const [selectedUser, setSelectedUser] = useState<User | null>(null);
-  const [rejectReason, setRejectReason] = useState<string>("");
+ 
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); 
   const itemsPerPage = 10;
   const empUserType = Number(status);
   const categoryLabel = userTypeMap[empUserType] || "Employees";
-  const showMobileAndEmail = false;
 
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
@@ -93,7 +90,7 @@ export default function EmployeesScreen() {
     return () => {
       dispatch(clearUsers());
     };
-  }, [isAuthenticated, user, empUserType, statusUpdated, dispatch]);
+  }, [isAuthenticated, user, empUserType, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -197,8 +194,7 @@ export default function EmployeesScreen() {
                       >
                         Employee
                       </TableCell>
-                      {showMobileAndEmail && (
-                        <>
+                    
                           <TableCell
                             isHeader
                             className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
@@ -211,8 +207,7 @@ export default function EmployeesScreen() {
                           >
                             Email
                           </TableCell>
-                        </>
-                      )}
+                    
                       <TableCell
                         isHeader
                         className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
@@ -264,24 +259,31 @@ export default function EmployeesScreen() {
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                             <div className="flex items-center gap-3">
-                              <Link
-                                to={`/employeedetails/${empUserType}/${user.id}`}
+                             <Link
+                                to="/lead/allLeads"
+                                state={{
+                                  admin_user_id: createdUserId,
+                                  admin_user_type: 2,
+                                  assigned_user_type: empUserType,
+                                  assigned_id: user.id,
+                                  name:user.name
+                                }}
                                 className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
                               >
                                 {user.name}
                               </Link>
                             </div>
                           </TableCell>
-                          {showMobileAndEmail && (
-                            <>
+                   
+                            
                               <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                                 {user.mobile}
                               </TableCell>
                               <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                                 {user.email}
                               </TableCell>
-                            </>
-                          )}
+                            
+                          
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                             {user.address}
                           </TableCell>
@@ -359,49 +361,7 @@ export default function EmployeesScreen() {
           )}
         </ComponentCard>
       </div>
-      <Modal
-        isOpen={isRejectModalOpen}
-        onClose={() => {
-          setIsRejectModalOpen(false);
-          setRejectReason("");
-          setSelectedUser(null);
-        }}
-        className="max-w-md p-6"
-      >
-        <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Reject Employee</h2>
-          <p className="text-sm text-gray-600 dark:text-gray-300">
-            Please provide a reason for rejecting {selectedUser?.name}'s application:
-          </p>
-          <textarea
-            className="w-full h-24 p-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"
-            value={rejectReason}
-            onChange={(e) => setRejectReason(e.target.value)}
-            placeholder="Enter rejection reason..."
-          />
-          <div className="flex justify-end gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                setIsRejectModalOpen(false);
-                setRejectReason("");
-                setSelectedUser(null);
-              }}
-            >
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleRejectSubmit}
-              disabled={!rejectReason}
-            >
-              Submit
-            </Button>
-          </div>
-        </div>
-      </Modal>
+     
     </div>
   );
 }
