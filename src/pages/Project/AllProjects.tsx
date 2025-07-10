@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
@@ -6,6 +6,9 @@ import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
 import {  fetchAllProjects, } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
+import toast from "react-hot-toast";
+
+const BUILDER_USER_TYPE = 2; 
 
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -19,12 +22,41 @@ const AllProjects: React.FC = () => {
 
   const itemsPerPage = 4;
 
+  const projectParams = useMemo(() => {
+    if (!isAuthenticated || !user?.id || !user?.user_type) {
+      return null;
+    }
+    if (user.user_type === BUILDER_USER_TYPE) {
+      return {
+        admin_user_type: user.user_type,
+        admin_user_id: user.id,
+      };
+    }
+    if (user.created_user_id) {
+      return {
+        admin_user_type: BUILDER_USER_TYPE,
+        admin_user_id: user.created_user_id,
+      };
+    }
+    return null;
+  }, [isAuthenticated, user]);
+
   
   useEffect(() => {
-    if (isAuthenticated && user) {
-      dispatch(fetchAllProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
+    if (projectParams) {
+      dispatch(fetchAllProjects(projectParams))
+        .unwrap();
+    } else if (isAuthenticated && user) {
+      toast.error("Invalid user data for fetching projects");
+      console.warn("Invalid user data:", {
+        id: user.id,
+        user_type: user.user_type,
+        created_user_id: user.created_user_id,
+      });
     }
-  }, [dispatch, user, isAuthenticated]);
+  }, [projectParams, dispatch]);
+
+  
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));

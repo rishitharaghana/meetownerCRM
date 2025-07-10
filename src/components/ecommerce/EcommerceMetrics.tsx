@@ -1,5 +1,5 @@
-// pages/Home.tsx
-import { useEffect } from "react";
+
+import { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router";
 import {
@@ -16,6 +16,7 @@ import {
 } from "lucide-react";
 import { AppDispatch, RootState } from "../../store/store";
 import { getTypesCount } from "../../store/slices/userslice";
+import toast from "react-hot-toast";
 
 
 const userTypeMap: { [key: string]: string } = {
@@ -36,7 +37,7 @@ const userTypeRoutes: { [key: string]: string } = {
   new_leads: "/leads/new/0",
   today_leads: "/leads/today/1",
   today_follow_ups: "/leads/follow-ups",
-  site_visit_done: "/sitevists/site-visit",
+  site_visit_done: "/leads/SiteVisitDone",
   booked: "/bookings/bookings-done",
   projects: "/projects/allprojects",
   "3": "/partners",
@@ -75,18 +76,46 @@ const iconBgColors = [
   "bg-gradient-to-br from-orange-500 to-red-600",
   "bg-gradient-to-br from-indigo-500 to-blue-600",
 ];
+const BUILDER_USER_TYPE = 2;
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { userCounts, loading, error } = useSelector((state: RootState) => state.user);
-
+  
+ const typesCountParams = useMemo(() => {
+    if (!isAuthenticated || !user?.id || !user?.user_type) {
+      return null;
+    }
+    if (user.user_type === BUILDER_USER_TYPE) {
+      return {
+        admin_user_id: user.id,
+        admin_user_type: user.user_type,
+      };
+    }
+    else {
+      return {
+        admin_user_id: user.created_user_id,
+        admin_user_type: BUILDER_USER_TYPE,
+        emp_id: user.id,
+        emp_user_type: user.user_type,
+      };
+    }
+    return null;
+  }, [isAuthenticated, user]);
   
   useEffect(() => {
-    if (isAuthenticated && user?.id && user?.user_type) {
-      dispatch(getTypesCount({ admin_user_id: user.id, admin_user_type: user.user_type }));
+    if (typesCountParams) {
+      dispatch(getTypesCount(typesCountParams))
+        .unwrap()
+        .catch((err) => {
+          toast.error(err || "Failed to fetch counts");
+        });
+    } else if (isAuthenticated && user) {
+      toast.error("Invalid user data for fetching counts");
+      console.warn("Invalid user data:", { id: user.id, user_type: user.user_type, created_user_id: user.created_user_id });
     }
-  }, [isAuthenticated, user, dispatch]);
+  }, [typesCountParams, dispatch]);
 
   // Separate project counts and employee counts
   const projectCounts = userCounts?.filter(item => item.user_type === "projects") || [];

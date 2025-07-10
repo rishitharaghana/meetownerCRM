@@ -1,33 +1,15 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
-import { FaFileInvoice,  FaUser, FaUserTie, FaSitemap, FaSwatchbook } from "react-icons/fa";
+import { FaFileInvoice,  FaUser, FaUserTie,  FaSwatchbook } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
+import { useSelector } from "react-redux";
+import { RootState } from "../store/store";
+import { filterNavItemsByUserType, NavItem } from "../hooks/NavFilter";
 
 
-type NavItem = {
-  name: string;
-  icon?: React.ReactNode;
-  path?: string;
-  subItems?: {
-    name: string;
-    path?: string;
-    pro?: boolean;
-    new?: boolean; 
-    count?: number;
-    data?: { lead_in: string; status: number };
-    nestedItems?: {
-      name: string;
-      path?: string;
-      nestedItems?: {
-        name: string;
-        path: string;
-        data?: { property_in: string; property_for: string; status: number };
-      }[];
-    }[];
-  }[];
-};
+
 
 const navItems: NavItem[] = [
   {
@@ -73,15 +55,6 @@ const navItems: NavItem[] = [
      
     ],
   },
-  //   {
-  //   name: "Site Visits",
-  //   icon: <FaSitemap />,
-  //   subItems: [
-  //     { name: "Site Visits Done", path: "/sitevists/site-visit", pro: false },
-  //     { name: "Site Visits Scheduled", path: "/employee/2", pro: false },
-     
-  //   ],
-  // },
 
    {
     name: "Bookings",
@@ -105,40 +78,14 @@ const navItems: NavItem[] = [
     ],
   },
   
-
-  // {
-  //   name: "Price sheets",
-  //   icon: <FaMoneyCheck />,
-  //   subItems: [
-  //     { name: "Generate price Sheet", path: "/maps/cities", pro: false },
-  //     { name: "Generated Price Sheet", path: "/maps/cities", pro: false },
-      
-  //   ],
-  // },
-  // {
-  //   name: "Source",
-  //   icon: <FaAd />,
-  //   subItems: [
-  //     { name: "Meta Ads", path: "/adds/all-ads", pro: false },
-  //     { name: "Google Ads", path: "/adds/all-ads", pro: false },
-  //     { name: "Direct Ads", path: "/adds/upload-ads", pro: false },
-  //   ],
-  // },
-  // {
-  //   name: "Comission Structure",
-  //   icon: <FaIdBadge />,
-  //   subItems: [
-  //     { name: "Create Strucutre", path: "/packages/builder", pro: false },
-  //     { name: "Existing Structure", path: "/packages/agents", pro: false },
-     
-  //   ],
-  // },
 ];
 
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
+  const userType = useSelector((state: RootState) => state.auth.user?.user_type);
+  
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main"; index: number } | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number } | null>(null);
   const [openDeepNestedSubmenu, setOpenDeepNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number; nestedIndex: number } | null>(null);
@@ -148,6 +95,9 @@ const AppSidebar: React.FC = () => {
   const deepNestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
    const [deepNestedSubMenuHeight, setDeepNestedSubMenuHeight] = useState<Record<string, number>>({});
+
+   const filteredNavItems = filterNavItemsByUserType(navItems, userType);
+
 
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
@@ -399,7 +349,7 @@ const AppSidebar: React.FC = () => {
               MENU
             </h2>
           )}
-          {renderMenuItems(navItems)}
+          {renderMenuItems(filteredNavItems)}
         </nav>
       </div>
 

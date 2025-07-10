@@ -96,19 +96,26 @@ export const insertUser = createAsyncThunk<
 
 export const getTypesCount = createAsyncThunk<
   UserCount[],
-  { admin_user_id: number; admin_user_type: number },
+  { admin_user_id: number; admin_user_type: number; emp_id?: number; emp_user_type?: number },
   { rejectValue: string }
 >(
   "user/getTypesCount",
-  async ({ admin_user_id, admin_user_type }, { rejectWithValue }) => {
+  async ({ admin_user_id, admin_user_type, emp_id, emp_user_type }, { rejectWithValue }) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
 
+      const queryParams = new URLSearchParams({
+        admin_user_id: admin_user_id.toString(),
+        admin_user_type: admin_user_type.toString(),
+        ...(emp_id !== undefined && { emp_id: emp_id.toString() }),
+        ...(emp_user_type !== undefined && { emp_user_type: emp_user_type.toString() }),
+      });
+
       const response = await ngrokAxiosInstance.get<UserCountResponse>(
-        `/api/v1/getTypesCount?admin_user_id=${admin_user_id}&admin_user_type=${admin_user_type}`,
+        `/api/v1/getTypesCount?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,

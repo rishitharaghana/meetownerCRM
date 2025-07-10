@@ -103,3 +103,10 @@ export interface AssignLeadResponse {
   message: string;
   data: Lead;
 }
+
+export interface BookingDoneResponse {
+  status: string;
+  message: string;
+  lead_id: number;
+}
+

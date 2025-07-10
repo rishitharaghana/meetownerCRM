@@ -1,4 +1,4 @@
-// features/auth/authSlice.ts
+
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
@@ -80,7 +80,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
-      localStorage.removeItem("token");
+     localStorage.removeItem("token");
       localStorage.removeItem("name");
       localStorage.removeItem("userType");
       localStorage.removeItem("email");
@@ -100,6 +100,8 @@ const authSlice = createSlice({
       localStorage.removeItem("representative_name");
       localStorage.removeItem("pan_card_number");
       localStorage.removeItem("aadhar_number");
+      localStorage.removeItem("created_by");
+      localStorage.removeItem("created_user_id");
     },
   },
   extraReducers: (builder) => {
@@ -123,17 +125,19 @@ const authSlice = createSlice({
         localStorage.setItem("state", action.payload.user.state);
         localStorage.setItem("userId", action.payload.user.id.toString());
         localStorage.setItem("photo", action.payload.user.photo || "");
-        localStorage.setItem("location", action.payload.user.location);
-        localStorage.setItem("address", action.payload.user.address);
-        localStorage.setItem("pincode", action.payload.user.pincode);
-        localStorage.setItem("gst_number", action.payload.user.gst_number);
-        localStorage.setItem("rera_number", action.payload.user.rera_number);
-        localStorage.setItem("company_name", action.payload.user.company_name);
-        localStorage.setItem("company_number", action.payload.user.company_number);
-        localStorage.setItem("company_address", action.payload.user.company_address);
-        localStorage.setItem("representative_name", action.payload.user.representative_name);
-        localStorage.setItem("pan_card_number", action.payload.user.pan_card_number);
-        localStorage.setItem("aadhar_number", action.payload.user.aadhar_number);
+        localStorage.setItem("location", action.payload.user.location || "");
+        localStorage.setItem("address", action.payload.user.address || "");
+        localStorage.setItem("pincode", action.payload.user.pincode || "");
+        localStorage.setItem("gst_number", action.payload.user.gst_number || "");
+        localStorage.setItem("rera_number", action.payload.user.rera_number || "");
+        localStorage.setItem("company_name", action.payload.user.company_name || "");
+        localStorage.setItem("company_number", action.payload.user.company_number || "");
+        localStorage.setItem("company_address", action.payload.user.company_address || "");
+        localStorage.setItem("representative_name", action.payload.user.representative_name || "");
+        localStorage.setItem("pan_card_number", action.payload.user.pan_card_number || "");
+        localStorage.setItem("aadhar_number", action.payload.user.aadhar_number || "");
+        localStorage.setItem("created_by", action.payload.user.created_by || "");
+        localStorage.setItem("created_user_id", action.payload.user.created_user_id?.toString() || "");
     
       })
       .addCase(loginUser.rejected, (state, action) => {

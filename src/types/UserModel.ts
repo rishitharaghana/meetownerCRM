@@ -36,7 +36,7 @@ export interface User {
   gst_number: string;
   rera_number: string;
   created_by: string;
-  created_user_id: number;
+  created_user_id: number | null;
   company_name: string;
   company_number: string;
   company_address: string;
@@ -45,7 +45,6 @@ export interface User {
   aadhar_number: string;
   feedback: string | null;
 }
-
 
 export interface LoginResponse {
   message: string;

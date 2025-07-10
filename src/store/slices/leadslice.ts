@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse } from "../../types/LeadModel";
+import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse, BookingDoneResponse } from "../../types/LeadModel";
 
 const initialState: LeadState = {
   leads: null,
@@ -21,7 +21,7 @@ export const getLeadsByUser = createAsyncThunk<
     lead_added_user_id: number;
     assigned_user_type?: number;
     assigned_id?: number;
-    status_id?: number; // Made optional
+    status_id?: number; 
   },
   { rejectValue: string }
 >(
@@ -453,6 +453,67 @@ export const assignLeadToEmployee = createAsyncThunk<
   }
 );
 
+export const markLeadAsBooked = createAsyncThunk<
+  BookingDoneResponse,
+  {
+    lead_id: number;
+    lead_added_user_type: number;
+    lead_added_user_id: number;
+  },
+  { rejectValue: string }
+>(
+  "lead/markLeadAsBooked",
+  async ({ lead_id, lead_added_user_type, lead_added_user_id }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const payload = {
+        lead_id,
+        lead_added_user_type,
+        lead_added_user_id,
+      };
+
+      const response = await ngrokAxiosInstance.post<BookingDoneResponse>(
+        `/api/v1/leads/bookingdone`,
+        payload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status !== "success") {
+        return rejectWithValue(response.data.message || "Failed to mark lead as booked");
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Mark lead as booked error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 400:
+            return rejectWithValue("Invalid lead data provided");
+          case 404:
+            return rejectWithValue("Lead not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to mark lead as booked");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 
 const leadSlice = createSlice({
   name: "lead",
@@ -549,13 +610,28 @@ const leadSlice = createSlice({
       .addCase(assignLeadToEmployee.fulfilled, (state, action) => {
         state.loading = false;
         if (action.payload.data && state.leads) {
-          // Update the lead in the state
           state.leads = state.leads.map((lead) =>
             lead.lead_id === action.payload.data.lead_id ? action.payload.data : lead
           );
         }
       })
       .addCase(assignLeadToEmployee.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+
+       .addCase(markLeadAsBooked.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(markLeadAsBooked.fulfilled, (state, action) => {
+        state.loading = false;
+        if (state.leads) {
+          state.leads = state.leads.filter((lead) => lead.lead_id !== action.payload.lead_id);
+        }
+        
+      })
+      .addCase(markLeadAsBooked.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

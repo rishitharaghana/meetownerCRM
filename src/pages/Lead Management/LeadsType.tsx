@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect, ChangeEvent } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
@@ -14,16 +14,19 @@ import {
 import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
-import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
+import { clearLeads, getLeadsByUser, markLeadAsBooked } from "../../store/slices/leadslice";
 import AssignLeadModal from "./AssignLeadModal";
+import toast from "react-hot-toast";
 
 const renderDropdown = (
   item: Lead,
   handleLeadAssign: (leadId: number) => void,
   handleViewHistory: (item: Lead) => void,
+  handleMarkAsBooked: (lead_id: number) => void,
   handleDelete: (lead_id: number) => void,
-  dropdownRef: React.RefObject<HTMLDivElement | null>,
-  dropdownOpen: { leadId: string; x: number; y: number } | null
+  dropdownRef: React.RefObject<HTMLDivElement>,
+  dropdownOpen: { leadId: string; x: number; y: number } | null,
+  isBuilder: boolean 
 ) => (
   <div
     ref={dropdownRef}
@@ -31,14 +34,16 @@ const renderDropdown = (
     style={{ top: dropdownOpen?.y, left: dropdownOpen?.x, transform: "translate(-100%, 0)" }}
   >
     <ul className="py-2">
-      <li>
-        <button
-          onClick={() => handleLeadAssign(item.lead_id)}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-        >
-          Lead Assign
-        </button>
-      </li>
+      {isBuilder && (
+        <li>
+          <button
+            onClick={() => handleLeadAssign(item.lead_id)}
+            className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+          >
+            Lead Assign
+          </button>
+        </li>
+      )}
       <li>
         <button
           onClick={() => handleViewHistory(item)}
@@ -47,24 +52,30 @@ const renderDropdown = (
           View History
         </button>
       </li>
-      <li>
-        <button
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-        >
-          Bookings Done
-        </button>
-      </li>
-      <li>
-        <button
-          onClick={() => handleDelete(item.lead_id)}
-          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
-        >
-          Delete
-        </button>
-      </li>
+      {isBuilder && (
+        <>
+          <li>
+            <button
+              onClick={() => handleMarkAsBooked(item.lead_id)}
+              className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+            >
+              Bookings Done
+            </button>
+          </li>
+          <li>
+            <button
+              onClick={() => handleDelete(item.lead_id)}
+              className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
+            >
+              Delete
+            </button>
+          </li>
+        </>
+      )}
     </ul>
   </div>
 );
+
 
 const sidebarSubItems = [
   { name: "Today Leads", lead_in: "new", status: 0 },
@@ -77,14 +88,8 @@ const sidebarSubItems = [
   { name: "Lost Leads", lead_in: "LostLeads", status: 7 },
 ];
 
-const userTypeOptions = [
-  { value: "", label: "All" },
-  { value: "3", label: "Channel Partner" },
-  { value: "4", label: "Sales Manager" },
-  { value: "5", label: "Telecallers" },
-  { value: "6", label: "Marketing Executors" },
-  { value: "7", label: "Receptionists" },
-];
+const BUILDER_USER_TYPE = 2;
+
 
 const LeadsType: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
@@ -93,13 +98,15 @@ const LeadsType: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
 
-  const dropdownRef = useRef<HTMLDivElement>(null); // Properly typed
+  const dropdownRef = useRef<HTMLDivElement>(null); 
   const navigate = useNavigate();
   const { lead_in, status } = useParams<{ lead_in: string; status: string }>();
-  const [selectedUserType, setSelectedUserType] = useState<string>("");
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
+
+   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
+   
 
   const itemsPerPage = 5;
   const statusId = parseInt(status || "0", 10);
@@ -110,26 +117,50 @@ const LeadsType: React.FC = () => {
       item.status === statusId
   );
 
-  useEffect(() => {
-    if (isAuthenticated && user?.id && statusId >= 0) {
-      const params = {
-        lead_added_user_type: user.user_type,
-        lead_added_user_id: user.id,
+  const leadsParams = useMemo(() => {
+    if (!isAuthenticated || !user?.id || !user?.user_type || statusId < 0) {
+      return null;
+    }
+    const baseParams = {
+      lead_added_user_type: user.user_type,
+      lead_added_user_id: user.id,
+      status_id: statusId,
+    };
+    if (isBuilder) {
+      return baseParams;
+    }
+    if (user.created_user_id) {
+      return {
+        lead_added_user_type: BUILDER_USER_TYPE,
+        lead_added_user_id: user.created_user_id,
         status_id: statusId,
-        assigned_user_type: selectedUserType ? parseInt(selectedUserType) : undefined,
-        assigned_id: user.user_type !== 2 && selectedUserType ? user.id : undefined,
+        assigned_user_type: user.user_type,
+        assigned_id: user.id,
       };
+    }
+    return null;
+  }, [isAuthenticated, user, statusId]);
 
-      dispatch(getLeadsByUser(params));
+  useEffect(() => {
+    if (leadsParams) {
+      dispatch(getLeadsByUser(leadsParams))
+        .unwrap();
+    } else if (isAuthenticated && user) {
+      toast.error("Invalid user data for fetching leads");
+      console.warn("Invalid user data:", {
+        id: user.id,
+        user_type: user.user_type,
+        created_user_id: user.created_user_id,
+        statusId,
+      });
     }
     return () => {
       dispatch(clearLeads());
     };
-  }, [isAuthenticated, user, statusId, selectedUserType, dispatch]);
+  }, [leadsParams, dispatch]);
+
 
   const filteredLeads = leads?.filter((item) => {
-    if (statusId !== 5 && item.status_id !== statusId) return false;
-    if (statusId === 5 && selectedUserType && item.assigned_user_type.toString() !== selectedUserType) return false;
     if (!searchQuery) return true;
     const searchValue = searchQuery.toLowerCase();
     return (
@@ -186,12 +217,8 @@ const LeadsType: React.FC = () => {
 
   const handleViewHistory = (item: Lead) => navigate("/leads/view", { state: { property: item } });
 
-  const handleAddNewLead = () => navigate("/leads/addlead");
-
-  const handleUserTypeChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedUserType(e.target.value);
-    setLocalPage(1);
-  };
+  
+  
 
   const handleLeadAssign = (leadId: number) => {
     setSelectedLeadId(leadId);
@@ -200,9 +227,32 @@ const LeadsType: React.FC = () => {
   };
 
   const handleModalSubmit = (data: any) => {
-    // dispatch(assignLeadToEmployee(data));
+   
     setIsModalOpen(false);
     setSelectedLeadId(null);
+  };
+
+   const handleMarkAsBooked = (leadId: number) => {
+    if (isAuthenticated && user?.id) {
+      dispatch(markLeadAsBooked({
+        lead_id: leadId,
+        lead_added_user_type: user.user_type,
+        lead_added_user_id: user.id,
+      }))
+        .unwrap()
+        .then(() => {
+          const params = {
+            lead_added_user_type: user.user_type,
+            lead_added_user_id: user.id,
+            status_id: statusId,
+          };
+          dispatch(getLeadsByUser(params));
+        })
+        .catch((error) => {
+          toast.error(error || "Failed to mark lead as booked");
+        });
+    }
+    setDropdownOpen(null);
   };
 
   const handleDelete = (lead_id: number) => {
@@ -219,35 +269,7 @@ const LeadsType: React.FC = () => {
           pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
           onFilter={handleSearch}
         />
-        <div className="flex justify-between items-center gap-x-4 px-4 py-1">
-          {statusId === 0 && (
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={handleAddNewLead}
-              className="bg-blue-900 hover:bg-blue-800 text-white"
-            >
-              Add New Lead
-            </Button>
-          )}
-          {statusId === 5 && (
-            <div className="px-4 py-2">
-              <label htmlFor="userTypeFilter">Filter by User Type</label>
-              <select
-                id="userTypeFilter"
-                value={selectedUserType}
-                onChange={handleUserTypeChange}
-                className="w-48 p-2 border rounded dark:bg-dark-900 dark:text-white"
-              >
-                {userTypeOptions.map((option) => (
-                  <option key={option.value} value={option.value}>
-                    {option.label}
-                  </option>
-                ))}
-              </select>
-            </div>
-          )}
-        </div>
+        
         <div className="space-y-6">
           {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
           {error && <div className="text-center text-red-500 py-4">{error}</div>}
@@ -382,9 +404,11 @@ const LeadsType: React.FC = () => {
             currentLeads.find((item) => item.lead_id.toString() === dropdownOpen.leadId)!,
             handleLeadAssign,
             handleViewHistory,
+            handleMarkAsBooked,
             handleDelete,
             dropdownRef,
-            dropdownOpen
+            dropdownOpen,
+            isBuilder
           ),
           document.body
         )
