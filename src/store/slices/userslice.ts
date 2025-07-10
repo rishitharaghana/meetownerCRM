@@ -1,17 +1,98 @@
-// features/user/userSlice.ts
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, UserCount, UserCountResponse, User, UsersResponse, UserState } from "../../types/UserModel";
+import { ErrorResponse, UserCount, UserCountResponse, User, UsersResponse, UserState, UpdateUserStatusResponse, UpdateUserStatusRequest } from "../../types/UserModel";
+
+
+export interface InsertUserRequest {
+  user_type: number;
+  name: string;
+  mobile: string;
+  email:string;
+  password: string;
+  status: number;
+  state: string;
+  city: string;
+  location: string;
+  address: string;
+  pincode: string;
+  gst_number?: string; 
+  rera_number?: string; 
+  created_by: string;
+  created_user_id: number;
+  company_name?: string;
+  company_number?: string; 
+  company_address?: string; 
+  representative_name?: string; 
+  pan_card_number?: string; 
+  aadhar_number?: string;
+  photo?:string;
+}
+
+export interface InsertUserResponse {
+  message: string;
+  user_id: number;
+}
 
 const initialState: UserState = {
   userCounts: null,
-  users: null, 
+  users: null,
   selectedUser: null,
   loading: false,
   error: null,
 };
+
+
+export const insertUser = createAsyncThunk<
+  InsertUserResponse,
+  FormData,
+  { rejectValue: string }
+>(
+  "user/insertUser",
+  async (formData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.post<InsertUserResponse>(
+        `/api/v1/insertuser`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Insert user error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid user data provided");
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 409:
+            return rejectWithValue("User with this mobile number already exists");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to insert user");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 
 export const getTypesCount = createAsyncThunk<
   UserCount[],
@@ -71,7 +152,7 @@ export const getUsersByType = createAsyncThunk<
       }
 
       const response = await ngrokAxiosInstance.get<UsersResponse>(
-        `http://localhost:3000/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}`,
+        `/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -115,7 +196,7 @@ export const getUserById = createAsyncThunk<
       }
 
       const response = await ngrokAxiosInstance.get<UsersResponse>(
-        `http://localhost:3000/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}&emp_user_id=${emp_user_id}`,
+        `/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}&emp_user_id=${emp_user_id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -127,7 +208,7 @@ export const getUserById = createAsyncThunk<
         return rejectWithValue("User not found");
       }
 
-      return response.data.data[0]; // Return the first user
+      return response.data.data[0];
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       console.error("Get user by ID error:", axiosError);
@@ -149,6 +230,60 @@ export const getUserById = createAsyncThunk<
   }
 );
 
+export const updateUserStatus = createAsyncThunk<
+  UpdateUserStatusResponse,
+  UpdateUserStatusRequest,
+  { rejectValue: string }
+>(
+  "user/updateUserStatus",
+  async (userStatusData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      // Validate feedback for status: 2
+      if (userStatusData.status === 2 && !userStatusData.feedback?.trim()) {
+        return rejectWithValue("Feedback is required when rejecting a user (status: 2)");
+      }
+
+      const response = await ngrokAxiosInstance.post<UpdateUserStatusResponse>(
+        `/api/v1/updateuserstatus`,
+        userStatusData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Update user status error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid user status data provided");
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("User not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to update user status");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -160,7 +295,19 @@ const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-     
+    
+      .addCase(insertUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(insertUser.fulfilled, (state) => {
+        state.loading = false
+      })
+      .addCase(insertUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
       .addCase(getTypesCount.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -174,7 +321,6 @@ const userSlice = createSlice({
         state.error = action.payload as string;
         toast.error(action.payload as string);
       })
-    
       .addCase(getUsersByType.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -188,8 +334,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
         toast.error(action.payload as string);
       })
-
-        .addCase(getUserById.pending, (state) => {
+      .addCase(getUserById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -201,7 +346,19 @@ const userSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
         toast.error(action.payload as string);
-      });
+      })
+       .addCase(updateUserStatus.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateUserStatus.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateUserStatus.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
   },
 });
 

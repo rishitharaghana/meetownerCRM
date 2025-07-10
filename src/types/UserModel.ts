@@ -75,6 +75,18 @@ export interface UsersResponse {
   data: User[];
 }
 
+export interface UpdateUserStatusRequest {
+  user_id: number;
+  status: number;
+  updated_by_user_id: number;
+  feedback?: string; 
+}
+
+export interface UpdateUserStatusResponse {
+  message: string;
+  user_id: number;
+}
+
 export interface UserState {
   userCounts: UserCount[] | null;
   users: User[] | null;

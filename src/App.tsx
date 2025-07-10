@@ -5,31 +5,21 @@ import UserProfiles from "./pages/UserProfiles";
 import AppLayout from "./layout/AppLayout";
 import { ScrollToTop } from "./components/common/ScrollToTop";
 import Home from "./pages/Dashboard/Home";
-import BasicTables from "./pages/Tables/BasicTables";
-
 import { Toaster } from "react-hot-toast";
 import { lazy } from "react";
-import UserActivities from "./components/tables/userActivities";
+
 import CreateProperty from "./pages/Project/AddProject";
 import AllProjects from "./pages/Project/AllProjects";
 import PartnerScreen from "./pages/Channel Partners/AllChannelPartnersScreen";
 import AddChannelPartner from "./pages/Channel Partners/AddChannelPartners";
 import EmployeesScreen from "./pages/Employee Management/EmployeesScreen";
 import AddNewLead from "./pages/Lead Management/AddNewLeads";
-
 import Support from "./pages/Support/Support";
-import SiteVisit from "./pages/SiteVists/SiteVisit";
 import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
-import SiteVisitDetails from "./pages/SiteVists/SiteVisit-details.";
-
 import BookingsDone from "./pages/Bookings/BookingsDone";
-
-import AllEmployees from "./pages/Employee/AllEmployees";
 import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
-import Filter from "./components/ui/filter/Filter";
 import ProjectDetailsPage from "./pages/Project/ProjectDetails"
-import UserDetailsPage from "./pages/Channel Partners/UserDetails";
 import UpcomingProjects from "./pages/Project/UpComingProjects";
 import OnGoingProjects from "./pages/Project/OnGoingProjects";
 import { useSelector } from "react-redux";
@@ -37,6 +27,7 @@ import { RootState } from "./store/store";
 import ProtectedRoute from "./hooks/ProtectedRoute";
 import { isTokenExpired } from "./store/slices/authSlice";
 import PartnerProfile from "./pages/Channel Partners/ChannelPartnerProfileScreen";
+import CreateEmployee from "./pages/Employee Management/CreateEmployee";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -45,33 +36,35 @@ export default function App() {
     <>
       <Router>
         <ScrollToTop />
-        <Toaster />
+       
 
         <Routes>
          
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
-              <Route path="/basic-tables" element={<BasicTables />} />
-              {/* <Route path="/basic-tables-one" element={<BasicTableOne />} /> */}
-              <Route path="/user-activities" element={<UserActivities />} />
+             
+              
               <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
               <Route path="/leads/addlead" element={<AddNewLead />} />
-              <Route path="/sitevists/site-visit" element={<SiteVisit />} />
               <Route path="/leads/view" element={<ViewLeadDetails />} />
-              <Route path="/leads/user-details" element={<UserDetailsPage />} />
-              <Route path="/site-visit/details/:id" element={<SiteVisitDetails />} />
+            
+             
               <Route path="/partners" element={<PartnerScreen />} />
               <Route path="/partner/:id" element={<PartnerProfile />} />
               <Route path="/partners/addpartners" element={<AddChannelPartner />} />
-              <Route path="/filter" element={<Filter />} />
+
+
               <Route path="/bookings/bookings-done" element={<BookingsDone />} />
+
+
               <Route path="/employee/:status" element={<EmployeesScreen />} />
-              {/* <Route path="/create-employee" element={<CreateEmployee />} /> */}
+              <Route path="/create-employee" element={<CreateEmployee />} />
               <Route  path="/employeedetails/:status/:id"  element={<EmployeeDetail />} />
-              <Route path="/employee/employees" element={<AllEmployees />} />
+             
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/support" element={<Support />} />
+
               <Route path="/projects/add-projects" element={<CreateProperty />} />
               <Route path="/projects/allprojects" element={<AllProjects />} />
               <Route path="/projects/details/:id" element={<ProjectDetailsPage />} />
@@ -80,8 +73,6 @@ export default function App() {
               
             </Route>
           </Route>
-
-          
           <Route
             path="/signin"
             element={
@@ -94,6 +85,11 @@ export default function App() {
           />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        <Toaster
+            position="top-right"
+            toastOptions={{ duration: 3000, style: { zIndex: 9999 } }}
+            containerStyle={{ top: "5rem" }}
+          />
       </Router>
     </>
   );

@@ -49,8 +49,8 @@ interface FormData {
   isUpcoming: boolean;
   status: 'Under Construction' | 'Ready to Move';
   launchType: 'Pre Launch' | 'Soft Launch' | 'Launched';
-  launchDate?: string; // Separate field for Launch Date
-  possessionEndDate?: string; // Separate field for Possession End Date
+  launchDate?: string; 
+  possessionEndDate?: string; 
   isReraRegistered: boolean;
   reraNumber: string;
   otpOptions: string[];
@@ -76,7 +76,7 @@ interface Errors {
   brochure?: string;
   priceSheet?: string;
   launchDate?: string;
-  possessionEndDate?: string; // Added for possession end date validation
+  possessionEndDate?: string; 
   isReraRegistered?: string;
   reraNumber?: string;
   otpOptions?: string;
@@ -548,7 +548,7 @@ export default function AddProject() {
       formDataToSend.append('construction_status', formData.status);
       formDataToSend.append('upcoming_project', formData.isUpcoming ? 'Yes' : 'No');
       formDataToSend.append('posted_by', user?.user_type || '2');
-      formDataToSend.append('user_id', user?.user_type || '2');
+      formDataToSend.append('user_id', user?.id || '2');
       formDataToSend.append('rera_registered', formData.isReraRegistered ? 'Yes' : 'No');
       if (formData.isReraRegistered) {
         formDataToSend.append('rera_number', formData.reraNumber);

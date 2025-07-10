@@ -1,0 +1,360 @@
+import React, { useState, useEffect } from "react";
+import {
+  User,
+  MapPin,
+  KeyRound,
+  Mail,
+  EyeIcon,
+  EyeOff,
+  Home,
+  Image,
+} from "lucide-react";
+import { useDispatch, useSelector } from "react-redux";
+import { AppDispatch, RootState } from "../../store/store";
+import Input from "../../components/form/input/InputField";
+import PhoneInput from "../../components/form/group-input/PhoneInput";
+import Dropdown from "../../components/form/Dropdown";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+
+import toast from "react-hot-toast";
+import { insertUser } from "../../store/slices/userslice";
+
+interface FormData {
+  name: string;
+  mobile: string;
+  email: string;
+  designation: string;
+  password: string;
+  city: string;
+  state: string;
+  pincode: string;
+  location: string;
+  address: string;
+  photo: File | null;
+}
+
+interface Errors {
+  name?: string;
+  mobile?: string;
+  email?: string;
+  designation?: string;
+  password?: string;
+  city?: string;
+  state?: string;
+  pincode?: string;
+  location?: string;
+  address?: string;
+  photo?: string;
+}
+
+const CreateEmployee = () => {
+  const dispatch = useDispatch<AppDispatch>();
+  const { cities, states } = useSelector((state: RootState) => state.property);
+  const { loading,  } = useSelector((state: RootState) => state.user); 
+  const { citiesQuery, statesQuery } = usePropertyQueries();
+
+  const [formData, setFormData] = useState<FormData>({
+    name: "",
+    mobile: "",
+    email: "",
+    designation: "",
+    password: "",
+    city: "",
+    state: "",
+    pincode: "",
+    location: "",
+    address: "",
+    photo: null,
+  });
+
+  const [errors, setErrors] = useState<Errors>({});
+  const [showPassword, setShowPassword] = useState(false);
+
+  useEffect(() => {
+    if (citiesQuery.isError) {
+      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || "Unknown error"}`);
+    }
+    if (statesQuery.isError) {
+      toast.error(`Failed to fetch states: ${statesQuery.error?.message || "Unknown error"}`);
+    }
+  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
+
+  const allDesignationOptions = [
+    { value: "4", text: "Sales Manager" },
+    { value: "5", text: "Telecallers" },
+    { value: "6", text: "Marketing Agent" },
+    { value: "7", text: "Receptionists" },
+  ];
+
+  const cityOptions = cities?.map((c: any) => ({ value: c.value, text: c.label })) || [];
+  const stateOptions = states?.map((s: any) => ({ value: s.value, text: s.label })) || [];
+
+  const handleChange = (field: keyof FormData) => (value: string | File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const handleDropdownChange = (field: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "state" && { city: "" }), // Reset city if state changes
+    }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const validateForm = () => {
+    const newErrors: Errors = {};
+    if (!formData.name.trim()) newErrors.name = "Name is required";
+    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
+    if (!formData.email.trim()) {
+      newErrors.email = "Email is required";
+    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      newErrors.email = "Email is invalid";
+    }
+    if (!formData.designation) newErrors.designation = "Select a designation";
+    if (!formData.password) newErrors.password = "Password is required";
+    if (!formData.city) newErrors.city = "Select a city";
+    if (!formData.state) newErrors.state = "Select a state";
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = "Pincode is required";
+    } else if (!/^\d{6}$/.test(formData.pincode)) {
+      newErrors.pincode = "Enter valid 6-digit pincode";
+    }
+    if (!formData.location.trim()) newErrors.location = "Location is required";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    if (!formData.photo) newErrors.photo = "Photo is required";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!validateForm()) return;
+
+    const createdBy = localStorage.getItem("name") || "Admin";
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1");
+
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("mobile", formData.mobile);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append("city", cityOptions.find((c) => c.value === formData.city)?.text || formData.city);
+    formDataToSend.append("state", stateOptions.find((s) => s.value === formData.state)?.text || formData.state);
+    formDataToSend.append("pincode", formData.pincode);
+    formDataToSend.append("location", formData.location);
+    formDataToSend.append("address", formData.address);
+    if (formData.photo) formDataToSend.append("photo", formData.photo);
+    formDataToSend.append('status',"1");
+    formDataToSend.append("user_type", formData.designation);
+    formDataToSend.append("created_by", createdBy);
+    formDataToSend.append("created_user_id", createdUserId.toString());
+    
+
+    try {
+      await dispatch(insertUser(formDataToSend)).unwrap();
+     
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        designation: "",
+        password: "",
+        city: "",
+        state: "",
+        pincode: "",
+        location: "",
+        address: "",
+        photo: null,
+      });
+      setErrors({});
+    } catch (error) {
+     
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
+      <div className="max-w-2xl mx-auto">
+        <div className="text-center mb-8">
+         
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Create Employee</h1>
+          <p className="text-gray-600">Add a new team member to your organization</p>
+        </div>
+
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Name */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <User size={16} /> Name
+              </label>
+              <Input
+                value={formData.name}
+                onChange={(e) => handleChange("name")(e.target.value)}
+                placeholder="Enter employee name"
+              />
+              {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
+            </div>
+
+            {/* Mobile */}
+            <div>
+              <label className="text-sm font-medium text-gray-700">Mobile</label>
+              <PhoneInput
+                countries={[{ code: "IN", label: "+91" }]}
+                value={formData.mobile}
+                placeholder="Enter mobile number"
+                onChange={handleChange("mobile")}
+              />
+              {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
+            </div>
+
+            {/* Email */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Mail size={16} /> Email
+              </label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange("email")(e.target.value)}
+                placeholder="example@domain.com"
+              />
+              {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
+            </div>
+
+            {/* Designation */}
+            <div className="min-h-[80px] w-full max-w-md">
+              <Dropdown
+                id="designation"
+                label="Select Designation"
+                options={allDesignationOptions}
+                value={formData.designation}
+                onChange={handleDropdownChange("designation")}
+                placeholder="Select a designation"
+                error={errors.designation}
+              />
+            </div>
+
+            {/* Password */}
+            <div className="relative">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <KeyRound size={16} /> Password
+              </label>
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => handleChange("password")(e.target.value)}
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9"
+              >
+                {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
+              </button>
+              {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
+            </div>
+
+            {/* State */}
+            <div className="min-h-[80px] w-full max-w-md">
+              <Dropdown
+                id="state"
+                label="Select State"
+                options={stateOptions}
+                value={formData.state}
+                onChange={handleDropdownChange("state")}
+                placeholder="Search for a state..."
+                error={errors.state}
+              />
+            </div>
+
+            {/* City */}
+            <div className="min-h-[80px] w-full max-w-md">
+              <Dropdown
+                id="city"
+                label="Select City"
+                options={cityOptions}
+                value={formData.city}
+                onChange={handleDropdownChange("city")}
+                placeholder="Search for a city..."
+                disabled={!formData.state}
+                error={errors.city}
+              />
+            </div>
+
+            {/* Location */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <MapPin size={16} /> Location
+              </label>
+              <Input
+                value={formData.location}
+                onChange={(e) => handleChange("location")(e.target.value)}
+                placeholder="Enter location"
+              />
+              {errors.location && <p className="text-red-600 text-sm mt-1">⚠️ {errors.location}</p>}
+            </div>
+
+            {/* Address */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Home size={16} /> Address
+              </label>
+              <textarea
+                value={formData.address}
+                onChange={(e) => handleChange("address")(e.target.value)}
+                rows={3}
+                className="w-full p-3 border rounded-md dark:bg-gray-800"
+                placeholder="Enter full address"
+              />
+              {errors.address && <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>}
+            </div>
+
+            {/* Pincode */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <MapPin size={16} /> Pincode
+              </label>
+              <Input
+                value={formData.pincode}
+                onChange={(e) => handleChange("pincode")(e.target.value)}
+                placeholder="Enter pincode"
+              />
+              {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
+            </div>
+
+            {/* Photo */}
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Image size={16} /> Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) => handleChange("photo")(e.target.files?.[0] || null)}
+                className="w-full p-3 border rounded-md"
+              />
+              {errors.photo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>}
+            </div>
+
+            <div className="pt-4">
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl disabled:opacity-50"
+              >
+                {loading ? "Creating..." : "Create Employee"}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+export default CreateEmployee;

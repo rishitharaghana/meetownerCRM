@@ -7,23 +7,25 @@ import {
   EyeIcon,
   EyeOff,
   Landmark,
-  Building2,
+  Image,
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
-
+import { insertUser, InsertUserRequest } from "../../store/slices/userslice";
 import Input from "../../components/form/input/InputField";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import toast from "react-hot-toast";
+import Dropdown from "../../components/form/Dropdown";
 
 interface FormData {
   name: string;
   mobile: string;
-  email: string;
+  email: string; 
   password: string;
   city: string;
   state: string;
+  locality: string;
   pincode: string;
   panCardNumber: string;
   aadharNumber: string;
@@ -31,6 +33,10 @@ interface FormData {
   representativeName: string;
   companyAddress: string;
   companyNumber: string;
+  gstNumber: string;
+  reraNumber: string;
+  address: string;
+  photo?: File | null; 
 }
 
 interface Errors {
@@ -40,6 +46,8 @@ interface Errors {
 const AddChannelPartner = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { cities, states } = useSelector((state: RootState) => state.property);
+  const { loading, error } = useSelector((state: RootState) => state.user);
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     mobile: "",
@@ -47,6 +55,7 @@ const AddChannelPartner = () => {
     password: "",
     city: "",
     state: "",
+    locality: "",
     pincode: "",
     panCardNumber: "",
     aadharNumber: "",
@@ -54,19 +63,26 @@ const AddChannelPartner = () => {
     representativeName: "",
     companyAddress: "",
     companyNumber: "",
+    gstNumber: "",
+    reraNumber: "",
+    address: "",
+    photo: null,
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
-   const { citiesQuery, statesQuery } = usePropertyQueries();
+  const { citiesQuery, statesQuery } = usePropertyQueries();
 
-   useEffect(() => {
+  useEffect(() => {
     if (citiesQuery.isError) {
-      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || 'Unknown error'}`);
+      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || "Unknown error"}`);
     }
     if (statesQuery.isError) {
-      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
+      toast.error(`Failed to fetch states: ${statesQuery.error?.message || "Unknown error"}`);
     }
-  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
+    if (error) {
+      toast.error(error);
+    }
+  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error, error]);
 
   const cityOptions =
     cities?.map((city: any) => ({ value: city.value, text: city.label })) || [];
@@ -74,8 +90,17 @@ const AddChannelPartner = () => {
   const stateOptions =
     states?.map((state: any) => ({ value: state.value, text: state.label })) || [];
 
-  const handleChange = (field: keyof FormData) => (value: string) => {
+  const handleChange = (field: keyof FormData) => (value: string | File | null) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
+
+  const handleDropdownChange = (field: keyof FormData) => (value: string) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "state" && { city: "" }),
+    }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
@@ -83,14 +108,12 @@ const AddChannelPartner = () => {
     const newErrors: Errors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
-    if (!formData.email.trim()) {
-      newErrors.email = "Email is required";
-    } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      newErrors.email = "Email is invalid";
-    }
+    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile must be 10 digits";
+    // Email is optional, so no validation required
     if (!formData.password) newErrors.password = "Password is required";
     if (!formData.city) newErrors.city = "City is required";
     if (!formData.state) newErrors.state = "State is required";
+    if (!formData.locality.trim()) newErrors.locality = "Locality is required";
     if (!formData.pincode.trim()) {
       newErrors.pincode = "Pincode is required";
     } else if (!/^\d{6}$/.test(formData.pincode)) {
@@ -99,7 +122,7 @@ const AddChannelPartner = () => {
     if (!formData.panCardNumber.trim()) {
       newErrors.panCardNumber = "PAN Card is required";
     } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
-      newErrors.panCardNumber = "Invalid PAN (ABCDE1234F)";
+      newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
     }
     if (!formData.aadharNumber.trim()) {
       newErrors.aadharNumber = "Aadhar is required";
@@ -108,7 +131,7 @@ const AddChannelPartner = () => {
     }
     if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
     if (!formData.representativeName.trim())
-      newErrors.representativeName = "Representative is required";
+      newErrors.representativeName = "Representative name is required";
     if (!formData.companyAddress.trim())
       newErrors.companyAddress = "Company address is required";
     if (!formData.companyNumber.trim()) {
@@ -116,51 +139,117 @@ const AddChannelPartner = () => {
     } else if (!/^\d{10}$/.test(formData.companyNumber)) {
       newErrors.companyNumber = "Company number must be 10 digits";
     }
+    if (!formData.gstNumber.trim()) newErrors.gstNumber = "GST number is required";
+    else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
+      newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
+    }
+    if (!formData.reraNumber.trim()) newErrors.reraNumber = "RERA number is required";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
+    // Photo is optional, so no validation required
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const createdBy = localStorage.getItem("name") || "Admin";
-    const createdUserId = parseInt(localStorage.getItem("userId") || "1");
+    const createdBy = localStorage.getItem("name") || "Admin"; // Ensure string
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); // Ensure number
 
     const cityName =
       cityOptions.find((option) => option.value === formData.city)?.text || formData.city;
-
     const stateName =
       stateOptions.find((option) => option.value === formData.state)?.text || formData.state;
 
-    const payload = {
-      ...formData,
-      city: cityName,
+    const payload: InsertUserRequest = {
+      user_type: 3,
+      name: formData.name,
+      mobile: formData.mobile,
+      email:formData.email,
+      password: formData.password,
+      status: 0,
       state: stateName,
-      user_type: 7, 
+      city: cityName,
+      location: formData.locality,
+      address: formData.address,
+      pincode: formData.pincode,
+      gst_number: formData.gstNumber,
+      rera_number: formData.reraNumber,
       created_by: createdBy,
-      created_userID: createdUserId,
+      created_user_id: createdUserId,
+      company_name: formData.companyName,
+      company_number: formData.companyNumber,
+      company_address: formData.companyAddress,
+      representative_name: formData.representativeName,
+      pan_card_number: formData.panCardNumber,
+      aadhar_number: formData.aadharNumber,
+      photo: formData.photo || undefined,
     };
 
-    console.log("Channel Partner Data Submitted:", payload);
+    const formDataToSend = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === "photo" && value instanceof File) {
+          formDataToSend.append(key, value);
+        } else {
+          formDataToSend.append(key, String(value));
+        }
+      }
+    });
+
+    try {
+      const result = await dispatch(insertUser(formDataToSend)).unwrap();
+      toast.success(`Channel Partner added successfully with ID: ${result.user_id}`);
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        password: "",
+        city: "",
+        state: "",
+        locality: "",
+        pincode: "",
+        panCardNumber: "",
+        aadharNumber: "",
+        companyName: "",
+        representativeName: "",
+        companyAddress: "",
+        companyNumber: "",
+        gstNumber: "",
+        reraNumber: "",
+        address: "",
+        photo: null,
+      });
+      setErrors({});
+    } catch (err) {
+      // Error is handled in the user slice and displayed via toast
+    }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-8">
-          <div className="inline-flex items-center justify-center w-14 h-14 bg-blue-900 rounded-full mb-4 shadow-lg">
-            <Building2 className="w-6 h-6 text-white" />
-          </div>
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Add Channel Partner</h1>
+        <div className="text-center mb-4">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Channel Partner</h1>
           <p className="text-gray-600">Fill in the details below to add a new partner</p>
         </div>
 
-        <form onSubmit={handleSubmit} className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6">
+        <form
+          onSubmit={handleSubmit}
+          className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6"
+          encType="multipart/form-data"
+        >
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><User size={16} /> Name</label>
-            <Input value={formData.name} onChange={(e) => handleChange("name")(e.target.value)} placeholder="Enter name" />
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <User size={16} /> Name
+            </label>
+            <Input
+              value={formData.name}
+              onChange={(e) => handleChange("name")(e.target.value)}
+              placeholder="Enter name"
+            />
             {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
           </div>
 
@@ -176,7 +265,9 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><Mail size={16} /> Email</label>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <Mail size={16} /> Email (Optional)
+            </label>
             <Input
               type="email"
               value={formData.email}
@@ -187,15 +278,29 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700"><Landmark size={16} className="inline" /> Company Name</label>
-            <Input value={formData.companyName} onChange={(e) => handleChange("companyName")(e.target.value)} />
-            {errors.companyName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>}
+            <label className="text-sm font-medium text-gray-700">
+              <Landmark size={16} className="inline" /> Company Name
+            </label>
+            <Input
+              value={formData.companyName}
+              onChange={(e) => handleChange("companyName")(e.target.value)}
+              placeholder="Enter company name"
+            />
+            {errors.companyName && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>
+            )}
           </div>
 
           <div>
             <label className="text-sm font-medium text-gray-700">Representative Name</label>
-            <Input value={formData.representativeName} onChange={(e) => handleChange("representativeName")(e.target.value)} />
-            {errors.representativeName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.representativeName}</p>}
+            <Input
+              value={formData.representativeName}
+              onChange={(e) => handleChange("representativeName")(e.target.value)}
+              placeholder="Enter representative name"
+            />
+            {errors.representativeName && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.representativeName}</p>
+            )}
           </div>
 
           <div>
@@ -205,8 +310,11 @@ const AddChannelPartner = () => {
               onChange={(e) => handleChange("companyAddress")(e.target.value)}
               rows={3}
               className="w-full p-3 border rounded-md dark:bg-gray-800"
+              placeholder="Enter company address"
             />
-            {errors.companyAddress && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>}
+            {errors.companyAddress && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>
+            )}
           </div>
 
           <div>
@@ -214,55 +322,147 @@ const AddChannelPartner = () => {
             <PhoneInput
               countries={[{ code: "IN", label: "+91" }]}
               value={formData.companyNumber}
-              placeholder="Enter phone number"
+              placeholder="Enter company phone number"
               onChange={handleChange("companyNumber")}
             />
-            {errors.companyNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>}
+            {errors.companyNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">GST Number</label>
+            <Input
+              value={formData.gstNumber}
+              onChange={(e) => handleChange("gstNumber")(e.target.value)}
+              placeholder="Enter GST number (e.g., 22ABCDE1234F1Z5)"
+            />
+            {errors.gstNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.gstNumber}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">RERA Number</label>
+            <Input
+              value={formData.reraNumber}
+              onChange={(e) => handleChange("reraNumber")(e.target.value)}
+              placeholder="Enter RERA number"
+            />
+            {errors.reraNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.reraNumber}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Address</label>
+            <textarea
+              value={formData.address}
+              onChange={(e) => handleChange("address")(e.target.value)}
+              rows={3}
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
+              placeholder="Enter address"
+            />
+            {errors.address && <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Locality</label>
+            <Input
+              value={formData.locality}
+              onChange={(e) => handleChange("locality")(e.target.value)}
+              placeholder="Enter locality"
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
+            />
+            {errors.locality && <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>}
           </div>
 
           <div>
             <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
-            <Input value={formData.panCardNumber} onChange={(e) => handleChange("panCardNumber")(e.target.value)} />
-            {errors.panCardNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>}
+            <Input
+              value={formData.panCardNumber}
+              onChange={(e) => handleChange("panCardNumber")(e.target.value)}
+              placeholder="Enter PAN card number (e.g., ABCDE1234F)"
+            />
+            {errors.panCardNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>
+            )}
           </div>
 
           <div>
             <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
-            <Input value={formData.aadharNumber} onChange={(e) => handleChange("aadharNumber")(e.target.value)} />
-            {errors.aadharNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>}
+            <Input
+              value={formData.aadharNumber}
+              onChange={(e) => handleChange("aadharNumber")(e.target.value)}
+              placeholder="Enter 12-digit Aadhar number"
+            />
+            {errors.aadharNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <Image size={16} /> Photo (Optional)
+            </label>
+            <input
+              type="file"
+              accept="image/*"
+              onChange={(e) => handleChange("photo")(e.target.files?.[0] || null)}
+              className="w-full p-3 border rounded-md dark:bg-gray-800"
+            />
+            {errors.photo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>}
           </div>
 
           <div className="relative">
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><KeyRound size={16} /> Password</label>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <KeyRound size={16} /> Password
+            </label>
             <Input
               type={showPassword ? "text" : "password"}
               value={formData.password}
               onChange={(e) => handleChange("password")(e.target.value)}
               placeholder="Enter password"
             />
-            <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-9">
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-9"
+            >
               {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
             </button>
             {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">City</label>
-            <select
+          <div className="min-h-[80px] w-full max-w-md">
+            <Dropdown
+              id="state"
+              label="Select State"
+              options={stateOptions}
+              value={formData.state}
+              onChange={handleDropdownChange("state")}
+              placeholder="Search for a state..."
+              error={errors.state}
+            />
+          </div>
+
+          <div className="min-h-[80px] w-full max-w-md">
+            <Dropdown
+              id="city"
+              label="Select City"
+              options={cityOptions}
               value={formData.city}
-              onChange={(e) => handleChange("city")(e.target.value)}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-            >
-              <option value="" disabled>Select a city</option>
-              {cityOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.text}</option>
-              ))}
-            </select>
-            {errors.city && <p className="text-red-600 text-sm mt-1">⚠️ {errors.city}</p>}
+              onChange={handleDropdownChange("city")}
+              placeholder="Search for a city..."
+              disabled={!formData.state}
+              error={errors.city}
+            />
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1"><MapPin size={16} /> Pincode</label>
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <MapPin size={16} /> Pincode
+            </label>
             <Input
               value={formData.pincode}
               onChange={(e) => handleChange("pincode")(e.target.value)}
@@ -271,27 +471,13 @@ const AddChannelPartner = () => {
             {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">State</label>
-            <select
-              value={formData.state}
-              onChange={(e) => handleChange("state")(e.target.value)}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-            >
-              <option value="" disabled>Select a state</option>
-              {stateOptions.map((opt) => (
-                <option key={opt.value} value={opt.value}>{opt.text}</option>
-              ))}
-            </select>
-            {errors.state && <p className="text-red-600 text-sm mt-1">⚠️ {errors.state}</p>}
-          </div>
-
           <div className="pt-4">
             <button
               type="submit"
-              className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl "
+              className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl disabled:opacity-50"
+              disabled={loading}
             >
-              Submit
+              {loading ? "Submitting..." : "Submit"}
             </button>
           </div>
         </form>
