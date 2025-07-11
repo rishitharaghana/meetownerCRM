@@ -42,15 +42,15 @@ const { selectedUser, loading, error } = useSelector((state: RootState) => state
             <>
             
               <h4 className="text-2xl font-semibold text-slate-800 dark:text-white mb-1">{selectedUser?.name}</h4>
+              <h4 className="text-2xl font-semibold text-slate-800 dark:text-white mb-1">Mobile :{selectedUser?.mobile}</h4>
               <div className="text-sm text-slate-600 dark:text-slate-400 space-x-2">
                 <span>{getDesignationText(selectedUser?.user_type)}</span>
-                <span className="hidden sm:inline-block w-px h-3 bg-slate-300 dark:bg-slate-600"></span>
-                <span>{selectedUser?.city}</span>
+               
                 <span className="hidden sm:inline-block w-px h-3 bg-slate-300 dark:bg-slate-600"></span>
                   <span>{selectedUser?.email}</span>
-                  
+                   <span className="hidden sm:inline-block w-px h-3 bg-slate-300 dark:bg-slate-600"></span>
+                <span>{selectedUser?.city}</span>
               </div>
-            
             </>
           
             

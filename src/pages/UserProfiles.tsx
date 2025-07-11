@@ -1,28 +1,55 @@
-import React, { useEffect } from "react";
+import React, { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
-;
+import { toast } from "react-hot-toast";
 import UserAddressCard from "../components/UserProfile/UserAddressCard";
 import PageMeta from "../components/common/PageMeta";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import { AppDispatch, RootState } from "../store/store";
-import { getUserProfile } from "../store/slices/userslice";
+import { getUserProfile } from "../store/slices/userSlice";
+
+const BUILDER_USER_TYPE = 2; 
 
 export default function UserProfiles() {
   const dispatch = useDispatch<AppDispatch>();
   const { selectedUser, loading, error } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+  const profileParams = useMemo(() => {
+    if (!isAuthenticated || !user?.id || !user?.user_type) {
+      return null;
+    }
+    if (user.user_type === BUILDER_USER_TYPE) {
+      return {
+        admin_user_id: user.id,
+        admin_user_type: user.user_type,
+      };
+    } else {
+      return {
+        admin_user_id: user.created_user_id,
+        admin_user_type: BUILDER_USER_TYPE,
+        emp_id: user.id,
+        emp_user_type: user.user_type,
+      };
+    }
+  }, [isAuthenticated, user]);
 
   useEffect(() => {
-    // Dispatch getUserProfile with the required parameters
-    dispatch(
-      getUserProfile({
-        admin_user_id: 1, // Replace with actual admin_user_id (e.g., from auth state)
-        admin_user_type: 1, // Replace with actual admin_user_type
-        emp_id: 2, // Replace with actual emp_id
-        emp_user_type: 2, // Replace with actual emp_user_type
-      })
-    );
-  }, [dispatch]);
+    if (profileParams) {
+      dispatch(getUserProfile(profileParams))
+        .unwrap()
+        .catch((err) => {
+          toast.error(err || "Failed to fetch user profile");
+        });
+    } else if (isAuthenticated && user) {
+      toast.error("Invalid user data for fetching profile");
+      console.warn("Invalid user data:", {
+        id: user.id,
+        user_type: user.user_type,
+        created_user_id: user.created_user_id,
+      });
+    }
+  }, [profileParams, dispatch]);
 
   if (loading) {
     return <div>Loading...</div>;
