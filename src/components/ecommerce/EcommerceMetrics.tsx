@@ -20,7 +20,6 @@ import toast from "react-hot-toast";
 
 
 const userTypeMap: { [key: string]: string } = {
-  new_leads: "New Leads",
   today_leads: "Today Leads",
   today_follow_ups: "Today Follow-Ups",
   site_visit_done: "Site Visits",
@@ -34,14 +33,13 @@ const userTypeMap: { [key: string]: string } = {
 };
 
 const userTypeRoutes: { [key: string]: string } = {
-  new_leads: "/leads/new/0",
-  today_leads: "/leads/today/1",
-  today_follow_ups: "/leads/follow-ups",
-  site_visit_done: "/leads/SiteVisitDone",
+  today_leads: "/leads/new/0",
+  today_follow_ups: "/leads/today/2",
+  site_visit_done: "/leads/SiteVisitDone/5",
   booked: "/bookings/bookings-done",
   projects: "/projects/allprojects",
   "3": "/partners",
-  "4": "/employee/3",
+  "4": "/employee/4",
   "5": "/employee/5",
   "6": "/employee/6",
   "7": "/employee/7",
