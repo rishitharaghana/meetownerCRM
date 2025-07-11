@@ -21,6 +21,7 @@ export interface InsertUserRequest {
   rera_number?: string; 
   created_by: string;
   created_user_id: number;
+  created_user_type:number;
   company_name?: string;
   company_number?: string; 
   company_address?: string; 
@@ -291,6 +292,63 @@ export const updateUserStatus = createAsyncThunk<
   }
 );
 
+export const getUserProfile = createAsyncThunk<
+  User,
+  { admin_user_id: number; admin_user_type: number; emp_id?: number; emp_user_type?: number },
+  { rejectValue: string }
+>(
+  "user/getUserProfile",
+  async ({ admin_user_id, admin_user_type, emp_id, emp_user_type }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const queryParams = new URLSearchParams({
+        admin_user_id: admin_user_id.toString(),
+        admin_user_type: admin_user_type.toString(),
+        ...(emp_id !== undefined && { emp_id: emp_id.toString() }),
+        ...(emp_user_type !== undefined && { emp_user_type: emp_user_type.toString() }),
+      });
+
+      const response = await ngrokAxiosInstance.get<UsersResponse>(
+        `/api/v1/getuserprofile?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.data || response.data.data.length === 0) {
+        return rejectWithValue("User not found");
+      }
+
+      return response.data.data[0]; // Return the first user from the data array
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get user profile error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid query parameters provided");
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("User not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch user profile");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -366,6 +424,19 @@ const userSlice = createSlice({
         state.error = action.payload as string;
         toast.error(action.payload as string);
       })
+      .addCase(getUserProfile.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getUserProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.selectedUser = action.payload;
+      })
+      .addCase(getUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      });
   },
 });
 

@@ -65,8 +65,14 @@ const ViewLeadDetails = () => {
         label: update.status_name || `Update ${index + 1}`,
         timestamp: `${update.update_date} ${update.update_time}`,
         status: update.status_id && lead.status_id && update.status_id <= lead.status_id ? "completed" : "pending",
-        description: update.feedback || `Update for ${lead.interested_project_name}`,
+        description: update.feedback,
+        nextAction:update.next_action,
         current: update.status_id === lead.status_id,
+        updatedEmpType:update.updated_by_emp_type,
+        updatedEmpId:update.updated_by_emp_id,
+        updatedEmpPhone:update.updated_emp_phone,
+        updatedEmpName:update.updated_by_emp_name,
+        
       }))
     : [ ];
 

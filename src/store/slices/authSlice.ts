@@ -80,7 +80,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
-     localStorage.removeItem("token");
+      localStorage.removeItem("token");
       localStorage.removeItem("name");
       localStorage.removeItem("userType");
       localStorage.removeItem("email");
