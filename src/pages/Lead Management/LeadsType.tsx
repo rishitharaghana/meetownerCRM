@@ -46,30 +46,46 @@ const LeadsType: React.FC = () => {
       item.status === statusId
   );
 
-  const leadsParams = useMemo(() => {
-    if (!isAuthenticated || !user?.id || !user?.user_type || statusId < 0) {
+   const leadsParams = useMemo(() => {
+    if (
+      !isAuthenticated ||
+      !user?.id ||
+      !user?.user_type ||
+      statusId < 0 ||
+      (!isBuilder && (!user?.created_user_id || !user?.created_user_type))
+    ) {
       return null;
     }
-    return {
-      lead_added_user_type: user.user_type,
-      lead_added_user_id: user.id,
+
+    const params = {
+      lead_added_user_id: isBuilder ? user.id : user.created_user_id,
+      lead_added_user_type: isBuilder ? user.user_type : "2",
       status_id: statusId,
-      ...(isBuilder ? {} : {
+    };
+
+    if (!isBuilder) {
+      return {
+        ...params,
         assigned_user_type: user.user_type,
         assigned_id: user.id,
-      }),
-    };
+      };
+    }
+
+    return params;
   }, [isAuthenticated, user, statusId, isBuilder]);
 
   useEffect(() => {
     if (leadsParams) {
-      dispatch(getLeadsByUser(leadsParams)).unwrap();
+      dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
+        toast.error(err || "Failed to fetch leads");
+      });
     } else if (isAuthenticated && user) {
       toast.error("Invalid user data for fetching leads");
       console.warn("Invalid user data:", {
         id: user.id,
         user_type: user.user_type,
         created_user_id: user.created_user_id,
+        created_user_type: "2",
         statusId,
       });
     }
@@ -77,6 +93,7 @@ const LeadsType: React.FC = () => {
       dispatch(clearLeads());
     };
   }, [leadsParams, dispatch, statusUpdated]);
+
 
   const filteredLeads = leads?.filter((item) => {
     if (!searchQuery) return true;
