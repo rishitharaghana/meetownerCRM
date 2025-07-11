@@ -239,7 +239,7 @@ const LeadForm: React.FC = () => {
       leadData.assigned_emp_number = selectedChannelPartner?.label.split(" - ")[1] || "";
     }
 
-    console.log(leadData);
+    
 
     
     const result = await dispatch(insertLead(leadData)).unwrap();
