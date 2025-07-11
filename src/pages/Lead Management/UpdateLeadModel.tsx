@@ -1,37 +1,29 @@
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
-import { getUsersByType } from "../../store/slices/userslice";
-import { assignLeadToEmployee, getLeadStatuses, } from "../../store/slices/leadslice";
+import { getLeadStatuses, updateLeadByEmployee } from "../../store/slices/leadslice";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
-import { User as UserType } from "../../types/UserModel";
 import { LeadStatus } from "../../types/LeadModel";
 
-interface AssignLeadModalProps {
+interface UpdateLeadModalProps {
   leadId: number;
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
 
-const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSubmit }) => {
+const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSubmit }) => {
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
   const { leadStatuses, loading: statusesLoading, error: statusesError } = useSelector(
     (state: RootState) => state.lead
   );
 
   const [formData, setFormData] = useState({
-    assigned_user_type: "",
-    assigned_id: "",
-    assigned_name: "",
-    assigned_emp_number: "",
-    assigned_priority: "",
-    status_id: "",
-    followup_feedback: "",
+    follow_up_feedback: "",
     next_action: "",
+    status_id: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -39,57 +31,29 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
-  const userTypeOptions = [
-    { value: "3", label: "Channel Partner" },
-    { value: "4", label: "Sales Manager" },
-    { value: "5", label: "Telecallers" },
-    { value: "6", label: "Marketing Executors" },
-    { value: "7", label: "Receptionists" },
-  ];
-
-  const priorityOptions = [
-    { value: "High", label: "High" },
-    { value: "Medium", label: "Medium" },
-    { value: "Low", label: "Low" },
-  ];
-
   const statusOptions = leadStatuses?.map((status: LeadStatus) => ({
     value: status.status_id.toString(),
     label: status.status_name,
   })) || [];
 
   useEffect(() => {
-    if (user?.id && formData.assigned_user_type) {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: parseInt(formData.assigned_user_type) }));
-    }
     dispatch(getLeadStatuses());
-  }, [formData.assigned_user_type, user?.id, dispatch]);
+  }, [dispatch]);
 
   const handleInputChange = (field: keyof typeof formData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
-    if (field === "assigned_id") {
-      const selectedUser = users?.find((user: UserType) => user.id.toString() === value);
-      setFormData((prev) => ({
-        ...prev,
-        assigned_name: selectedUser ? selectedUser.name : "",
-        assigned_emp_number: selectedUser ? selectedUser.mobile : "",
-      }));
-    }
-
     if (errors[field]) {
-      // setErrors((prev) => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.assigned_user_type) newErrors.assigned_user_type = "Employee type is required";
-    if (!formData.assigned_id) newErrors.assigned_id = "Employee is required";
-    if (!formData.assigned_priority) newErrors.assigned_priority = "Priority is required";
-    if (!formData.followup_feedback.trim()) newErrors.followup_feedback = "Follow-up feedback is required";
+    if (!formData.status_id) newErrors.status_id = "Status is required";
+    if (!formData.follow_up_feedback.trim()) newErrors.follow_up_feedback = "Follow-up feedback is required";
     if (!formData.next_action.trim()) newErrors.next_action = "Next action is required";
- 
+
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -98,6 +62,11 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
     e.preventDefault();
     if (!validateForm()) return;
 
+    if (!user?.id || !user?.user_type || !user?.name || !user?.mobile) {
+      setSubmitError("User information is missing. Please log in again.");
+      return;
+    }
+
     setIsSubmitting(true);
     setSubmitError(null);
     setSubmitSuccess(null);
@@ -105,38 +74,33 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
     try {
       const submitData = {
         lead_id: leadId,
-        assigned_user_type: parseInt(formData.assigned_user_type),
-        assigned_id: parseInt(formData.assigned_id),
-        assigned_name: formData.assigned_name,
-        assigned_emp_number: formData.assigned_emp_number,
-        assigned_priority: formData.assigned_priority,
-        followup_feedback: formData.followup_feedback,
+        follow_up_feedback: formData.follow_up_feedback,
         next_action: formData.next_action,
-        lead_added_user_type: user?.user_type || 0,
-        lead_added_user_id: user?.id || 0, 
-        status_id: formData.status_id ? parseInt(formData.status_id) : undefined, 
+        status_id: parseInt(formData.status_id),
+        updated_by_emp_type: user.user_type,
+        updated_by_emp_id: user.id,
+        updated_by_emp_name: user.name,
+        updated_emp_phone: user.mobile,
+        lead_added_user_type: 2,
+        lead_added_user_id: parseInt(user.created_user_id) ,
       };
+      console.log(submitData);
 
-      const result = await dispatch(assignLeadToEmployee(submitData)).unwrap();
-      setSubmitSuccess(`Lead assigned successfully! Lead ID: ${result.data?.lead_id}`);
+      const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
+      setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
       onSubmit(submitData);
       onClose();
     } catch (error: any) {
-      setSubmitError(error.message || "Failed to assign lead. Please try again.");
+      setSubmitError(error.message || "Failed to update lead. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const userOptions = users?.map((user: UserType) => ({
-    value: user.id.toString(),
-    label: `${user.name} - ${user.mobile}`,
-  })) || [];
-
   return (
     <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 className="text-xl font-semibold mb-4">Assign Lead</h2>
+        <h2 className="text-xl font-semibold mb-4">Update Lead</h2>
         {submitSuccess && (
           <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-md">
             {submitSuccess}
@@ -154,35 +118,11 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
         )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Select
-            label="Employee Type"
-            options={userTypeOptions}
-            value={formData.assigned_user_type}
-            onChange={handleInputChange("assigned_user_type")}
-            placeholder={usersLoading ? "Loading types..." : "Select employee type"}
-            error={errors.assigned_user_type}
-          />
-          <Select
-            label="Employee"
-            options={userOptions}
-            value={formData.assigned_id}
-            onChange={handleInputChange("assigned_id")}
-            placeholder={usersLoading ? "Loading employees..." : "Select employee"}
-            error={errors.assigned_id}
-          />
-          <Select
-            label="Priority"
-            options={priorityOptions}
-            value={formData.assigned_priority}
-            onChange={handleInputChange("assigned_priority")}
-            placeholder="Select priority"
-            error={errors.assigned_priority}
-          />
-          <Select
-            label="Status (Optional)"
+            label="Status"
             options={statusOptions}
             value={formData.status_id}
             onChange={handleInputChange("status_id")}
-            placeholder={statusesLoading ? "Loading statuses..." : "Select status (optional)"}
+            placeholder={statusesLoading ? "Loading statuses..." : "Select status"}
             error={errors.status_id}
           />
           <div className="space-y-1">
@@ -191,13 +131,13 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
             </label>
             <Input
               type="text"
-              value={formData.followup_feedback}
-              onChange={(e) => handleInputChange("followup_feedback")(e.target.value)}
+              value={formData.follow_up_feedback}
+              onChange={(e) => handleInputChange("follow_up_feedback")(e.target.value)}
               placeholder="Enter follow-up feedback"
-              className={errors.followup_feedback ? "border-red-500" : ""}
+              className={errors.follow_up_feedback ? "border-red-500" : ""}
             />
-            {errors.followup_feedback && (
-              <p className="text-red-500 text-sm mt-1">{errors.followup_feedback}</p>
+            {errors.follow_up_feedback && (
+              <p className="text-red-500 text-sm mt-1">{errors.follow_up_feedback}</p>
             )}
           </div>
           <div className="space-y-1">
@@ -222,12 +162,12 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
             <Button
               variant="primary"
               type="submit"
-              disabled={isSubmitting || usersLoading || statusesLoading}
+              disabled={isSubmitting || statusesLoading}
             >
-              {isSubmitting || usersLoading || statusesLoading ? (
+              {isSubmitting || statusesLoading ? (
                 <div className="flex items-center justify-center gap-2">
                   <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Assigning Lead...
+                  Updating Lead...
                 </div>
               ) : (
                 "Submit"
@@ -240,4 +180,4 @@ const AssignLeadModal: React.FC<AssignLeadModalProps> = ({ leadId, onClose, onSu
   );
 };
 
-export default AssignLeadModal;
+export default UpdateLeadModal;

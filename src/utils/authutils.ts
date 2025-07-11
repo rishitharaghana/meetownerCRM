@@ -48,7 +48,7 @@ export const initializeAuthState = (): AuthState => {
         gst_number: gst_number || "",
         rera_number: rera_number || "",
         created_by: created_by || "",
-        created_user_id: created_user_id ? parseInt(created_user_id) || null : null, 
+        created_user_id: created_user_id ? parseInt(created_user_id) : null, 
         company_name: company_name || "",
         company_number: company_number || "",
         company_address: company_address || "",

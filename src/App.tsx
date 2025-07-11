@@ -29,6 +29,7 @@ import { isTokenExpired } from "./store/slices/authSlice";
 import PartnerProfile from "./pages/Channel Partners/ChannelPartnerProfileScreen";
 import CreateEmployee from "./pages/Employee Management/CreateEmployee";
 import AllLeadDetails from "./pages/Lead Management/AllLeadDetails";
+import AssignLeadEmployeePage from "./pages/Lead Management/AssignLeadToEmployee";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -49,8 +50,9 @@ export default function App() {
               <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
               <Route path="/leads/addlead" element={<AddNewLead />} />
               <Route path="/leads/view" element={<ViewLeadDetails />} />
-
+            
               <Route path="/lead/allLeads" element={<AllLeadDetails/>}/>
+              <Route path="/leads/assign/:leadId" element={<AssignLeadEmployeePage/>}/>
             
              
               <Route path="/partners" element={<PartnerScreen />} />

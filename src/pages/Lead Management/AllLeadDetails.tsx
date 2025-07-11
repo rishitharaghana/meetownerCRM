@@ -16,7 +16,7 @@ import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
 import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
-import AssignLeadModal from "./AssignLeadModal";
+import AssignLeadModal from "./AssignLeadToEmployee";
 
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },

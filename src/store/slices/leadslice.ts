@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse, BookingDoneResponse } from "../../types/LeadModel";
+import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse, BookingDoneResponse, UpdateLeadByEmployeeResponse } from "../../types/LeadModel";
 
 const initialState: LeadState = {
   leads: null,
@@ -514,6 +514,68 @@ export const markLeadAsBooked = createAsyncThunk<
   }
 );
 
+export const updateLeadByEmployee = createAsyncThunk<
+  UpdateLeadByEmployeeResponse,
+  {
+    lead_id: number;
+    follow_up_feedback: string;
+    next_action: string;
+    status_id: number;
+    updated_by_emp_type: number;
+    updated_by_emp_id: number;
+    updated_by_emp_name: string;
+    updated_emp_phone: string;
+    lead_added_user_type: number;
+    lead_added_user_id: number;
+  },
+  { rejectValue: string }
+>(
+  "lead/updateLeadByEmployee",
+  async (updateData, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.post<UpdateLeadByEmployeeResponse>(
+        `/api/v1/leads/updateLeadByEmployee`,
+        updateData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.data.status !== "success") {
+        return rejectWithValue(response.data.message || "Failed to update lead");
+      }
+
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Update lead by employee error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 400:
+            return rejectWithValue("Invalid lead data provided");
+          case 404:
+            return rejectWithValue("Lead not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to update lead");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 
 const leadSlice = createSlice({
   name: "lead",
@@ -632,6 +694,17 @@ const leadSlice = createSlice({
         
       })
       .addCase(markLeadAsBooked.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+      .addCase(updateLeadByEmployee.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(updateLeadByEmployee.fulfilled, (state) => {
+        state.loading = false;
+      })
+      .addCase(updateLeadByEmployee.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });

@@ -110,3 +110,8 @@ export interface BookingDoneResponse {
   lead_id: number;
 }
 
+
+export interface UpdateLeadByEmployeeResponse {
+  status: string;
+  message: string;
+}

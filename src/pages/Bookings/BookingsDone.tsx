@@ -14,21 +14,16 @@ import {
 import Button from "../../components/ui/button/Button";
 
 import { RootState, AppDispatch } from "../../store/store";
-import { Lead } from "../../types/LeadModel";
 import { clearLeads, getBookedLeads, } from "../../store/slices/leadslice";
 
 
 
 const LeadsType: React.FC = () => {
-  const [dropdownOpen, setDropdownOpen] = useState<string | null>(null);
+ 
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [initialSearch, setInitialSearch] = useState<string>("");
-
   const searchInputRef = useRef<HTMLInputElement>(null);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
-  const navigate = useNavigate();
   const location = useLocation();
  
 
@@ -117,10 +112,7 @@ const LeadsType: React.FC = () => {
   }, [initialSearch]);
 
   
-  const handleDelete = (lead_id: number) => {
-    console.log(`Delete lead: ${lead_id}`);
-    setDropdownOpen(null);
-  };
+ 
 
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
@@ -152,9 +144,7 @@ const LeadsType: React.FC = () => {
  
 
 
-  const handleViewHistory = (item: Lead) => {
-    navigate("/leads/view", { state: { property: item } });
-  };
+ 
 
   return (
     <div className="relative min-h-screen">
@@ -230,12 +220,7 @@ const LeadsType: React.FC = () => {
                       >
                         Lead Type
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Actions
-                      </TableCell>
+                     
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -269,75 +254,13 @@ const LeadsType: React.FC = () => {
                         >
                           {item.interested_project_name || "N/A"}
                         </TableCell>
+                        
                         <TableCell
                           className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
                         >
-                          {item.status_name || "N/A"}
+                          {item.status_id || "N/A"}
                         </TableCell>
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]"
-                        >
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                            onClick={() =>
-                              setDropdownOpen(
-                                dropdownOpen === item.lead_id.toString()
-                                  ? null
-                                  : item.lead_id.toString()
-                              )
-                            }
-                          >
-                            <svg
-                              className="w-5 h-5 text-gray-500 dark:text-gray-400"
-                              fill="currentColor"
-                              viewBox="0 0 20 20"
-                            >
-                              <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
-                          </Button>
-                          {dropdownOpen === item.lead_id.toString() && (
-                            <div
-                              ref={dropdownRef}
-                              className="absolute top-full right-0 mt-2 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 z-20"
-                            >
-                              <ul className="py-2">
-                                <li>
-                                  <button
-                                    // onClick={() => handleLeadAssign(item)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    Lead Assign
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    onClick={() => handleViewHistory(item)}
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    View History
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-                                  >
-                                    Bookings Done
-                                  </button>
-                                </li>
-                                <li>
-                                  <button
-                                    onClick={() => handleDelete(item.lead_id)}
-                                    className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
-                                  >
-                                    Delete
-                                  </button>
-                                </li>
-                              </ul>
-                            </div>
-                          )}
-                        </TableCell>
+
                       </TableRow>
                     ))}
                   </TableBody>
