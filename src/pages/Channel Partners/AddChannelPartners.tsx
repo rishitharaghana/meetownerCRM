@@ -17,6 +17,7 @@ import PhoneInput from "../../components/form/group-input/PhoneInput";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import toast from "react-hot-toast";
 import Dropdown from "../../components/form/Dropdown";
+import { useNavigate } from "react-router";
 
 interface FormData {
   name: string;
@@ -45,8 +46,10 @@ interface Errors {
 
 const AddChannelPartner = () => {
   const dispatch = useDispatch<AppDispatch>();
+   const navigate = useNavigate();
   const { cities, states } = useSelector((state: RootState) => state.property);
   const { loading, error } = useSelector((state: RootState) => state.user);
+     const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -72,6 +75,20 @@ const AddChannelPartner = () => {
   const [showPassword, setShowPassword] = useState(false);
   const { citiesQuery, statesQuery } = usePropertyQueries();
 
+
+   useEffect(() => {
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+      toast.error('Please log in to access this page');
+      return;
+    }
+
+    if (user.user_type !== 2) {
+      navigate('/'); 
+      toast.error('Access denied: Only builders can create employees');
+    }
+  }, [isAuthenticated, user, navigate]);
+  
   useEffect(() => {
     if (citiesQuery.isError) {
       toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || "Unknown error"}`);

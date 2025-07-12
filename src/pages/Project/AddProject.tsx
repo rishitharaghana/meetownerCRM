@@ -10,6 +10,7 @@ import DatePicker from '../../components/form/date-picker';
 import toast from 'react-hot-toast';
 import Select from '../../components/form/Select';
 import { usePropertyQueries } from '../../hooks/PropertyQueries';
+import { useNavigate } from 'react-router';
 
 interface SelectOption {
   value: string;
@@ -85,7 +86,8 @@ interface Errors {
 export default function AddProject() {
   const dispatch = useDispatch<AppDispatch>();
   const { cities, states } = useSelector((state: RootState) => state.property);
-  const { user } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
     state: '',
@@ -125,6 +127,19 @@ export default function AddProject() {
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const { citiesQuery, statesQuery } = usePropertyQueries();
+
+  useEffect(() => {
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+      toast.error('Please log in to access this page');
+      return;
+    }
+
+    if (user.user_type !== 2) {
+      navigate('/'); 
+      toast.error('Access denied: Only builders can create employees');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (citiesQuery.isError) {

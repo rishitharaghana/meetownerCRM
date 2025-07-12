@@ -108,6 +108,7 @@ export interface BookingDoneResponse {
   status: string;
   message: string;
   lead_id: number;
+  booked_id:number;
 }
 
 

@@ -25,6 +25,7 @@ const LeadsType: React.FC = () => {
   const [initialSearch, setInitialSearch] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
+  
  
 
   const dispatch = useDispatch<AppDispatch>();

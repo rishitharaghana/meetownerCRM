@@ -1,30 +1,31 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
-import { useNavigate, useParams } from "react-router";
-import { useSelector, useDispatch } from "react-redux";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import PageMeta from "../../components/common/PageMeta";
+import React, { useState, useRef, useEffect, useMemo } from 'react';
+import { createPortal } from 'react-dom';
+import { useNavigate, useParams } from 'react-router';
+import { useSelector, useDispatch } from 'react-redux';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import PageMeta from '../../components/common/PageMeta';
 import {
   Table,
   TableBody,
   TableCell,
   TableHeader,
   TableRow,
-} from "../../components/ui/table";
-import Button from "../../components/ui/button/Button";
-import { RootState, AppDispatch } from "../../store/store";
-import { Lead } from "../../types/LeadModel";
-import { clearLeads, getLeadsByUser, markLeadAsBooked } from "../../store/slices/leadslice";
-import toast from "react-hot-toast";
-
-import { BUILDER_USER_TYPE, renderDropdown,  sidebarSubItems } from "./CustomComponents";
-import UpdateLeadModal from "./UpdateLeadModel";
+} from '../../components/ui/table';
+import Button from '../../components/ui/button/Button';
+import { RootState, AppDispatch } from '../../store/store';
+import { Lead } from '../../types/LeadModel';
+import { clearLeads, getLeadsByUser } from '../../store/slices/leadslice';
+import toast from 'react-hot-toast';
+import { BUILDER_USER_TYPE, renderDropdown, sidebarSubItems } from './CustomComponents';
+import UpdateLeadModal from './UpdateLeadModel';
+import MarkBookedModal from './MarkBookingDoneModal';
 
 const LeadsType: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
   const [localPage, setLocalPage] = useState<number>(1);
-  const [searchQuery, setSearchQuery] = useState<string>("");
+  const [searchQuery, setSearchQuery] = useState<string>('');
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
+  const [isMarkBookedModalOpen, setIsMarkBookedModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
 
@@ -38,7 +39,7 @@ const LeadsType: React.FC = () => {
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
 
   const itemsPerPage = 10;
-  const statusId = parseInt(status || "0", 10);
+  const statusId = parseInt(status || '0', 10);
 
   const sidebarItem = sidebarSubItems.find(
     (item) =>
@@ -46,46 +47,45 @@ const LeadsType: React.FC = () => {
       item.status === statusId
   );
 
-   const leadsParams = useMemo(() => {
-  if (
-    !isAuthenticated ||
-    !user?.id ||
-    !user?.user_type ||
-    statusId < 0 ||
-    (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
-  ) {
-    return null;
-  }
+  const leadsParams = useMemo(() => {
+    if (
+      !isAuthenticated ||
+      !user?.id ||
+      !user?.user_type ||
+      statusId < 0 ||
+      (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
+    ) {
+      return null;
+    }
 
-  const params = {
-    lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
-    lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
-    status_id: statusId,
-  };
-
-  if (!isBuilder) {
-    return {
-      ...params,
-      assigned_user_type: user.user_type,
-      assigned_id: user.id,
+    const params = {
+      lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
+      lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
+      status_id: statusId,
     };
-  }
 
-  return params;
-}, [isAuthenticated, user, statusId, isBuilder]);
+    if (!isBuilder) {
+      return {
+        ...params,
+        assigned_user_type: user.user_type,
+        assigned_id: user.id,
+      };
+    }
+
+    return params;
+  }, [isAuthenticated, user, statusId, isBuilder]);
 
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        // toast.error(err || "Failed to fetch leads");
+        // toast.error(err || 'Failed to fetch leads');
       });
     } else if (isAuthenticated && user) {
-      // toast.error("Invalid user data for fetching leads");
-      console.warn("Invalid user data:", {
+      console.warn('Invalid user data:', {
         id: user.id,
         user_type: user.user_type,
         created_user_id: user.created_user_id,
-        created_user_type: "2",
+        created_user_type: user.created_user_type,
         statusId,
       });
     }
@@ -93,7 +93,6 @@ const LeadsType: React.FC = () => {
       dispatch(clearLeads());
     };
   }, [leadsParams, dispatch, statusUpdated]);
-
 
   const filteredLeads = leads?.filter((item) => {
     if (!searchQuery) return true;
@@ -123,11 +122,11 @@ const LeadsType: React.FC = () => {
         setDropdownOpen(null);
       }
     };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  const getPageTitle = () => sidebarItem?.name || "Leads";
+  const getPageTitle = () => sidebarItem?.name || 'Leads';
 
   const handleSearch = (value: string) => setSearchQuery(value.trim());
 
@@ -141,16 +140,18 @@ const LeadsType: React.FC = () => {
     const totalVisiblePages = 7;
     let startPage = Math.max(1, localPage - Math.floor(totalVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
-    if (endPage - startPage + 1 < totalVisiblePages) startPage = Math.max(1, endPage - totalVisiblePages + 1);
+    if (endPage - startPage + 1 < totalVisiblePages) {
+      startPage = Math.max(1, endPage - totalVisiblePages + 1);
+    }
     if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push("...");
+    if (startPage > 2) pages.push('...');
     for (let i = startPage; i <= endPage; i++) pages.push(i);
-    if (endPage < totalPages - 1) pages.push("...");
+    if (endPage < totalPages - 1) pages.push('...');
     if (endPage < totalPages) pages.push(totalPages);
     return pages;
   };
 
-  const handleViewHistory = (item: Lead) => navigate("/leads/view", { state: { property: item } });
+  const handleViewHistory = (item: Lead) => navigate('/leads/view', { state: { property: item } });
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
@@ -164,28 +165,20 @@ const LeadsType: React.FC = () => {
   };
 
   const handleMarkAsBooked = (leadId: number) => {
-    if (isAuthenticated && user?.id) {
-      dispatch(
-        markLeadAsBooked({
-          lead_id: leadId,
-          lead_added_user_type: user.user_type,
-          lead_added_user_id: user.id,
-        })
-      )
-        .unwrap()
-        .then(() => {
-          const params = {
-            lead_added_user_type: user.user_type,
-            lead_added_user_id: user.id,
-            status_id: statusId,
-          };
-          dispatch(getLeadsByUser(params));
-        })
-        .catch((error) => {
-          toast.error(error || "Failed to mark lead as booked");
-        });
+    const lead = currentLeads.find((item) => item.lead_id === leadId);
+    if (lead) {
+      setSelectedLeadId(leadId);
+      setIsMarkBookedModalOpen(true);
+      setDropdownOpen(null);
+    } else {
+      toast.error('Lead not found');
     }
-    setDropdownOpen(null);
+  };
+
+  const handleMarkBookedSubmit = () => {
+    setStatusUpdated(!statusUpdated);
+    setIsMarkBookedModalOpen(false);
+    setSelectedLeadId(null);
   };
 
   const handleUpdateLead = (leadId: number) => {
@@ -194,8 +187,8 @@ const LeadsType: React.FC = () => {
     setDropdownOpen(null);
   };
 
-  const handleDelete = (lead_id: number) => {
-    console.log(`Delete lead: ${lead_id}`);
+  const handleDelete = (leadId: number) => {
+    console.log(`Delete lead: ${leadId}`);
     setDropdownOpen(null);
   };
 
@@ -225,7 +218,7 @@ const LeadsType: React.FC = () => {
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
                       Customer Name
                     </TableCell>
-                   <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
                       Customer Number
                     </TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
@@ -252,19 +245,19 @@ const LeadsType: React.FC = () => {
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.customer_name || "N/A"}
+                        {item.customer_name || 'N/A'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.customer_phone_number || "N/A"}
+                        {item.customer_phone_number || 'N/A'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.customer_email || "N/A"}
+                        {item.customer_email || 'N/A'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.interested_project_name || "N/A"}
+                        {item.interested_project_name || 'N/A'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.status_name || "N/A"}
+                        {item.status_name || 'N/A'}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
                         <Button
@@ -299,12 +292,12 @@ const LeadsType: React.FC = () => {
         {filteredLeads.length > itemsPerPage && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
+              Showing {(localPage - 1) * itemsPerPage + 1} to{' '}
               {Math.min(localPage * itemsPerPage, filteredLeads.length)} of {filteredLeads.length} entries
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
               <Button
-                variant={localPage === 1 ? "outline" : "primary"}
+                variant={localPage === 1 ? 'outline' : 'primary'}
                 size="sm"
                 onClick={goToPreviousPage}
                 disabled={localPage === 1}
@@ -314,16 +307,16 @@ const LeadsType: React.FC = () => {
               {getPaginationItems().map((page, index) => (
                 <Button
                   key={`${page}-${index}`}
-                  variant={page === localPage ? "primary" : "outline"}
+                  variant={page === localPage ? 'primary' : 'outline'}
                   size="sm"
-                  onClick={() => typeof page === "number" && goToPage(page)}
-                  disabled={page === "..."}
+                  onClick={() => typeof page === 'number' && goToPage(page)}
+                  disabled={page === '...'}
                 >
                   {page}
                 </Button>
               ))}
               <Button
-                variant={localPage === totalPages ? "outline" : "primary"}
+                variant={localPage === totalPages ? 'outline' : 'primary'}
                 size="sm"
                 onClick={goToNextPage}
                 disabled={localPage === totalPages}
@@ -355,6 +348,18 @@ const LeadsType: React.FC = () => {
           leadId={selectedLeadId}
           onClose={() => setIsUpdateModalOpen(false)}
           onSubmit={handleUpdateModalSubmit}
+        />
+      )}
+      {isMarkBookedModalOpen && selectedLeadId && (
+        <MarkBookedModal
+          leadId={selectedLeadId}
+          leadAddedUserId={isBuilder ? user!.id : user!.created_user_id!}
+          leadAddedUserType={isBuilder ? user!.user_type : Number(user!.created_user_type)}
+          propertyId={
+            currentLeads.find((item) => item.lead_id === selectedLeadId)?.interested_project_id || 2
+          }
+          onClose={() => setIsMarkBookedModalOpen(false)}
+          onSubmit={handleMarkBookedSubmit}
         />
       )}
     </div>

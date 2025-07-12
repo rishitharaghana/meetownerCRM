@@ -18,6 +18,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 
 import toast from "react-hot-toast";
 import { insertUser } from "../../store/slices/userslice";
+import { useNavigate } from "react-router";
 
 interface FormData {
   name: string;
@@ -49,9 +50,11 @@ interface Errors {
 
 const CreateEmployee = () => {
   const dispatch = useDispatch<AppDispatch>();
+   const navigate = useNavigate();
   const { cities, states } = useSelector((state: RootState) => state.property);
   const { loading,  } = useSelector((state: RootState) => state.user); 
   const { citiesQuery, statesQuery } = usePropertyQueries();
+    const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -69,6 +72,19 @@ const CreateEmployee = () => {
 
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
+
+   useEffect(() => {
+    if (!isAuthenticated || !user) {
+      navigate('/login');
+      toast.error('Please log in to access this page');
+      return;
+    }
+
+    if (user.user_type !== 2) {
+      navigate('/'); 
+      toast.error('Access denied: Only builders can create employees');
+    }
+  }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (citiesQuery.isError) {

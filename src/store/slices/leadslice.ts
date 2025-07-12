@@ -459,25 +459,53 @@ export const markLeadAsBooked = createAsyncThunk<
     lead_id: number;
     lead_added_user_type: number;
     lead_added_user_id: number;
+    property_id: number;
+    flat_number: string;
+    floor_number: string;
+    block_number: string;
+    asset: string;
+    sqft: string;
+    budget: string;
   },
   { rejectValue: string }
 >(
-  "lead/markLeadAsBooked",
-  async ({ lead_id, lead_added_user_type, lead_added_user_id }, { rejectWithValue }) => {
+  'lead/markLeadAsBooked',
+  async (
+    {
+      lead_id,
+      lead_added_user_type,
+      lead_added_user_id,
+      property_id,
+      flat_number,
+      floor_number,
+      block_number,
+      asset,
+      sqft,
+      budget,
+    },
+    { rejectWithValue }
+  ) => {
     try {
-      const token = localStorage.getItem("token");
+      const token = localStorage.getItem('token');
       if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
+        return rejectWithValue('No authentication token found. Please log in.');
       }
 
       const payload = {
         lead_id,
         lead_added_user_type,
         lead_added_user_id,
+        property_id,
+        flat_number,
+        floor_number,
+        block_number,
+        asset,
+        sqft,
+        budget,
       };
 
       const response = await ngrokAxiosInstance.post<BookingDoneResponse>(
-        `/api/v1/leads/bookingdone`,
+        '/api/v1/leads/bookingdone',
         payload,
         {
           headers: {
@@ -486,30 +514,30 @@ export const markLeadAsBooked = createAsyncThunk<
         }
       );
 
-      if (response.data.status !== "success") {
-        return rejectWithValue(response.data.message || "Failed to mark lead as booked");
+      if (response.data.status !== 'success') {
+        return rejectWithValue(response.data.message || 'Failed to mark lead as booked');
       }
 
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Mark lead as booked error:", axiosError);
+      console.error('Mark lead as booked error:', axiosError);
       if (axiosError.response) {
         const status = axiosError.response.status;
         switch (status) {
           case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
+            return rejectWithValue('Unauthorized: Invalid or expired token');
           case 400:
-            return rejectWithValue("Invalid lead data provided");
+            return rejectWithValue(axiosError.response.data?.message || 'Invalid lead or booking data provided');
           case 404:
-            return rejectWithValue("Lead not found");
+            return rejectWithValue(axiosError.response.data?.message || 'Lead not found');
           case 500:
-            return rejectWithValue("Server error. Please try again later.");
+            return rejectWithValue('Server error. Please try again later.');
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to mark lead as booked");
+            return rejectWithValue(axiosError.response.data?.message || 'Failed to mark lead as booked');
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue('Network error. Please check your connection and try again.');
     }
   }
 );

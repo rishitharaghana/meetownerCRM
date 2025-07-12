@@ -81,8 +81,8 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
         updated_by_emp_id: user.id,
         updated_by_emp_name: user.name,
         updated_emp_phone: user.mobile,
-        lead_added_user_type: 2,
-        lead_added_user_id: parseInt(user.created_user_id) ,
+        lead_added_user_type: user.created_user_type,
+        lead_added_user_id: user.created_user_id,
       };
       console.log(submitData);
 
