@@ -6,7 +6,7 @@ import PageMeta from "../components/common/PageMeta";
 import UserMetaCard from "../components/UserProfile/UserMetaCard";
 import UserInfoCard from "../components/UserProfile/UserInfoCard";
 import { AppDispatch, RootState } from "../store/store";
-import { getUserProfile } from "../store/slices/userSlice";
+import { getUserProfile } from "../store/slices/userslice";
 
 const BUILDER_USER_TYPE = 2; 
 
