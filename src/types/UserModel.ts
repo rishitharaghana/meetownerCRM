@@ -37,6 +37,7 @@ export interface User {
   rera_number: string;
   created_by: string;
   created_user_id: number | null;
+  created_user_type:number | null;
   company_name: string;
   company_number: string;
   company_address: string;
@@ -54,6 +55,7 @@ export interface LoginResponse {
 
 
 export interface ErrorResponse {
+  error?: string;
   message?: string;
 }
 

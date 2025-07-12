@@ -1,15 +1,10 @@
-
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import { jwtDecode } from "jwt-decode";
-import { AuthState, LoginRequest, LoginResponse, } from "../../types/UserModel";
+import { AuthState, LoginRequest, LoginResponse } from "../../types/UserModel";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse } from "react-router";
-
-
-
-
+import { ErrorResponse } from "../../types/UserModel";
 
 interface DecodedToken {
   exp: number;
@@ -21,7 +16,7 @@ export const loginUser = createAsyncThunk(
   async (credentials: LoginRequest, { rejectWithValue }) => {
     try {
       const promise = ngrokAxiosInstance.post<LoginResponse>(
-        "/api/v1/login", 
+        "/api/v1/login",
         credentials
       );
 
@@ -39,17 +34,17 @@ export const loginUser = createAsyncThunk(
 
       if (axiosError.response) {
         const status = axiosError.response.status;
+        const errorMessage = axiosError.response.data?.error || axiosError.response.data?.message;
+
         switch (status) {
           case 401:
-            return rejectWithValue("Invalid mobile number or password");
+            return rejectWithValue(errorMessage || "Invalid mobile number or password");
           case 404:
-            return rejectWithValue("Login service not found (404). Please try again later.");
+            return rejectWithValue(errorMessage || "Login service not found (404). Please try again later.");
           case 500:
-            return rejectWithValue("Server error. Please try again later.");
+            return rejectWithValue(errorMessage || "Server error. Please try again later.");
           default:
-            return rejectWithValue(
-              axiosError.response.data || "An unexpected error occurred"
-            );
+            return rejectWithValue(errorMessage || "An unexpected error occurred");
         }
       }
 
@@ -61,8 +56,6 @@ export const loginUser = createAsyncThunk(
     }
   }
 );
-
-
 
 const authSlice = createSlice({
   name: "auth",
@@ -102,6 +95,7 @@ const authSlice = createSlice({
       localStorage.removeItem("aadhar_number");
       localStorage.removeItem("created_by");
       localStorage.removeItem("created_user_id");
+      localStorage.removeItem("created_user_type");
     },
   },
   extraReducers: (builder) => {
@@ -138,7 +132,7 @@ const authSlice = createSlice({
         localStorage.setItem("aadhar_number", action.payload.user.aadhar_number || "");
         localStorage.setItem("created_by", action.payload.user.created_by || "");
         localStorage.setItem("created_user_id", action.payload.user.created_user_id?.toString() || "");
-    
+        localStorage.setItem("created_user_type", action.payload.user.created_user_type?.toString() || "");
       })
       .addCase(loginUser.rejected, (state, action) => {
         state.loading = false;

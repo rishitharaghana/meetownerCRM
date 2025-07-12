@@ -22,7 +22,7 @@ import toast from "react-hot-toast";
 const userTypeMap: { [key: string]: string } = {
   today_leads: "Today Leads",
   today_follow_ups: "Today Follow-Ups",
-  site_visit_done: "Site Visits",
+  site_visit_done: "Site Visits Done",
   booked: "Bookings",
   projects: "Total Projects",
   "3": "Channel Partner",

@@ -47,40 +47,40 @@ const LeadsType: React.FC = () => {
   );
 
    const leadsParams = useMemo(() => {
-    if (
-      !isAuthenticated ||
-      !user?.id ||
-      !user?.user_type ||
-      statusId < 0 ||
-      (!isBuilder && (!user?.created_user_id || !user?.created_user_type))
-    ) {
-      return null;
-    }
+  if (
+    !isAuthenticated ||
+    !user?.id ||
+    !user?.user_type ||
+    statusId < 0 ||
+    (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
+  ) {
+    return null;
+  }
 
-    const params = {
-      lead_added_user_id: isBuilder ? user.id : user.created_user_id,
-      lead_added_user_type: isBuilder ? user.user_type : "2",
-      status_id: statusId,
+  const params = {
+    lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
+    lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
+    status_id: statusId,
+  };
+
+  if (!isBuilder) {
+    return {
+      ...params,
+      assigned_user_type: user.user_type,
+      assigned_id: user.id,
     };
+  }
 
-    if (!isBuilder) {
-      return {
-        ...params,
-        assigned_user_type: user.user_type,
-        assigned_id: user.id,
-      };
-    }
-
-    return params;
-  }, [isAuthenticated, user, statusId, isBuilder]);
+  return params;
+}, [isAuthenticated, user, statusId, isBuilder]);
 
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        toast.error(err || "Failed to fetch leads");
+        // toast.error(err || "Failed to fetch leads");
       });
     } else if (isAuthenticated && user) {
-      toast.error("Invalid user data for fetching leads");
+      // toast.error("Invalid user data for fetching leads");
       console.warn("Invalid user data:", {
         id: user.id,
         user_type: user.user_type,

@@ -1,26 +1,27 @@
 import React from "react";
 import { CheckCircle, Clock } from "lucide-react";
 
-  const allDesignationOptions = [
-    {value:"3",text:"Channel Partner"},
-    { value: "4", text: "Sales Manager" },
-    { value: "5", text: "Telecallers" },
-    { value: "6", text: "Marketing Agent" },
-    { value: "7", text: "Receptionists" },
-  ];
+const allDesignationOptions = [
+  { value: "1", text: "Admin" }, 
+  { value: "2", text: "Builder" }, // Added for completeness
+  { value: "3", text: "Channel Partner" },
+  { value: "4", text: "Sales Manager" },
+  { value: "5", text: "Telecaller" },
+  { value: "6", text: "Marketing Agent" },
+  { value: "7", text: "Receptionists" },
+];
 
 export interface TimelineEvent {
   label: string;
   timestamp: string;
   status: "completed" | "pending";
   description?: string;
-  nextAction?:string;
+  nextAction?: string;
   current?: boolean;
-  updatedEmpType?:string;
-  updatedEmpId?:string;
-  updatedEmpPhone?:string;
-  updatedEmpName?:string;
-  
+  updatedEmpType?: string | number;
+  updatedEmpId?: string;
+  updatedEmpPhone?: string;
+  updatedEmpName?: string;
 }
 
 const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
@@ -28,11 +29,11 @@ const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
     return <p className="text-sm text-gray-500 dark:text-gray-400">No timeline data available.</p>;
   }
 
-const getDesignation = (empType?: string) => {
-    if (!empType) return "Unknown Designation"; // Fallback for undefined empType
-    const designation = allDesignationOptions.find((emp) => emp.value === empType)?.text;
-    return designation || "Unknown Designation"; // Fallback if no match found
-};
+  const getDesignation = (empType?: string | number) => {
+    if (!empType) return "Unknown Designation"; 
+    const designation = allDesignationOptions.find((emp) => emp.value === empType.toString())?.text;
+    return designation || "Unknown Designation"; 
+  };
 
   return (
     <ol className="relative border-l border-blue-600 dark:border-blue-600">
@@ -57,14 +58,16 @@ const getDesignation = (empType?: string) => {
           {event.description && (
             <p className="text-sm text-gray-600 dark:text-gray-300">{event.description}</p>
           )}
-           {event.nextAction && (
+          {event.nextAction && (
             <p className="text-sm text-gray-600 dark:text-gray-300">{event.nextAction}</p>
           )}
-          {(event.updatedEmpId && event.updatedEmpType) && (
+          {event.updatedEmpType && getDesignation(event.updatedEmpType) !== "Unknown Designation" && (
             <p className="text-sm text-gray-600 dark:text-gray-300">{getDesignation(event.updatedEmpType)}</p>
           )}
-           {(event.updatedEmpName && event.updatedEmpPhone) && (
-            <p className="text-sm text-gray-600 dark:text-gray-300">{event.updatedEmpName} | {event.updatedEmpPhone}</p>
+          {event.updatedEmpName && event.updatedEmpPhone && (
+            <p className="text-sm text-gray-600 dark:text-gray-300">
+              {event.updatedEmpName} | {event.updatedEmpPhone}
+            </p>
           )}
         </li>
       ))}

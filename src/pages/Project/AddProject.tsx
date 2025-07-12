@@ -49,8 +49,8 @@ interface FormData {
   isUpcoming: boolean;
   status: 'Under Construction' | 'Ready to Move';
   launchType: 'Pre Launch' | 'Soft Launch' | 'Launched';
-  launchDate?: string; 
-  possessionEndDate?: string; 
+  launchDate?: string;
+  possessionEndDate?: string;
   isReraRegistered: boolean;
   reraNumber: string;
   otpOptions: string[];
@@ -76,7 +76,7 @@ interface Errors {
   brochure?: string;
   priceSheet?: string;
   launchDate?: string;
-  possessionEndDate?: string; 
+  possessionEndDate?: string;
   isReraRegistered?: string;
   reraNumber?: string;
   otpOptions?: string;
@@ -135,12 +135,6 @@ export default function AddProject() {
     }
   }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
 
-  const localityOptions: Option[] = [
-    { value: 'locality1', text: 'Locality 1' },
-    { value: 'locality2', text: 'Locality 2' },
-    { value: 'locality3', text: 'Locality 3' },
-  ];
-
   const cityOptions: Option[] =
     cities?.map((city: any) => ({
       value: city.value,
@@ -196,15 +190,22 @@ export default function AddProject() {
   ];
 
   const handleDropdownChange =
-    (field: 'state' | 'city' | 'locality' | 'launchType') =>
+    (field: 'state' | 'city' | 'launchType') =>
     (value: string, text: string) => {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
-        ...(field === 'state' && { city: '', locality: '' }),
-        ...(field === 'city' && { locality: '' }),
+        ...(field === 'state' && { city: '', locality: '' }), // Reset locality when state changes
+        ...(field === 'city' && { locality: '' }), // Reset locality when city changes
         ...(field === 'launchType' && value !== 'Launched' && { launchDate: '' }),
       }));
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
+
+  const handleInputChange =
+    (field: 'projectName' | 'builderName' | 'reraNumber' | 'locality') =>
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
@@ -215,13 +216,6 @@ export default function AddProject() {
         [field]: value,
         ...(field === 'propertyType' && { propertySubType: '' }),
       }));
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
-
-  const handleInputChange =
-    (field: 'projectName' | 'builderName' | 'reraNumber') =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
-      setFormData((prev) => ({ ...prev, [field]: e.target.value }));
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     };
 
@@ -470,7 +464,7 @@ export default function AddProject() {
 
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.city) newErrors.city = 'City is required';
-    if (!formData.locality) newErrors.locality = 'Locality is required';
+    if (!formData.locality.trim()) newErrors.locality = 'Locality is required';
     if (!formData.propertyType) newErrors.propertyType = 'Property Type is required';
     if (!formData.propertySubType) newErrors.propertySubType = 'Property Sub Type is required';
     if (!formData.projectName.trim()) newErrors.projectName = 'Project Name is required';
@@ -533,9 +527,6 @@ export default function AddProject() {
         stateOptions.find((option) => option.value === formData.state)?.text || formData.state;
       const cityName =
         cityOptions.find((option) => option.value === formData.city)?.text || formData.city;
-      const localityName =
-        localityOptions.find((option) => option.value === formData.locality)?.text ||
-        formData.locality;
 
       const formDataToSend = new FormData();
       formDataToSend.append('project_name', formData.projectName);
@@ -544,11 +535,11 @@ export default function AddProject() {
       formDataToSend.append('builder_name', formData.builderName);
       formDataToSend.append('state', stateName);
       formDataToSend.append('city', cityName);
-      formDataToSend.append('locality', localityName);
+      formDataToSend.append('locality', formData.locality); // Use text input value directly
       formDataToSend.append('construction_status', formData.status);
       formDataToSend.append('upcoming_project', formData.isUpcoming ? 'Yes' : 'No');
-      formDataToSend.append('posted_by', user?.user_type || '2');
-      formDataToSend.append('user_id', user?.id || '2');
+      formDataToSend.append('posted_by', user?.user_type.toString() || '2');
+      formDataToSend.append('user_id', user?.id.toString() || '2');
       formDataToSend.append('rera_registered', formData.isReraRegistered ? 'Yes' : 'No');
       if (formData.isReraRegistered) {
         formDataToSend.append('rera_number', formData.reraNumber);
@@ -696,16 +687,19 @@ export default function AddProject() {
             />
           </div>
           <div className="min-h-[80px] w-full max-w-md">
-            <Dropdown
+            <Label htmlFor="locality">Locality</Label>
+            <Input
+              type="text"
               id="locality"
-              label="Select Locality"
-              options={localityOptions}
               value={formData.locality}
-              onChange={handleDropdownChange('locality')}
-              placeholder="Search for a locality..."
+              onChange={handleInputChange('locality')}
+              placeholder="Enter locality"
+              className="dark:bg-gray-800"
               disabled={!formData.city}
-              error={errors.locality}
             />
+            {errors.locality && (
+              <p className="text-red-500 text-sm mt-1">{errors.locality}</p>
+            )}
           </div>
           <div className="min-h-[80px]">
             <Label htmlFor="propertyType">Property Type *</Label>
@@ -788,7 +782,6 @@ export default function AddProject() {
               value={formData.launchType}
               onChange={handleDropdownChange('launchType')}
               placeholder="Select launch type..."
-              // error={errors.launchType} // Uncomment if you add launchType to Errors interface
             />
           </div>
           {formData.launchType === 'Launched' && (

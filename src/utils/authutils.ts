@@ -23,6 +23,7 @@ export const initializeAuthState = (): AuthState => {
   const aadhar_number = localStorage.getItem("aadhar_number");
   const created_by = localStorage.getItem("created_by");
   const created_user_id = localStorage.getItem("created_user_id");
+  const created_user_type = localStorage.getItem("created_user_type");
 
   // Check if all required fields are present
   if (token && name && userType && email && mobile && city && state && userId) {
@@ -49,6 +50,7 @@ export const initializeAuthState = (): AuthState => {
         rera_number: rera_number || "",
         created_by: created_by || "",
         created_user_id: created_user_id ? parseInt(created_user_id) : null, 
+        created_user_type:created_user_type ? parseInt(created_user_type) : null,
         company_name: company_name || "",
         company_number: company_number || "",
         company_address: company_address || "",

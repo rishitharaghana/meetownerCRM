@@ -5,7 +5,7 @@ import { Building, Target, Users, User } from "lucide-react";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import { AppDispatch, RootState } from "../../store/store";
-import { fetchAllProjects } from "../../store/slices/projectSlice";
+import { fetchAllProjects, fetchOngoingProjects } from "../../store/slices/projectSlice";
 import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 import { getLeadSources, insertLead } from "../../store/slices/leadslice";
 import { LeadSource } from "../../types/LeadModel";
@@ -53,7 +53,7 @@ const LeadForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
 
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { allProjects, loading: projectsLoading } = useSelector(
+  const { ongoingProjects, loading: projectsLoading } = useSelector(
     (state: RootState) => state.projects
   );
   const { users, loading: usersLoading } = useSelector(
@@ -83,7 +83,7 @@ const LeadForm: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
-      dispatch(fetchAllProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
+      dispatch(fetchOngoingProjects({ admin_user_type: user.user_type, admin_user_id: user.id }));
       dispatch(getLeadSources());
     }
     return () => {
@@ -99,7 +99,7 @@ const LeadForm: React.FC = () => {
     }
   }, [formData.leadSource, isAuthenticated, user, dispatch]);
 
-  const projectOptions = allProjects?.map((project: Project) => ({
+  const projectOptions = ongoingProjects?.map((project: Project) => ({
     value: project.property_id.toString(),
     label: `${project.project_name} - ${project.property_type}`,
   })) || [];

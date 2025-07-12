@@ -105,6 +105,7 @@ const ViewLeadDetails = () => {
             <p><strong>Budget:</strong> {lead.budget || "N/A"}</p>
             <p><strong>Lead Source:</strong> {lead.lead_source_id}</p>
             <p><strong>Created:</strong> {lead.created_date} {lead.created_time}</p>
+           
             <p><strong>Assigned:</strong> {lead.assigned_name} ({lead.assigned_emp_number})</p>
             <p><strong>Status:</strong> {lead.status_name}</p>
           </div>
