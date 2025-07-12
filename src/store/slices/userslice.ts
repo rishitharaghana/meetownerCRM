@@ -2,7 +2,7 @@ import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, UserCount, UserCountResponse, User, UsersResponse, UserState, UpdateUserStatusResponse, UpdateUserStatusRequest } from "../../types/UserModel";
+import { ErrorResponse, UserCount, UserCountResponse, User, UsersResponse, UserState, UpdateUserStatusResponse, UpdateUserStatusRequest, DeleteUserResponse } from "../../types/UserModel";
 
 
 export interface InsertUserRequest {
@@ -349,6 +349,57 @@ export const getUserProfile = createAsyncThunk<
   }
 );
 
+export const deleteUser = createAsyncThunk<
+  DeleteUserResponse,
+  { id: number; created_user_id: number; created_user_type: number },
+  { rejectValue: string }
+>(
+  "user/deleteUser",
+  async ({ id, created_user_id, created_user_type }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.delete<DeleteUserResponse>(
+        `/api/v1/users/${id}`,
+        {
+          data: { created_user_id, created_user_type },
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Delete user error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid user ID or data provided");
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 403:
+            return rejectWithValue("Forbidden: You do not have permission to delete this user");
+          case 404:
+            return rejectWithValue("User not found");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to delete user");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 const userSlice = createSlice({
   name: "user",
   initialState,
@@ -433,6 +484,22 @@ const userSlice = createSlice({
         state.selectedUser = action.payload;
       })
       .addCase(getUserProfile.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
+       .addCase(deleteUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteUser.fulfilled, (state) => {
+        state.loading = false;
+        if (state.users) {
+          state.users = state.users.filter((user) => user.id !== state.selectedUser?.id);
+        }
+        state.selectedUser = null;
+      })
+      .addCase(deleteUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         toast.error(action.payload as string);

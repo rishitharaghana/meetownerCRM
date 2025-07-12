@@ -3,6 +3,18 @@ export interface ErrorResponse {
   message?: string;
 }
 
+export interface Property {
+  property_id: number | null;
+  project_name: string | null;
+  property_subtype: string | null;
+  flat_number: string | null;
+  floor_number: string | null;
+  block_number: string | null;
+  asset: string | null;
+  sqft: string | null;
+  budget: string | null;
+}
+
 export interface Lead {
   lead_id: number;
   customer_name: string;
@@ -18,19 +30,27 @@ export interface Lead {
   assigned_id: number;
   assigned_name: string;
   assigned_emp_number: string;
-  assigned_priority: string;
+  assigned_priority: string | null;
   follow_up_feedback: string | null;
   next_action: string | null;
-  assigned_date: string;
-  assigned_time: string;
+  assigned_date: string | null;
+  assigned_time: string | null;
   booked: string;
   lead_added_user_type: string;
   lead_added_user_id: number;
   assigned_user_type: number;
   status_id: number;
-  sqft: number | null;
+  sqft: string | null;
   budget: string | null;
-  status_name: string;
+  property_id: number | null;
+  flat_number: string | null;
+  floor_number: string | null;
+  block_number: string | null;
+  asset: string | null;
+  project_name: string | null;
+  property_subtype: string | null;
+  property: Property | null;
+  status_name?: string; 
 }
 
 export interface LeadUpdate {

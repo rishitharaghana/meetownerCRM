@@ -95,3 +95,12 @@ export interface UserState {
   loading: boolean;
   error: string | null;
 }
+
+export interface DeleteUserRequest {
+  created_user_id: number;
+  created_user_type: number;
+}
+
+export interface DeleteUserResponse {
+  message: string;
+}

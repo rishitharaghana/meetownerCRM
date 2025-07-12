@@ -32,7 +32,7 @@ const LeadsType: React.FC = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
   
 
 
@@ -213,7 +213,13 @@ const LeadsType: React.FC = () => {
                         isHeader
                         className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
                       >
-                        Interested Project
+                         Project name
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
+                      >
+                         property type
                       </TableCell>
                       <TableCell
                         isHeader
@@ -254,6 +260,11 @@ const LeadsType: React.FC = () => {
                           className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
                         >
                           {item.interested_project_name || "N/A"}
+                        </TableCell>
+                         <TableCell
+                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
+                        >
+                          {item.property_subtype || "N/A"}
                         </TableCell>
                         
                         <TableCell
