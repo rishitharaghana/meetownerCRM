@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate } from "react-router"; // Fixed import
+import { Link, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import {
@@ -16,11 +16,13 @@ import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { Modal } from "../../components/ui/modal";
 import Pagination from "../../components/ui/pagination/Pagination";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
-import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
+import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
 import { clearUsers, getUsersByType, updateUserStatus, deleteUser } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 const statusFilterOptions = [
   { value: "0", label: "Pending" },
@@ -84,6 +86,8 @@ export default function PartnerScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { users, loading, error } = useSelector((state: RootState) => state.user);
+  const { states } = useSelector((state: RootState) => state.property);
+  const { citiesQuery } = usePropertyQueries();
   const [dropdownOpen, setDropdownOpen] = useState<{ userId: string; x: number; y: number } | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
@@ -93,13 +97,31 @@ export default function PartnerScreen() {
   const [rejectReason, setRejectReason] = useState<string>("");
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
-  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null); // New state for created end date
+  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
-
   const itemsPerPage = 10;
   const categoryLabel = "Partners";
+
+  // Fetch cities based on selected state
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+
+  // Dispatch cities to Redux store
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  // Handle errors for city fetching
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+    }
+  }, [citiesResult.isError, citiesResult.error]);
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -144,7 +166,15 @@ export default function PartnerScreen() {
 
     const matchesStatus = selectedStatus === null || user.status === parseInt(selectedStatus);
 
-    return matchesTextFilter && matchesCreatedDate && matchesStatus;
+    const matchesState = !selectedState || user.state?.toLowerCase() === states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+
+    const matchesCity =
+      !selectedCity ||
+      (citiesResult.data &&
+        citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
+          user.city?.toLowerCase());
+
+    return matchesTextFilter && matchesCreatedDate && matchesStatus && matchesState && matchesCity;
   }) || [];
 
   const totalItems = filteredUsers.length;
@@ -257,11 +287,24 @@ export default function PartnerScreen() {
     setCurrentPage(1);
   };
 
+  const handleStateChange = (value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setCurrentPage(1);
+  };
+
+  const handleCityChange = (value: string | null) => {
+    setSelectedCity(value);
+    setCurrentPage(1);
+  };
+
   const handleClearFilters = () => {
     setFilterValue("");
     setCreatedDate(null);
     setCreatedEndDate(null);
     setSelectedStatus(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setCurrentPage(1);
   };
 
@@ -279,18 +322,34 @@ export default function PartnerScreen() {
       />
       <FilterBar
         showCreatedDateFilter={true}
-        showCreatedEndDateFilter={true} // Enable created end date filter
+        showCreatedEndDateFilter={true}
         showStatusFilter={true}
+        showStateFilter={true}
+        showCityFilter={true}
         statusFilterOptions={statusFilterOptions}
         onCreatedDateChange={handleCreatedDateChange}
-        onCreatedEndDateChange={handleCreatedEndDateChange} // Pass handler
+        onCreatedEndDateChange={handleCreatedEndDateChange}
         onStatusChange={handleStatusChange}
+        onStateChange={handleStateChange}
+        onCityChange={handleCityChange}
         onClearFilters={handleClearFilters}
         createdDate={createdDate}
-        createdEndDate={createdEndDate} // Pass state
+        createdEndDate={createdEndDate}
         selectedStatus={selectedStatus}
+        selectedState={selectedState}
+        selectedCity={selectedCity}
         className="mb-4"
       />
+      {/* Display active filters */}
+      {(filterValue || selectedStatus || selectedState || selectedCity || createdDate || createdEndDate) && (
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
+          Filters: Search: {filterValue || "None"} | 
+          Status: {selectedStatus ? statusFilterOptions.find((s) => s.value === selectedStatus)?.label || "All" : "All"} | 
+          State: {selectedState ? states.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"} | 
+          City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
+          Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+        </div>
+      )}
       <div className="space-y-6">
         <ComponentCard title={`${categoryLabel} Table`}>
           {loading && (

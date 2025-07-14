@@ -16,6 +16,7 @@ export interface Property {
 }
 
 export interface Lead {
+  city: any;
   lead_id: number;
   customer_name: string;
   customer_phone_number: string;

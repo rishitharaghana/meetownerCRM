@@ -1,51 +1,77 @@
-import React, { useState, useEffect, useRef, useMemo } from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import {  fetchAllProjects, } from "../../store/slices/projectSlice";
+import { fetchAllProjects } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 import toast from "react-hot-toast";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
+import FilterBar from "../../components/common/FilterBar";
 
-const BUILDER_USER_TYPE = 2; 
+const BUILDER_USER_TYPE = 2;
 
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
   const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
   const { allProjects, loading, error } = useSelector((state: RootState) => state.projects);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
+  const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
 
+  // Fetch cities based on selected state
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+
+  // Dispatch cities to Redux store
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  // Handle errors for city and state fetching
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+    }
+  }, [citiesResult.isError, citiesResult.error]);
+
+  // Project parameters for server-side fetching
   const projectParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
     }
+    const baseParams: any = {};
     if (user.user_type === BUILDER_USER_TYPE) {
-      return {
-        admin_user_type: user.user_type,
-        admin_user_id: user.id,
-      };
+      baseParams.admin_user_type = user.user_type;
+      baseParams.admin_user_id = user.id;
+    } else if (user.created_user_id) {
+      baseParams.admin_user_type = BUILDER_USER_TYPE;
+      baseParams.admin_user_id = user.created_user_id;
     }
-    if (user.created_user_id) {
-      return {
-        admin_user_type: BUILDER_USER_TYPE,
-        admin_user_id: user.created_user_id,
-      };
-    }
-    return null;
+    return Object.keys(baseParams).length > 0 ? baseParams : null;
   }, [isAuthenticated, user]);
 
-  
+  // Fetch projects when parameters change
   useEffect(() => {
     if (projectParams) {
       dispatch(fetchAllProjects(projectParams))
-        .unwrap();
+        .unwrap()
+        .catch((err) => {
+          toast.error(`Failed to fetch projects: ${err.message || "Unknown error"}`);
+        });
     } else if (isAuthenticated && user) {
       toast.error("Invalid user data for fetching projects");
       console.warn("Invalid user data:", {
@@ -54,20 +80,53 @@ const AllProjects: React.FC = () => {
         created_user_id: user.created_user_id,
       });
     }
-  }, [projectParams, dispatch]);
+  }, [projectParams, dispatch, isAuthenticated, user]);
 
-  
+  // Client-side filtering for search, city, and dates
+  const filteredProjects = useMemo(() => {
+    return allProjects.filter((project: Project) => {
+      const matchesSearch =
+        project.project_name.toLowerCase().includes(search.toLowerCase()) ||
+        project.locality?.toLowerCase().includes(search.toLowerCase()) ||
+        project.city?.toLowerCase().includes(search.toLowerCase()) ||
+        project.state?.toLowerCase().includes(search.toLowerCase());
+
+      const matchesCity =
+        !selectedCity ||
+        (citiesResult.data &&
+          citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
+            project.city?.toLowerCase());
+
+      let matchesDate = true;
+      if (createdDate || createdEndDate) {
+        if (!project.created_date) {
+          matchesDate = false;
+        } else {
+          try {
+            const projectDate = project.created_date.split("T")[0];
+            matchesDate =
+              (!createdDate || projectDate >= createdDate) &&
+              (!createdEndDate || projectDate <= createdEndDate);
+          } catch {
+            matchesDate = false;
+          }
+        }
+      }
+
+      return matchesSearch && matchesCity && matchesDate;
+    });
+  }, [allProjects, search, selectedCity, createdDate, createdEndDate, citiesResult.data]);
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  
-  const totalItems = allProjects.length;
+  // Pagination logic
+  const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
-  const paginatedProjects = allProjects.slice(startIndex, endIndex);
+  const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
@@ -100,28 +159,62 @@ const AllProjects: React.FC = () => {
     return pages;
   };
 
-  
+  // Clear all filters
+  const handleClearFilters = useCallback(() => {
+    setSearch("");
+    setCreatedDate(null);
+    setCreatedEndDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
+    setCurrentPage(1);
+    if (searchRef.current) searchRef.current.value = "";
+  }, []);
 
   if (!isAuthenticated || !user) {
-    return <div className="p-6 text-center">Please log in to view AllProjects projects.</div>;
+    return <div className="p-6 text-center">Please log in to view projects.</div>;
   }
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error) return <div className="p-6 text-center text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
-      <div className="flex flex-col sm:flex-row justify-between items-center gap-4 mb-6">
-        <div className="flex gap-3 flex-wrap">
+      <div className="flex flex-col gap-4 mb-6">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
             ref={searchRef}
             placeholder="Search Projects"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-64"
+            className="w-full sm:w-64"
           />
-          
+        </div>
+        <div className="flex flex-col sm:flex-row items-center gap-4">
+          <FilterBar
+            showCreatedDateFilter={true}
+            showCreatedEndDateFilter={true}
+            showStateFilter={true}
+            showCityFilter={true}
+            onCreatedDateChange={setCreatedDate}
+            onCreatedEndDateChange={setCreatedEndDate}
+            onStateChange={setSelectedState}
+            onCityChange={setSelectedCity}
+            onClearFilters={handleClearFilters}
+            createdDate={createdDate}
+            createdEndDate={createdEndDate}
+            selectedState={selectedState}
+            selectedCity={selectedCity}
+            className="w-full sm:w-auto flex-1"
+          />
         </div>
       </div>
+
+      {/* Display active filters */}
+      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
+        <div className="text-sm text-gray-500 mb-4">
+          Filters: Search: {search || "None"} | State: {selectedState || "All"} | City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
+          Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+        </div>
+      )}
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginatedProjects.map((project: Project) => {
@@ -160,6 +253,12 @@ const AllProjects: React.FC = () => {
                     {project.possession_end_date
                       ? new Date(project.possession_end_date).toLocaleDateString()
                       : "Ready to Move"}
+                  </p>
+                  <p>
+                    <strong>Created:</strong>{" "}
+                    {project.created_date
+                      ? new Date(project.created_date).toLocaleDateString()
+                      : "N/A"}
                   </p>
                 </div>
                 <div className="mb-5">

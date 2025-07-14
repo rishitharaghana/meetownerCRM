@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate, useParams } from "react-router"; // Fixed import
+import { Link, useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-
 import {
   Table,
   TableBody,
@@ -15,13 +14,14 @@ import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Pagination from "../../components/ui/pagination/Pagination";
-import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
-
+import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
 import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
@@ -74,20 +74,40 @@ export default function EmployeesScreen() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { users, loading, error } = useSelector((state: RootState) => state.user);
+  const { states } = useSelector((state: RootState) => state.property);
+  const { citiesQuery } = usePropertyQueries();
   const [dropdownOpen, setDropdownOpen] = useState<{ userId: string; x: number; y: number } | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
-  const [createdDate, setCreatedDate] = useState<string | null>(null); // New state for created start date
-  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null); // New state for created end date
-
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
   const itemsPerPage = 10;
   const empUserType = Number(status);
   const categoryLabel = userTypeMap[empUserType] || "Employees";
+
+  // Fetch cities based on selected state
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+
+  // Dispatch cities to Redux store
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  // Handle errors for city fetching
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+    }
+  }, [citiesResult.isError, citiesResult.error]);
 
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
@@ -130,7 +150,15 @@ export default function EmployeesScreen() {
       (!createdDate || userCreatedDate >= createdDate) &&
       (!createdEndDate || userCreatedDate <= createdEndDate);
 
-    return matchesTextFilter && matchesCreatedDate;
+    const matchesState = !selectedState || user.state?.toLowerCase() === states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+
+    const matchesCity =
+      !selectedCity ||
+      (citiesResult.data &&
+        citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
+          user.city?.toLowerCase());
+
+    return matchesTextFilter && matchesCreatedDate && matchesState && matchesCity;
   }) || [];
 
   const totalItems = filteredUsers.length;
@@ -162,7 +190,7 @@ export default function EmployeesScreen() {
             created_user_type: user.user_type,
           })
         ).unwrap();
-        setStatusUpdated(!statusUpdated); // Trigger refetch
+        setStatusUpdated(!statusUpdated);
         setIsDeleteModalOpen(false);
         setSelectedUser(null);
       } catch (error) {
@@ -182,10 +210,33 @@ export default function EmployeesScreen() {
     setCurrentPage(1);
   };
 
+  const handleCreatedDateChange = (date: string | null) => {
+    setCreatedDate(date);
+    setCurrentPage(1);
+  };
+
+  const handleCreatedEndDateChange = (date: string | null) => {
+    setCreatedEndDate(date);
+    setCurrentPage(1);
+  };
+
+  const handleStateChange = (value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setCurrentPage(1);
+  };
+
+  const handleCityChange = (value: string | null) => {
+    setSelectedCity(value);
+    setCurrentPage(1);
+  };
+
   const handleClearFilters = () => {
     setFilterValue("");
     setCreatedDate(null);
     setCreatedEndDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setCurrentPage(1);
   };
 
@@ -198,14 +249,29 @@ export default function EmployeesScreen() {
       />
       <FilterBar
         showCreatedDateFilter={true}
-        showCreatedEndDateFilter={true} // Enable created end date filter
+        showCreatedEndDateFilter={true}
+        showStateFilter={true}
+        showCityFilter={true}
         onCreatedDateChange={setCreatedDate}
-        onCreatedEndDateChange={setCreatedEndDate} // Pass handler
+        onCreatedEndDateChange={setCreatedEndDate}
+        onStateChange={handleStateChange}
+        onCityChange={handleCityChange}
         createdDate={createdDate}
-        createdEndDate={createdEndDate} // Pass state
+        createdEndDate={createdEndDate}
+        selectedState={selectedState}
+        selectedCity={selectedCity}
         onClearFilters={handleClearFilters}
         className="mb-4"
       />
+      {/* Display active filters */}
+      {(filterValue || selectedState || selectedCity || createdDate || createdEndDate) && (
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
+          Filters: Search: {filterValue || "None"} | 
+          State: {selectedState ? states.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"} | 
+          City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
+          Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+        </div>
+      )}
       <div className="space-y-6">
         <ComponentCard title={`${categoryLabel} Table`}>
           {loading && (
@@ -262,12 +328,6 @@ export default function EmployeesScreen() {
                         className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[20%]"
                       >
                         Email
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Address
                       </TableCell>
                       <TableCell
                         isHeader
@@ -334,9 +394,6 @@ export default function EmployeesScreen() {
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                             {user.email}
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                            {user.address}
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {user.city}

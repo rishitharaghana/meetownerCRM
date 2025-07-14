@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef, ChangeEvent } from "react";
+import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
@@ -15,7 +15,9 @@ import {
 import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
-import { clearLeads, getLeadsByUser, markLeadAsBooked } from "../../store/slices/leadslice";
+import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
+import FilterBar from "../../components/common/FilterBar";
+import MarkBookedModal from "./MarkBookingDoneModal";
 
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },
@@ -28,7 +30,7 @@ const statusOptions = [
   { value: "", label: "All" },
   { value: "0", label: "Today Leads" },
   { value: "1", label: "Open Leads" },
-  { value: "2", label: "Today Follow Up Leads" },
+  { value: "2", label: "Today Follow" },
   { value: "3", label: "In Progress" },
   { value: "4", label: "Site Visit Scheduled" },
   { value: "5", label: "Site Visit Done" },
@@ -36,7 +38,6 @@ const statusOptions = [
   { value: "7", label: "Lost" },
   { value: "8", label: "Revoked" },
 ];
-
 
 const renderDropdown = (
   item: Lead,
@@ -93,8 +94,12 @@ const AllLeadDetails: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
-  const [selectedUserType, setSelectedUserType] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [updatedDate, setUpdatedDate] = useState<string | null>(null);
+  const [isMarkBookedModalOpen, setIsMarkBookedModalOpen] = useState(false);
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -103,34 +108,25 @@ const AllLeadDetails: React.FC = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
 
-  const { admin_user_id, admin_user_type, assigned_user_type, assigned_id, name } = location.state || {};
+  const { admin_user_id, admin_user_type, assigned_user_type, name } = location.state || {};
 
-  const itemsPerPage = 5;
+  const itemsPerPage = 10;
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       const params = {
         lead_added_user_type: admin_user_type || user.user_type,
         lead_added_user_id: admin_user_id || user.id,
-        assigned_user_type: selectedUserType
-          ? parseInt(selectedUserType)
-          : assigned_user_type
-          ? parseInt(assigned_user_type)
-          : undefined,
-        assigned_id: selectedUserType
-          ? user.user_type !== 2
-            ? user.id
-            : undefined
-          : assigned_id || undefined,
-        status_id: selectedStatus ? parseInt(selectedStatus) : undefined,
       };
 
-      dispatch(getLeadsByUser(params));
+      dispatch(getLeadsByUser(params)).unwrap().catch((err) => {
+        toast.error(err || "Failed to fetch leads");
+      });
     }
     return () => {
       dispatch(clearLeads());
     };
-  }, [isAuthenticated, user, admin_user_id, admin_user_type, assigned_user_type, assigned_id, selectedUserType, selectedStatus, dispatch]);
+  }, [isAuthenticated, user, admin_user_id, admin_user_type, statusUpdated, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -147,18 +143,28 @@ const AllLeadDetails: React.FC = () => {
   }, []);
 
   const filteredLeads = leads?.filter((item) => {
-    if (!searchQuery) return true;
-    const searchValue = searchQuery.toLowerCase();
-    return (
-      item.customer_name.toLowerCase().includes(searchValue) ||
-      item.customer_phone_number.includes(searchValue) ||
-      item.customer_email.toLowerCase().includes(searchValue) ||
-      item.interested_project_name.toLowerCase().includes(searchValue) ||
-      item.assigned_name.toLowerCase().includes(searchValue) ||
-      item.assigned_emp_number.includes(searchValue) ||
-      item.assigned_priority.toLowerCase().includes(searchValue) ||
-      item.status_name.toLowerCase().includes(searchValue)
-    );
+    const matchesSearch = !searchQuery
+      ? true
+      : item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.customer_phone_number.includes(searchQuery) ||
+        item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.assigned_emp_number.includes(searchQuery);
+
+    const matchesStatus = !selectedStatus
+      ? true
+      : item.status_id.toString() === selectedStatus;
+
+    const matchesCreatedDate = !createdDate
+      ? true
+      : item.created_date.split("T")[0] === createdDate;
+
+    const matchesUpdatedDate = !updatedDate
+      ? true
+      : item.updated_date?.split("T")[0] === updatedDate;
+
+    return matchesSearch && matchesStatus && matchesCreatedDate && matchesUpdatedDate;
   }) || [];
 
   const totalCount = filteredLeads.length;
@@ -173,6 +179,29 @@ const AllLeadDetails: React.FC = () => {
 
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
+    setLocalPage(1);
+  };
+
+  const handleStatusChange = (value: string | null) => {
+    setSelectedStatus(value || "");
+    setLocalPage(1);
+  };
+
+  const handleCreatedDateChange = (date: string | null) => {
+    setCreatedDate(date);
+    setLocalPage(1);
+  };
+
+  const handleUpdatedDateChange = (date: string | null) => {
+    setUpdatedDate(date);
+    setLocalPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setSelectedStatus("");
+    setCreatedDate(null);
+    setUpdatedDate(null);
     setLocalPage(1);
   };
 
@@ -197,7 +226,10 @@ const AllLeadDetails: React.FC = () => {
     return pages;
   };
 
-  const handleViewHistory = (item: Lead) => navigate("/leads/view", { state: { property: item } });
+  const handleViewHistory = (item: Lead) => {
+    navigate("/leads/view", { state: { property: item } });
+    setDropdownOpen(null);
+  };
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
@@ -205,48 +237,25 @@ const AllLeadDetails: React.FC = () => {
   };
 
   const handleMarkAsBooked = (leadId: number) => {
-    if (isAuthenticated && user?.id) {
-      dispatch(
-        markLeadAsBooked({
-          lead_id: leadId,
-          lead_added_user_type: user.user_type,
-          lead_added_user_id: user.id,
-        })
-      )
-        .unwrap()
-        .then(() => {
-          const params = {
-            lead_added_user_type: admin_user_type || user.user_type,
-            lead_added_user_id: admin_user_id || user.id,
-            assigned_user_type: selectedUserType
-              ? parseInt(selectedUserType)
-              : assigned_user_type
-              ? parseInt(assigned_user_type)
-              : undefined,
-            assigned_id: selectedUserType
-              ? user.user_type !== 2
-                ? user.id
-                : undefined
-              : assigned_id || undefined,
-            status_id: selectedStatus ? parseInt(selectedStatus) : undefined,
-          };
-          dispatch(getLeadsByUser(params));
-        })
-        .catch((error) => {
-          toast.error(error || "Failed to mark lead as booked");
-        });
+    const lead = currentLeads.find((item) => item.lead_id === leadId);
+    if (lead) {
+      setSelectedLeadId(leadId);
+      setIsMarkBookedModalOpen(true);
+      setDropdownOpen(null);
+    } else {
+      toast.error("Lead not found");
     }
-    setDropdownOpen(null);
+  };
+
+  const handleMarkBookedSubmit = () => {
+    setStatusUpdated(!statusUpdated);
+    setIsMarkBookedModalOpen(false);
+    setSelectedLeadId(null);
   };
 
   const handleDelete = (leadId: number) => {
     console.log(`Delete lead: ${leadId}`);
     setDropdownOpen(null);
-  };
-
-  const handleStatusChange = (e: ChangeEvent<HTMLSelectElement>) => {
-    setSelectedStatus(e.target.value);
-    setLocalPage(1);
   };
 
   return (
@@ -257,25 +266,32 @@ const AllLeadDetails: React.FC = () => {
         pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
         onFilter={handleSearch}
       />
-      <div className="flex justify-between items-center gap-x-4 px-4 py-1">
-        <div className="flex gap-4">
-          <div className="px-4 py-2">
-            <label htmlFor="statusFilter" className="mr-2">Filter by Status</label>
-            <select
-              id="statusFilter"
-              value={selectedStatus}
-              onChange={handleStatusChange}
-              className="w-48 p-2 border rounded dark:bg-dark-900 dark:text-white"
-            >
-              {statusOptions.map((option) => (
-                <option key={option.value} value={option.value}>
-                  {option.label}
-                </option>
-              ))}
-            </select>
-          </div>
+      <FilterBar
+        showUserTypeFilter={false}
+        showStatusFilter={true}
+        showCreatedDateFilter={true}
+        showUpdatedDateFilter={true}
+        showStateFilter={false}
+        showCityFilter={false}
+        statusFilterOptions={statusOptions}
+        onStatusChange={handleStatusChange}
+        onCreatedDateChange={handleCreatedDateChange}
+        onUpdatedDateChange={handleUpdatedDateChange}
+        onClearFilters={handleClearFilters}
+        selectedStatus={selectedStatus}
+        createdDate={createdDate}
+        updatedDate={updatedDate}
+        className="mb-4"
+      />
+      {/* Display active filters */}
+      {(searchQuery || selectedStatus || createdDate || updatedDate) && (
+        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
+          Filters: Search: {searchQuery || "None"} | 
+          Status: {selectedStatus ? statusOptions.find((s) => s.value === selectedStatus)?.label || "All" : "All"} | 
+          Created Date: {createdDate || "Any"} | 
+          Updated Date: {updatedDate || "Any"}
         </div>
-      </div>
+      )}
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
@@ -291,10 +307,10 @@ const AllLeadDetails: React.FC = () => {
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]">
                       Sl. No
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
                       Customer Name
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
                       Customer Number
                     </TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
@@ -305,6 +321,12 @@ const AllLeadDetails: React.FC = () => {
                     </TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
                       Lead Type
+                    </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                      Created Date
+                    </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                      Updated Date
                     </TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Actions
@@ -320,7 +342,7 @@ const AllLeadDetails: React.FC = () => {
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[20%]">
                         <Link
                           to="/allleadDetails"
                           state={{ lead: item }}
@@ -329,7 +351,7 @@ const AllLeadDetails: React.FC = () => {
                           {item.customer_name || "N/A"}
                         </Link>
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                         {item.customer_phone_number || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
@@ -340,6 +362,12 @@ const AllLeadDetails: React.FC = () => {
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                         {item.status_name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        {item.created_date?.split("T")[0] || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
                         <Button
@@ -422,6 +450,21 @@ const AllLeadDetails: React.FC = () => {
           ),
           document.body
         )
+      )}
+      {isMarkBookedModalOpen && selectedLeadId && (
+        <MarkBookedModal
+          leadId={selectedLeadId}
+          leadAddedUserId={admin_user_id || user!.id}
+          leadAddedUserType={admin_user_type || user!.user_type}
+          propertyId={
+            currentLeads.find((item) => item.lead_id === selectedLeadId)?.interested_project_id || 2
+          }
+          onClose={() => {
+            setIsMarkBookedModalOpen(false);
+            setSelectedLeadId(null);
+          }}
+          onSubmit={handleMarkBookedSubmit}
+        />
       )}
     </div>
   );
