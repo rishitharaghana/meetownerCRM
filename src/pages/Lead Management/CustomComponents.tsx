@@ -17,14 +17,17 @@ export const renderDropdown = (
     style={{ top: dropdownOpen?.y, left: dropdownOpen?.x, transform: "translate(-100%, 0)" }}
   >
     <ul className="py-2">
-      <li>
+      {isBuilder && (
+          <li>
         <button
           onClick={() => handleLeadAssign(item.lead_id)}
           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
         >
           Assign Lead
         </button>
-      </li>
+        </li>
+      )}
+      
       <li>
         <button
           onClick={() => handleViewHistory(item)}
@@ -33,7 +36,8 @@ export const renderDropdown = (
           View History
         </button>
       </li>
-      <li>
+      {isBuilder && (
+        <li>
         <button
           onClick={() => handleMarkAsBooked(item.lead_id)}
           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
@@ -41,7 +45,9 @@ export const renderDropdown = (
           Bookings Done
         </button>
       </li>
-      {isBuilder && (
+      )}
+      
+      {!isBuilder && (
         <li>
           <button
             onClick={() => handleUpdateLead(item.lead_id)}
