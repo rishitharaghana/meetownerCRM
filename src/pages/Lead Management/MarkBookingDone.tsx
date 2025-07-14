@@ -1,30 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
+import { useNavigate, useLocation } from 'react-router';
 import { AppDispatch, RootState } from '../../store/store';
 import { markLeadAsBooked } from '../../store/slices/leadslice';
 import Button from '../../components/ui/button/Button';
 import Input from '../../components/form/input/InputField';
 import Label from '../../components/form/Label';
 import toast from 'react-hot-toast';
+import PageMeta from '../../components/common/PageMeta';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 
-interface MarkBookedModalProps {
-  leadId: number;
-  leadAddedUserId: number;
-  leadAddedUserType: number;
-  propertyId: number;
-  onClose: () => void;
-  onSubmit: () => void;
-}
-
-const MarkBookedModal: React.FC<MarkBookedModalProps> = ({
-  leadId,
-  leadAddedUserId,
-  leadAddedUserType,
-  propertyId,
-  onClose,
-  onSubmit,
-}) => {
+const MarkBookingPage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { leadId, leadAddedUserId, leadAddedUserType, propertyId } = location.state || {};
   const { loading, error } = useSelector((state: RootState) => state.lead);
 
   const [formData, setFormData] = useState({
@@ -42,7 +32,11 @@ const MarkBookedModal: React.FC<MarkBookedModalProps> = ({
     if (error) {
       toast.error(error);
     }
-  }, [error]);
+    if (!leadId || !leadAddedUserId || !leadAddedUserType || !propertyId) {
+      toast.error("Invalid booking data");
+      navigate(-1); // Navigate back if required data is missing
+    }
+  }, [error, leadId, leadAddedUserId, leadAddedUserType, propertyId, navigate]);
 
   const handleInputChange = (field: keyof typeof formData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -92,16 +86,25 @@ const MarkBookedModal: React.FC<MarkBookedModalProps> = ({
 
       const result = await dispatch(markLeadAsBooked(submitData)).unwrap();
       toast.success(`Lead ${result.lead_id} booked successfully!`);
-      onSubmit();
-      onClose();
+      navigate(-1); // Navigate back to the previous page (LeadsType)
     } catch (err) {
       // Error is already handled by toast in useEffect
     }
   };
 
+  const handleCancel = () => {
+    navigate(-1); // Navigate back to the previous page
+  };
+
   return (
-    <div className="fixed inset-0 bg-white/30 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
+    <div className="min-h-screen p-6">
+      <PageMeta title="Lead Management - Book Lead" />
+      <PageBreadcrumb
+        pageTitle="Mark Lead as Booked"
+        pagePlacHolder=""
+        onFilter={() => {}} // No search on this page
+      />
+      <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full mx-auto mt-6">
         <h2 className="text-xl font-semibold mb-4">Mark Lead as Booked</h2>
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
@@ -181,7 +184,7 @@ const MarkBookedModal: React.FC<MarkBookedModalProps> = ({
             {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
           </div>
           <div className="flex justify-end gap-4 mt-6">
-            <Button variant="outline" onClick={onClose}>
+            <Button variant="outline" onClick={handleCancel}>
               Cancel
             </Button>
             <Button variant="primary" type="submit" disabled={loading}>
@@ -201,4 +204,4 @@ const MarkBookedModal: React.FC<MarkBookedModalProps> = ({
   );
 };
 
-export default MarkBookedModal;
+export default MarkBookingPage;

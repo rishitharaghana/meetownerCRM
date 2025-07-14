@@ -18,7 +18,6 @@ import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
 import toast from "react-hot-toast";
 import { BUILDER_USER_TYPE, renderDropdown, sidebarSubItems } from "./CustomComponents";
 import UpdateLeadModal from "./UpdateLeadModel";
-import MarkBookedModal from "./MarkBookingDoneModal";
 import FilterBar from "../../components/common/FilterBar";
 
 const userTypeMap: { [key: number]: string } = {
@@ -34,7 +33,6 @@ const LeadsType: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
-  const [isMarkBookedModalOpen, setIsMarkBookedModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
@@ -125,8 +123,7 @@ const LeadsType: React.FC = () => {
             item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.assigned_emp_number.includes(searchQuery) 
-           
+            item.assigned_emp_number.includes(searchQuery);
 
         const matchesUserType = !selectedUserType
           ? true
@@ -164,7 +161,10 @@ const LeadsType: React.FC = () => {
 
   const getPageTitle = () => sidebarItem?.name || "Leads";
 
-  const handleSearch = (value: string) => setSearchQuery(value.trim());
+  const handleSearch = (value: string) => {
+    setSearchQuery(value.trim());
+    setLocalPage(1);
+  };
 
   const goToPage = (page: number) => setLocalPage(page);
 
@@ -187,7 +187,10 @@ const LeadsType: React.FC = () => {
     return pages;
   };
 
-  const handleViewHistory = (item: Lead) => navigate("/leads/view", { state: { property: item } });
+  const handleViewHistory = (item: Lead) => {
+    navigate("/leads/view", { state: { property: item } });
+    setDropdownOpen(null);
+  };
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
@@ -203,18 +206,18 @@ const LeadsType: React.FC = () => {
   const handleMarkAsBooked = (leadId: number) => {
     const lead = currentLeads.find((item) => item.lead_id === leadId);
     if (lead) {
-      setSelectedLeadId(leadId);
-      setIsMarkBookedModalOpen(true);
+      navigate(`/leads/book/${leadId}`, {
+        state: {
+          leadId,
+          leadAddedUserId: isBuilder ? user!.id : user!.created_user_id!,
+          leadAddedUserType: isBuilder ? user!.user_type : Number(user!.created_user_type),
+          propertyId: lead.interested_project_id || 2,
+        },
+      });
       setDropdownOpen(null);
     } else {
       toast.error("Lead not found");
     }
-  };
-
-  const handleMarkBookedSubmit = () => {
-    setStatusUpdated(!statusUpdated);
-    setIsMarkBookedModalOpen(false);
-    setSelectedLeadId(null);
   };
 
   const handleUpdateLead = (leadId: number) => {
@@ -230,7 +233,7 @@ const LeadsType: React.FC = () => {
 
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
-    setLocalPage(1); // Reset to first page when filter changes
+    setLocalPage(1);
   };
 
   const handleCreatedDateChange = (date: string | null) => {
@@ -439,18 +442,6 @@ const LeadsType: React.FC = () => {
           leadId={selectedLeadId}
           onClose={() => setIsUpdateModalOpen(false)}
           onSubmit={handleUpdateModalSubmit}
-        />
-      )}
-      {isMarkBookedModalOpen && selectedLeadId && (
-        <MarkBookedModal
-          leadId={selectedLeadId}
-          leadAddedUserId={isBuilder ? user!.id : user!.created_user_id!}
-          leadAddedUserType={isBuilder ? user!.user_type : Number(user!.created_user_type)}
-          propertyId={
-            currentLeads.find((item) => item.lead_id === selectedLeadId)?.interested_project_id || 2
-          }
-          onClose={() => setIsMarkBookedModalOpen(false)}
-          onSubmit={handleMarkBookedSubmit}
         />
       )}
     </div>

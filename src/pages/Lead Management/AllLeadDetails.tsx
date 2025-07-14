@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate, useLocation } from "react-router";
+import {  useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -17,7 +17,6 @@ import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
 import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
 import FilterBar from "../../components/common/FilterBar";
-import MarkBookedModal from "./MarkBookingDoneModal";
 
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },
@@ -97,9 +96,8 @@ const AllLeadDetails: React.FC = () => {
   const [selectedStatus, setSelectedStatus] = useState<string>("");
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
-  const [isMarkBookedModalOpen, setIsMarkBookedModalOpen] = useState(false);
-  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
-  const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
+
+
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -126,7 +124,7 @@ const AllLeadDetails: React.FC = () => {
     return () => {
       dispatch(clearLeads());
     };
-  }, [isAuthenticated, user, admin_user_id, admin_user_type, statusUpdated, dispatch]);
+  }, [isAuthenticated, user, admin_user_id, admin_user_type, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -239,18 +237,18 @@ const AllLeadDetails: React.FC = () => {
   const handleMarkAsBooked = (leadId: number) => {
     const lead = currentLeads.find((item) => item.lead_id === leadId);
     if (lead) {
-      setSelectedLeadId(leadId);
-      setIsMarkBookedModalOpen(true);
+      navigate(`/leads/book/${leadId}`, {
+        state: {
+          leadId,
+          leadAddedUserId: admin_user_id || user!.id,
+          leadAddedUserType: admin_user_type || user!.user_type,
+          propertyId: lead.interested_project_id || 2,
+        },
+      });
       setDropdownOpen(null);
     } else {
       toast.error("Lead not found");
     }
-  };
-
-  const handleMarkBookedSubmit = () => {
-    setStatusUpdated(!statusUpdated);
-    setIsMarkBookedModalOpen(false);
-    setSelectedLeadId(null);
   };
 
   const handleDelete = (leadId: number) => {
@@ -343,13 +341,7 @@ const AllLeadDetails: React.FC = () => {
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[20%]">
-                        <Link
-                          to="/allleadDetails"
-                          state={{ lead: item }}
-                          className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
-                        >
-                          {item.customer_name || "N/A"}
-                        </Link>
+                        {item.customer_name || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                         {item.customer_phone_number || "N/A"}
@@ -450,21 +442,6 @@ const AllLeadDetails: React.FC = () => {
           ),
           document.body
         )
-      )}
-      {isMarkBookedModalOpen && selectedLeadId && (
-        <MarkBookedModal
-          leadId={selectedLeadId}
-          leadAddedUserId={admin_user_id || user!.id}
-          leadAddedUserType={admin_user_type || user!.user_type}
-          propertyId={
-            currentLeads.find((item) => item.lead_id === selectedLeadId)?.interested_project_id || 2
-          }
-          onClose={() => {
-            setIsMarkBookedModalOpen(false);
-            setSelectedLeadId(null);
-          }}
-          onSubmit={handleMarkBookedSubmit}
-        />
       )}
     </div>
   );
