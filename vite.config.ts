@@ -14,13 +14,10 @@ export default defineConfig({
       },
     }),
   ],
-  // server: {
-  //   port: 3002,
-  //   host: true,
-  //   strictPort: true,
-  //   cors: true,
-  //   hmr: {
-  //     host: 'admin.meetowner.in',
-  //   },
-  // },
+  server: {
+    port: 3001,
+    host: true,
+    strictPort: true,
+    cors: true,
+  },
 });
