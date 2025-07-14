@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 
 import {
   Table,
@@ -15,10 +16,10 @@ import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { Modal } from "../../components/ui/modal";
 import Pagination from "../../components/ui/pagination/Pagination";
+import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal"; // Import the modal
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType, updateUserStatus } from "../../store/slices/userslice";
-import toast from "react-hot-toast";
+import { clearUsers, getUsersByType, updateUserStatus, deleteUser } from "../../store/slices/userslice"; // Import deleteUser
 import { getStatusDisplay } from "../../utils/statusdisplay";
 
 const renderDropdown = (
@@ -26,6 +27,7 @@ const renderDropdown = (
   handleAccept: (user: User) => void,
   handleReject: (user: User) => void,
   handleViewProfile: (userId: number) => void,
+  handleDelete: (user: User) => void, // Add handleDelete
   dropdownRef: React.RefObject<HTMLDivElement>,
   dropdownOpen: { userId: string; x: number; y: number } | null
 ) => (
@@ -59,6 +61,14 @@ const renderDropdown = (
           View Profile
         </button>
       </li>
+      <li>
+        <button
+          onClick={() => handleDelete(user)}
+          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
+        >
+          Delete Profile
+        </button>
+      </li>
     </ul>
   </div>
 );
@@ -72,11 +82,12 @@ export default function PartnerScreen() {
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false); // State for delete modal
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rejectReason, setRejectReason] = useState<string>("");
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
-   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); // Ensure number
+  const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
 
   const itemsPerPage = 10;
   const categoryLabel = "Partners";
@@ -88,7 +99,7 @@ export default function PartnerScreen() {
     return () => {
       dispatch(clearUsers());
     };
-  }, [isAuthenticated, user,statusUpdated, dispatch]);
+  }, [isAuthenticated, user, statusUpdated, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -135,17 +146,17 @@ export default function PartnerScreen() {
     try {
       await dispatch(
         updateUserStatus({
-          user_id: user.id, 
-          status: 1, 
+          user_id: user.id,
+          status: 1,
           feedback: "",
           updated_by_user_id: createdUserId,
         })
       ).unwrap();
-       setStatusUpdated(!statusUpdated);
+      setStatusUpdated(!statusUpdated);
       setDropdownOpen(null);
     } catch (error) {
       console.error("Failed to accept user:", error);
-      toast.error(error as string); 
+      toast.error(error as string);
     }
   };
 
@@ -160,21 +171,52 @@ export default function PartnerScreen() {
       try {
         await dispatch(
           updateUserStatus({
-            user_id: selectedUser.id, 
+            user_id: selectedUser.id,
             status: 2,
             feedback: rejectReason,
-            updated_by_user_id: createdUserId, 
+            updated_by_user_id: createdUserId,
           })
         ).unwrap();
-         setStatusUpdated(!statusUpdated);
+        setStatusUpdated(!statusUpdated);
         setIsRejectModalOpen(false);
         setRejectReason("");
         setSelectedUser(null);
       } catch (error) {
         console.error("Failed to reject user:", error);
-        toast.error(error as string); 
+        toast.error(error as string);
       }
     }
+  };
+
+  const handleDelete = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+    setDropdownOpen(null);
+  };
+
+  const handleConfirmDelete = async () => {
+    if (selectedUser && user?.user_type) {
+      try {
+        await dispatch(
+          deleteUser({
+            id: selectedUser.id,
+            created_user_id: createdUserId,
+            created_user_type: user.user_type,
+          })
+        ).unwrap();
+        setStatusUpdated(!statusUpdated); // Trigger refetch
+        setIsDeleteModalOpen(false);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        toast.error(error as string);
+      }
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedUser(null);
   };
 
   const handleFilter = (value: string) => {
@@ -186,8 +228,6 @@ export default function PartnerScreen() {
     const date = new Date(dateString);
     return date.toISOString().split("T")[0];
   };
-
-
 
   return (
     <div className="relative min-h-screen">
@@ -299,7 +339,7 @@ export default function PartnerScreen() {
                                   admin_user_type: 2,
                                   assigned_user_type: user.user_type,
                                   assigned_id: user.id,
-                                  name:user.name
+                                  name: user.name,
                                 }}
                                 className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
                               >
@@ -366,6 +406,7 @@ export default function PartnerScreen() {
                 handleAccept,
                 handleReject,
                 handleViewProfile,
+                handleDelete,
                 dropdownRef,
                 dropdownOpen
               ),
@@ -428,6 +469,12 @@ export default function PartnerScreen() {
           </div>
         </div>
       </Modal>
+      <ConfirmDeleteUserModal
+        isOpen={isDeleteModalOpen}
+        userName={selectedUser?.name || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }

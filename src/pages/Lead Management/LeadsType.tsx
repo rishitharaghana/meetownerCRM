@@ -1,33 +1,45 @@
-import React, { useState, useRef, useEffect, useMemo } from 'react';
-import { createPortal } from 'react-dom';
-import { useNavigate, useParams } from 'react-router';
-import { useSelector, useDispatch } from 'react-redux';
-import PageBreadcrumb from '../../components/common/PageBreadCrumb';
-import PageMeta from '../../components/common/PageMeta';
+import React, { useState, useRef, useEffect, useMemo } from "react";
+import { createPortal } from "react-dom";
+import { useNavigate, useParams } from "react-router";
+import { useSelector, useDispatch } from "react-redux";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
   TableBody,
   TableCell,
   TableHeader,
   TableRow,
-} from '../../components/ui/table';
-import Button from '../../components/ui/button/Button';
-import { RootState, AppDispatch } from '../../store/store';
-import { Lead } from '../../types/LeadModel';
-import { clearLeads, getLeadsByUser } from '../../store/slices/leadslice';
-import toast from 'react-hot-toast';
-import { BUILDER_USER_TYPE, renderDropdown, sidebarSubItems } from './CustomComponents';
-import UpdateLeadModal from './UpdateLeadModel';
-import MarkBookedModal from './MarkBookingDoneModal';
+} from "../../components/ui/table";
+import Button from "../../components/ui/button/Button";
+import { RootState, AppDispatch } from "../../store/store";
+import { Lead } from "../../types/LeadModel";
+import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
+import toast from "react-hot-toast";
+import { BUILDER_USER_TYPE, renderDropdown, sidebarSubItems } from "./CustomComponents";
+import UpdateLeadModal from "./UpdateLeadModel";
+import MarkBookedModal from "./MarkBookingDoneModal";
+import FilterBar from "../../components/common/FilterBar";
+
+const userTypeMap: { [key: number]: string } = {
+  3: "Channel Partner",
+  4: "Sales Manager",
+  5: "Telecallers",
+  6: "Marketing Executors",
+  7: "Receptionists",
+};
 
 const LeadsType: React.FC = () => {
   const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
   const [localPage, setLocalPage] = useState<number>(1);
-  const [searchQuery, setSearchQuery] = useState<string>('');
+  const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [isMarkBookedModalOpen, setIsMarkBookedModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
+  const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [updatedDate, setUpdatedDate] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -39,12 +51,21 @@ const LeadsType: React.FC = () => {
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
 
   const itemsPerPage = 10;
-  const statusId = parseInt(status || '0', 10);
+  const statusId = parseInt(status || "0", 10);
 
   const sidebarItem = sidebarSubItems.find(
     (item) =>
       item.lead_in.toLowerCase() === lead_in?.toLowerCase() &&
       item.status === statusId
+  );
+
+  const userFilterOptions = useMemo(
+    () =>
+      Object.entries(userTypeMap).map(([value, label]) => ({
+        value: value.toString(),
+        label,
+      })),
+    []
   );
 
   const leadsParams = useMemo(() => {
@@ -81,7 +102,7 @@ const LeadsType: React.FC = () => {
         // toast.error(err || 'Failed to fetch leads');
       });
     } else if (isAuthenticated && user) {
-      console.warn('Invalid user data:', {
+      console.warn("Invalid user data:", {
         id: user.id,
         user_type: user.user_type,
         created_user_id: user.created_user_id,
@@ -94,20 +115,36 @@ const LeadsType: React.FC = () => {
     };
   }, [leadsParams, dispatch, statusUpdated]);
 
-  const filteredLeads = leads?.filter((item) => {
-    if (!searchQuery) return true;
-    const searchValue = searchQuery.toLowerCase();
+  const filteredLeads = useMemo(() => {
     return (
-      item.customer_name.toLowerCase().includes(searchValue) ||
-      item.customer_phone_number.includes(searchValue) ||
-      item.customer_email.toLowerCase().includes(searchValue) ||
-      item.interested_project_name.toLowerCase().includes(searchValue) ||
-      item.assigned_name.toLowerCase().includes(searchValue) ||
-      item.assigned_emp_number.includes(searchValue) ||
-      item.assigned_priority.toLowerCase().includes(searchValue) ||
-      item.status_name.toLowerCase().includes(searchValue)
+      leads?.filter((item) => {
+        const matchesSearch = !searchQuery
+          ? true
+          : item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.customer_phone_number.includes(searchQuery) ||
+            item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.assigned_emp_number.includes(searchQuery) ||
+            item.assigned_priority.toLowerCase().includes(searchQuery.toLowerCase()) ||
+            item.status_name.toLowerCase().includes(searchQuery.toLowerCase());
+
+        const matchesUserType = !selectedUserType
+          ? true
+          : item.assigned_user_type === parseInt(selectedUserType);
+
+        const matchesCreatedDate = !createdDate
+          ? true
+          : item.created_date.split("T")[0] === createdDate;
+
+        const matchesUpdatedDate = !updatedDate
+          ? true
+          : item.updated_date?.split("T")[0] === updatedDate;
+
+        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate;
+      }) || []
     );
-  }) || [];
+  }, [leads, searchQuery, selectedUserType, createdDate, updatedDate]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -122,11 +159,11 @@ const LeadsType: React.FC = () => {
         setDropdownOpen(null);
       }
     };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const getPageTitle = () => sidebarItem?.name || 'Leads';
+  const getPageTitle = () => sidebarItem?.name || "Leads";
 
   const handleSearch = (value: string) => setSearchQuery(value.trim());
 
@@ -144,14 +181,14 @@ const LeadsType: React.FC = () => {
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
     if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push('...');
+    if (startPage > 2) pages.push("...");
     for (let i = startPage; i <= endPage; i++) pages.push(i);
-    if (endPage < totalPages - 1) pages.push('...');
+    if (endPage < totalPages - 1) pages.push("...");
     if (endPage < totalPages) pages.push(totalPages);
     return pages;
   };
 
-  const handleViewHistory = (item: Lead) => navigate('/leads/view', { state: { property: item } });
+  const handleViewHistory = (item: Lead) => navigate("/leads/view", { state: { property: item } });
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
@@ -171,7 +208,7 @@ const LeadsType: React.FC = () => {
       setIsMarkBookedModalOpen(true);
       setDropdownOpen(null);
     } else {
-      toast.error('Lead not found');
+      toast.error("Lead not found");
     }
   };
 
@@ -192,6 +229,29 @@ const LeadsType: React.FC = () => {
     setDropdownOpen(null);
   };
 
+  const handleUserTypeChange = (value: string | null) => {
+    setSelectedUserType(value);
+    setLocalPage(1); // Reset to first page when filter changes
+  };
+
+  const handleCreatedDateChange = (date: string | null) => {
+    setCreatedDate(date);
+    setLocalPage(1);
+  };
+
+  const handleUpdatedDateChange = (date: string | null) => {
+    setUpdatedDate(date);
+    setLocalPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setSelectedUserType(null);
+    setCreatedDate(null);
+    setUpdatedDate(null);
+    setSearchQuery("");
+    setLocalPage(1);
+  };
+
   return (
     <div className="relative min-h-screen">
       <PageMeta title={`Lead Management - ${getPageTitle()}`} />
@@ -199,6 +259,19 @@ const LeadsType: React.FC = () => {
         pageTitle={getPageTitle()}
         pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
         onFilter={handleSearch}
+      />
+      <FilterBar
+        showUserTypeFilter={true}
+        showDateFilters={true}
+        userFilterOptions={userFilterOptions}
+        onUserTypeChange={handleUserTypeChange}
+        onCreatedDateChange={handleCreatedDateChange}
+        onUpdatedDateChange={handleUpdatedDateChange}
+        onClearFilters={handleClearFilters}
+        selectedUserType={selectedUserType}
+        createdDate={createdDate}
+        updatedDate={updatedDate}
+        className="mb-4"
       />
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
@@ -230,6 +303,15 @@ const LeadsType: React.FC = () => {
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
                       Lead Type
                     </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                      Created Date
+                    </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                      Updated Date
+                    </TableCell>
+                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                      Lead Assigned
+                    </TableCell>
                     <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Actions
                     </TableCell>
@@ -245,19 +327,28 @@ const LeadsType: React.FC = () => {
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.customer_name || 'N/A'}
+                        {item.customer_name || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.customer_phone_number || 'N/A'}
+                        {item.customer_phone_number || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.customer_email || 'N/A'}
+                        {item.customer_email || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.interested_project_name || 'N/A'}
+                        {item.interested_project_name || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                        {item.status_name || 'N/A'}
+                        {item.status_name || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        {item.created_date?.split("T")[0] || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        {item.updated_date?.split("T")[0] || "N/A"}
+                      </TableCell>
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        {userTypeMap[item.assigned_user_type] || "N/A"}
                       </TableCell>
                       <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
                         <Button
@@ -292,12 +383,12 @@ const LeadsType: React.FC = () => {
         {filteredLeads.length > itemsPerPage && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
             <div className="text-sm text-gray-500 dark:text-gray-400">
-              Showing {(localPage - 1) * itemsPerPage + 1} to{' '}
+              Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
               {Math.min(localPage * itemsPerPage, filteredLeads.length)} of {filteredLeads.length} entries
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
               <Button
-                variant={localPage === 1 ? 'outline' : 'primary'}
+                variant={localPage === 1 ? "outline" : "primary"}
                 size="sm"
                 onClick={goToPreviousPage}
                 disabled={localPage === 1}
@@ -307,16 +398,16 @@ const LeadsType: React.FC = () => {
               {getPaginationItems().map((page, index) => (
                 <Button
                   key={`${page}-${index}`}
-                  variant={page === localPage ? 'primary' : 'outline'}
+                  variant={page === localPage ? "primary" : "outline"}
                   size="sm"
-                  onClick={() => typeof page === 'number' && goToPage(page)}
-                  disabled={page === '...'}
+                  onClick={() => typeof page === "number" && goToPage(page)}
+                  disabled={page === "..."}
                 >
                   {page}
                 </Button>
               ))}
               <Button
-                variant={localPage === totalPages ? 'outline' : 'primary'}
+                variant={localPage === totalPages ? "outline" : "primary"}
                 size="sm"
                 onClick={goToNextPage}
                 disabled={localPage === totalPages}

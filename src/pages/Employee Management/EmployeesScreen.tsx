@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
 import { Link, useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 
 import {
   Table,
@@ -13,12 +14,13 @@ import {
 import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-
 import Pagination from "../../components/ui/pagination/Pagination";
+
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType } from "../../store/slices/userslice";
+import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice"; // Import deleteUser
 import { getStatusDisplay } from "../../utils/statusdisplay";
+import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
@@ -34,8 +36,8 @@ const formatDate = (dateString: string): string => {
 
 const renderDropdown = (
   user: User,
- 
   handleViewProfile: (userId: number) => void,
+  handleDelete: (user: User) => void,
   dropdownRef: React.RefObject<HTMLDivElement>,
   dropdownOpen: { userId: string; x: number; y: number } | null
 ) => (
@@ -45,7 +47,6 @@ const renderDropdown = (
     style={{ top: dropdownOpen?.y, left: dropdownOpen?.x }}
   >
     <ul className="py-2">
-      
       <li>
         <button
           onClick={() => handleViewProfile(user.id)}
@@ -54,14 +55,14 @@ const renderDropdown = (
           View Profile
         </button>
       </li>
-      {/* <li>
+      <li>
         <button
-          onClick={() => handleViewProfile(user.id)}
+          onClick={() => handleDelete(user)}
           className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
         >
-          Delete profile
+          Delete Profile
         </button>
-      </li> */}
+      </li>
     </ul>
   </div>
 );
@@ -75,10 +76,12 @@ export default function EmployeesScreen() {
   const [dropdownOpen, setDropdownOpen] = useState<{ userId: string; x: number; y: number } | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
- 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false); 
+  const [selectedUser, setSelectedUser] = useState<User | null>(null); 
+  const [statusUpdated, setStatusUpdated] = useState<boolean>(false); 
 
   const dropdownRef = useRef<HTMLDivElement>(null);
-  const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); 
+  const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
   const itemsPerPage = 10;
   const empUserType = Number(status);
   const categoryLabel = userTypeMap[empUserType] || "Employees";
@@ -90,7 +93,7 @@ export default function EmployeesScreen() {
     return () => {
       dispatch(clearUsers());
     };
-  }, [isAuthenticated, user, empUserType, dispatch]);
+  }, [isAuthenticated, user, empUserType, statusUpdated, dispatch]);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
@@ -133,9 +136,36 @@ export default function EmployeesScreen() {
     setDropdownOpen(null);
   };
 
-  
+  const handleDelete = (user: User) => {
+    setSelectedUser(user);
+    setIsDeleteModalOpen(true);
+    setDropdownOpen(null);
+  };
 
- 
+  const handleConfirmDelete = async () => {
+    if (selectedUser && user?.user_type) {
+      try {
+        await dispatch(
+          deleteUser({
+            id: selectedUser.id,
+            created_user_id: createdUserId,
+            created_user_type: user.user_type,
+          })
+        ).unwrap();
+        setStatusUpdated(!statusUpdated); // Trigger refetch
+        setIsDeleteModalOpen(false);
+        setSelectedUser(null);
+      } catch (error) {
+        console.error("Failed to delete user:", error);
+        toast.error(error as string);
+      }
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedUser(null);
+  };
 
   const handleFilter = (value: string) => {
     setFilterValue(value);
@@ -194,20 +224,18 @@ export default function EmployeesScreen() {
                       >
                         Employee
                       </TableCell>
-                    
-                          <TableCell
-                            isHeader
-                            className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                          >
-                            Mobile
-                          </TableCell>
-                          <TableCell
-                            isHeader
-                            className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[20%]"
-                          >
-                            Email
-                          </TableCell>
-                    
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
+                      >
+                        Mobile
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[20%]"
+                      >
+                        Email
+                      </TableCell>
                       <TableCell
                         isHeader
                         className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
@@ -259,14 +287,14 @@ export default function EmployeesScreen() {
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                             <div className="flex items-center gap-3">
-                             <Link
+                              <Link
                                 to="/lead/allLeads"
                                 state={{
                                   admin_user_id: createdUserId,
                                   admin_user_type: 2,
                                   assigned_user_type: empUserType,
                                   assigned_id: user.id,
-                                  name:user.name
+                                  name: user.name,
                                 }}
                                 className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
                               >
@@ -274,16 +302,12 @@ export default function EmployeesScreen() {
                               </Link>
                             </div>
                           </TableCell>
-                   
-                            
-                              <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                                {user.mobile}
-                              </TableCell>
-                              <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                                {user.email}
-                              </TableCell>
-                            
-                          
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                            {user.mobile}
+                          </TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
+                            {user.email}
+                          </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                             {user.address}
                           </TableCell>
@@ -341,7 +365,7 @@ export default function EmployeesScreen() {
               renderDropdown(
                 paginatedUsers.find((user) => user.id.toString() === dropdownOpen.userId)!,
                 handleViewProfile,
-               
+                handleDelete,
                 dropdownRef,
                 dropdownOpen
               ),
@@ -361,7 +385,12 @@ export default function EmployeesScreen() {
           )}
         </ComponentCard>
       </div>
-     
+      <ConfirmDeleteUserModal
+        isOpen={isDeleteModalOpen}
+        userName={selectedUser?.name || ""}
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
