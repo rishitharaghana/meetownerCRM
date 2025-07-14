@@ -18,6 +18,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import toast from "react-hot-toast";
 import Dropdown from "../../components/form/Dropdown";
 import { useNavigate } from "react-router";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 interface FormData {
   name: string;
@@ -47,8 +48,8 @@ interface Errors {
 const AddChannelPartner = () => {
   const dispatch = useDispatch<AppDispatch>();
    const navigate = useNavigate();
-  const { cities, states } = useSelector((state: RootState) => state.property);
-  const { loading, error } = useSelector((state: RootState) => state.user);
+  const {  states } = useSelector((state: RootState) => state.property);
+  const { loading, } = useSelector((state: RootState) => state.user);
      const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
@@ -74,6 +75,7 @@ const AddChannelPartner = () => {
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
   const { citiesQuery, statesQuery } = usePropertyQueries();
+  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
 
 
    useEffect(() => {
@@ -89,20 +91,23 @@ const AddChannelPartner = () => {
     }
   }, [isAuthenticated, user, navigate]);
   
-  useEffect(() => {
-    if (citiesQuery.isError) {
-      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || "Unknown error"}`);
+    useEffect(() => {
+      if (citiesResult.data) {
+        dispatch(setCityDetails(citiesResult.data));
+      }
+    }, [citiesResult.data, dispatch]);
+  
+   useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
     }
     if (statesQuery.isError) {
-      toast.error(`Failed to fetch states: ${statesQuery.error?.message || "Unknown error"}`);
+      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
     }
-    if (error) {
-      toast.error(error);
-    }
-  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error, error]);
+  }, [citiesResult.isError, citiesResult.error, statesQuery.isError, statesQuery.error]);
 
   const cityOptions =
-    cities?.map((city: any) => ({ value: city.value, text: city.label })) || [];
+    citiesResult?.data?.map((city: any) => ({ value: city.value, text: city.label })) || [];
 
   const stateOptions =
     states?.map((state: any) => ({ value: state.value, text: state.label })) || [];

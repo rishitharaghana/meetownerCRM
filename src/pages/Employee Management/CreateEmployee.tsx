@@ -19,6 +19,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import toast from "react-hot-toast";
 import { insertUser } from "../../store/slices/userslice";
 import { useNavigate } from "react-router";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 interface FormData {
   name: string;
@@ -51,10 +52,11 @@ interface Errors {
 const CreateEmployee = () => {
   const dispatch = useDispatch<AppDispatch>();
    const navigate = useNavigate();
-  const { cities, states } = useSelector((state: RootState) => state.property);
+  const { states } = useSelector((state: RootState) => state.property);
   const { loading,  } = useSelector((state: RootState) => state.user); 
   const { citiesQuery, statesQuery } = usePropertyQueries();
-    const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -72,6 +74,7 @@ const CreateEmployee = () => {
 
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
+  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
 
    useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -87,13 +90,19 @@ const CreateEmployee = () => {
   }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
-    if (citiesQuery.isError) {
-      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || "Unknown error"}`);
+        if (citiesResult.data) {
+          dispatch(setCityDetails(citiesResult.data));
+        }
+  }, [citiesResult.data, dispatch]);
+
+ useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
     }
     if (statesQuery.isError) {
-      toast.error(`Failed to fetch states: ${statesQuery.error?.message || "Unknown error"}`);
+      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
     }
-  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
+  }, [citiesResult.isError, citiesResult.error, statesQuery.isError, statesQuery.error]);
 
   const allDesignationOptions = [
     { value: "4", text: "Sales Manager" },
@@ -101,8 +110,8 @@ const CreateEmployee = () => {
     { value: "6", text: "Marketing Agent" },
     { value: "7", text: "Receptionists" },
   ];
-
-  const cityOptions = cities?.map((c: any) => ({ value: c.value, text: c.label })) || [];
+const cityOptions =
+    citiesResult?.data?.map((city: any) => ({ value: city.value, text: city.label })) || [];
   const stateOptions = states?.map((s: any) => ({ value: s.value, text: s.label })) || [];
 
   const handleChange = (field: keyof FormData) => (value: string | File | null) => {

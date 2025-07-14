@@ -1,9 +1,9 @@
 import { useEffect } from 'react';
 import { useDispatch } from 'react-redux';
 import { useQuery } from '@tanstack/react-query';
-import axios, { AxiosError } from 'axios';
-import { setCityDetails, setStates } from '../store/slices/propertyDetails';
-
+import { AxiosError } from 'axios';
+import { setStates } from '../store/slices/propertyDetails';
+import ngrokAxiosInstance from './AxiosInstance';
 
 interface City {
   value: number;
@@ -34,41 +34,38 @@ interface ErrorResponse {
 export const usePropertyQueries = () => {
   const dispatch = useDispatch();
 
-
-  const citiesQuery = useQuery<City[], AxiosError<ErrorResponse>>({
-    queryKey: ['cities'],
-    queryFn: async () => {
-      const response = await axios.get<CitiesResponse>('https://api.meetowner.in/general/getcities');
-      if (response.data.status !== 'success') {
-        throw new Error(response.data.message || 'Failed to fetch cities');
-      }
-      return response.data.cities;
-    },
-    staleTime: 2 * 24 * 60 * 60 * 1000, // 2 days
-    
-  });
-
- 
+  // States Query
   const statesQuery = useQuery<State[], AxiosError<ErrorResponse>>({
     queryKey: ['states'],
     queryFn: async () => {
-      const response = await axios.get<StatesResponse>('https://api.meetowner.in/general/getstates');
+      const response = await ngrokAxiosInstance.get<StatesResponse>('/api/v1/states');
       if (response.data.status !== 'success') {
         throw new Error(response.data.message || 'Failed to fetch states');
       }
       return response.data.states;
     },
     staleTime: 2 * 24 * 60 * 60 * 1000, // 2 days
-    
   });
 
- 
-  useEffect(() => {
-    if (citiesQuery.data) {
-      dispatch(setCityDetails(citiesQuery.data));
-    }
-  }, [citiesQuery.data, dispatch]);
+  // Cities Query (requires stateId)
+  const citiesQuery = (stateId?: number) =>
+    useQuery<City[], AxiosError<ErrorResponse>>({
+      queryKey: ['cities', stateId],
+      queryFn: async () => {
+        if (!stateId) {
+          throw new Error('stateId is required');
+        }
+        const response = await ngrokAxiosInstance.get<CitiesResponse>(`/api/v1/city/${stateId}`);
+        if (response.data.status !== 'success') {
+          throw new Error(response.data.message || 'Failed to fetch cities');
+        }
+        return response.data.cities;
+      },
+      staleTime: 2 * 24 * 60 * 60 * 1000, // 2 days
+      enabled: !!stateId, // Only fetch when stateId is provided
+    });
 
+  // Dispatch states to Redux
   useEffect(() => {
     if (statesQuery.data) {
       dispatch(setStates(statesQuery.data));
@@ -76,7 +73,7 @@ export const usePropertyQueries = () => {
   }, [statesQuery.data, dispatch]);
 
   return {
-    citiesQuery,
     statesQuery,
+    citiesQuery,
   };
 };

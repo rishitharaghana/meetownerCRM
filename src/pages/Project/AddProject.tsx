@@ -11,6 +11,7 @@ import toast from 'react-hot-toast';
 import Select from '../../components/form/Select';
 import { usePropertyQueries } from '../../hooks/PropertyQueries';
 import { useNavigate } from 'react-router';
+import { setCityDetails } from '../../store/slices/propertyDetails';
 
 interface SelectOption {
   value: string;
@@ -85,7 +86,7 @@ interface Errors {
 
 export default function AddProject() {
   const dispatch = useDispatch<AppDispatch>();
-  const { cities, states } = useSelector((state: RootState) => state.property);
+  const {  states } = useSelector((state: RootState) => state.property);
   const navigate = useNavigate();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
@@ -127,6 +128,7 @@ export default function AddProject() {
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
   const { citiesQuery, statesQuery } = usePropertyQueries();
+  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -136,29 +138,35 @@ export default function AddProject() {
     }
 
     if (user.user_type !== 2) {
-      navigate('/'); 
-      toast.error('Access denied: Only builders can create employees');
+      navigate('/');
+      toast.error('Access denied: Only builders can create projects');
     }
   }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
-    if (citiesQuery.isError) {
-      toast.error(`Failed to fetch cities: ${citiesQuery.error?.message || 'Unknown error'}`);
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
     }
     if (statesQuery.isError) {
       toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
     }
-  }, [citiesQuery.isError, citiesQuery.error, statesQuery.isError, statesQuery.error]);
+  }, [citiesResult.isError, citiesResult.error, statesQuery.isError, statesQuery.error]);
 
   const cityOptions: Option[] =
-    cities?.map((city: any) => ({
-      value: city.value,
+    citiesResult?.data?.map((city) => ({
+      value: city.value.toString(),
       text: city.label,
     })) || [];
 
   const stateOptions: Option[] =
     states?.map((state: any) => ({
-      value: state.value,
+      value: state.value.toString(), // Ensure value is a string
       text: state.label,
     })) || [];
 
@@ -210,7 +218,7 @@ export default function AddProject() {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
-        ...(field === 'state' && { city: '', locality: '' }), // Reset locality when state changes
+        ...(field === 'state' && { city: '', locality: '' }), // Reset city and locality when state changes
         ...(field === 'city' && { locality: '' }), // Reset locality when city changes
         ...(field === 'launchType' && value !== 'Launched' && { launchDate: '' }),
       }));
@@ -308,11 +316,11 @@ export default function AddProject() {
   const handleBrochureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      const validFileTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      const validFileTypes = ['application/pdf']; // Server only allows PDFs for brochure
       if (!validFileTypes.includes(file.type)) {
         setErrors((prev) => ({
           ...prev,
-          brochure: 'Only JPEG, PNG, or PDF files are allowed',
+          brochure: 'Only PDF files are allowed for brochure',
         }));
         return;
       }
@@ -358,11 +366,11 @@ export default function AddProject() {
   const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      const validFileTypes = ['image/jpeg', 'image/png', 'application/pdf'];
+      const validFileTypes = ['application/pdf']; // Server only allows PDFs for price sheet
       if (!validFileTypes.includes(file.type)) {
         setErrors((prev) => ({
           ...prev,
-          priceSheet: 'Only JPEG, PNG, or PDF files are allowed',
+          priceSheet: 'Only PDF files are allowed for price sheet',
         }));
         return;
       }
@@ -550,7 +558,7 @@ export default function AddProject() {
       formDataToSend.append('builder_name', formData.builderName);
       formDataToSend.append('state', stateName);
       formDataToSend.append('city', cityName);
-      formDataToSend.append('locality', formData.locality); // Use text input value directly
+      formDataToSend.append('locality', formData.locality);
       formDataToSend.append('construction_status', formData.status);
       formDataToSend.append('upcoming_project', formData.isUpcoming ? 'Yes' : 'No');
       formDataToSend.append('posted_by', user?.user_type.toString() || '2');
@@ -573,7 +581,6 @@ export default function AddProject() {
           formData.sizes.map((size) => ({
             build_up_area: size.buildupArea,
             carpet_area: size.carpetArea,
-            floor_plan: size.floorPlan ? size.floorPlan.name : null,
             sqftprice: size.sqftPrice,
           }))
         )
@@ -593,9 +600,9 @@ export default function AddProject() {
       if (formData.priceSheet) {
         formDataToSend.append('price_sheet', formData.priceSheet);
       }
-      formData.sizes.forEach((size, index) => {
+      formData.sizes.forEach((size) => {
         if (size.floorPlan) {
-          formDataToSend.append(`floor_plan_${index}`, size.floorPlan);
+          formDataToSend.append('floor_plan', size.floorPlan); // Use 'floor_plan' for all floor plans
         }
       });
 
@@ -999,7 +1006,7 @@ export default function AddProject() {
                     <input
                       type="file"
                       id={`floorPlan-${size.id}`}
-                      accept="image/*,application/pdf"
+                      accept="image/jpeg,image/png,application/pdf"
                       onChange={handleFileChange(size.id)}
                       ref={(el) => (fileInputRefs.current[size.id] = el)}
                       className="hidden"
@@ -1101,7 +1108,7 @@ export default function AddProject() {
                 type="file"
                 id="brochure"
                 ref={brochureInputRef}
-                accept="image/jpeg,image/png,application/pdf"
+                accept="application/pdf"
                 onChange={handleBrochureChange}
                 className="hidden"
               />
@@ -1130,15 +1137,7 @@ export default function AddProject() {
             )}
             <div className="min-h-[80px] flex items-end">
               {formData.brochure ? (
-                formData.brochure.type.startsWith('image/') ? (
-                  <img
-                    src={URL.createObjectURL(formData.brochure)}
-                    alt="Brochure Preview"
-                    className="max-w-[100px] max-h-[100px] object-contain"
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.brochure.name}</p>
-                )
+                <p className="text-sm text-gray-500 truncate">{formData.brochure.name}</p>
               ) : (
                 <p className="text-sm text-gray-400"></p>
               )}
@@ -1151,7 +1150,7 @@ export default function AddProject() {
                 type="file"
                 id="priceSheet"
                 ref={priceSheetInputRef}
-                accept="image/jpeg,image/png,application/pdf"
+                accept="application/pdf"
                 onChange={handlePriceSheetChange}
                 className="hidden"
               />
@@ -1180,15 +1179,7 @@ export default function AddProject() {
             )}
             <div className="min-h-[80px] flex items-end">
               {formData.priceSheet ? (
-                formData.priceSheet.type.startsWith('image/') ? (
-                  <img
-                    src={URL.createObjectURL(formData.priceSheet)}
-                    alt="Price Sheet Preview"
-                    className="max-w-[100px] max-h-[100px] object-contain"
-                  />
-                ) : (
-                  <p className="text-sm text-gray-500 truncate">{formData.priceSheet.name}</p>
-                )
+                <p className="text-sm text-gray-500 truncate">{formData.priceSheet.name}</p>
               ) : (
                 <p className="text-sm text-gray-400"></p>
               )}
