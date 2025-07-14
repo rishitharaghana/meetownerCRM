@@ -196,6 +196,7 @@ const AddChannelPartner = () => {
       rera_number: formData.reraNumber,
       created_by: createdBy,
       created_user_id: createdUserId,
+      created_user_type:2,
       company_name: formData.companyName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,

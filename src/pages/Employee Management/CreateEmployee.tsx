@@ -167,6 +167,7 @@ const CreateEmployee = () => {
     formDataToSend.append("user_type", formData.designation);
     formDataToSend.append("created_by", createdBy);
     formDataToSend.append("created_user_id", createdUserId.toString());
+    formDataToSend.append("created_user_type","2");
     
 
     try {
