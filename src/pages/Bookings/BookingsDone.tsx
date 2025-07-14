@@ -15,6 +15,7 @@ import Button from "../../components/ui/button/Button";
 import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
 import { RootState, AppDispatch } from "../../store/store";
 import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
+import { leadSourceOptions } from "../../components/common/reusedList";
 
 const BookingsDone: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
@@ -25,6 +26,8 @@ const BookingsDone: React.FC = () => {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
+
+
 
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
@@ -165,6 +168,10 @@ const BookingsDone: React.FC = () => {
     return pages;
   };
 
+
+   const leadSourceMap = Object.fromEntries(
+    leadSourceOptions.map((option) => [option.value, option.label])
+  );
   return (
     <div className="relative min-h-screen">
       <PageMeta title="Booked Leads" />
@@ -298,7 +305,7 @@ const BookingsDone: React.FC = () => {
                           {item.property_subtype || "N/A"}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          {item.status_id || "N/A"}
+                          {leadSourceMap[item.lead_source_id]  || "N/A"}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                           {item.created_date || "N/A"}

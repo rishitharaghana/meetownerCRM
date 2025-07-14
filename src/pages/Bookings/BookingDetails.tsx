@@ -4,6 +4,8 @@ import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
+import { leadSourceOptions } from "../../components/common/reusedList";
+
 
 
 const BookingDetails: React.FC = () => {
@@ -23,19 +25,23 @@ const BookingDetails: React.FC = () => {
     );
   }
 
+  const leadSourceMap = Object.fromEntries(
+  leadSourceOptions.map((option) => [option.value, option.label])
+);
+
   const details = [
-    { label: "Lead ID", value: lead.lead_id },
+    
     { label: "Customer Name", value: lead.customer_name || "N/A" },
     { label: "Customer Phone Number", value: lead.customer_phone_number || "N/A" },
     { label: "Customer Email", value: lead.customer_email || "N/A" },
-    { label: "Interested Project ID", value: lead.interested_project_id || "N/A" },
+   
     { label: "Interested Project Name", value: lead.interested_project_name || "N/A" },
-    { label: "Lead Source ID", value: lead.lead_source_id || "N/A" },
+   { label: "Lead Source", value: leadSourceMap[lead.lead_source_id] || "N/A" },
     { label: "Created Date", value: lead.created_date || "N/A" },
     { label: "Created Time", value: lead.created_time || "N/A" },
     { label: "Updated Date", value: lead.updated_date || "N/A" },
     { label: "Updated Time", value: lead.updated_time || "N/A" },
-    { label: "Assigned ID", value: lead.assigned_id || "N/A" },
+
     { label: "Assigned Name", value: lead.assigned_name || "N/A" },
     { label: "Assigned Employee Number", value: lead.assigned_emp_number || "N/A" },
     { label: "Assigned Priority", value: lead.assigned_priority || "N/A" },
@@ -44,13 +50,10 @@ const BookingDetails: React.FC = () => {
     { label: "Assigned Date", value: lead.assigned_date || "N/A" },
     { label: "Assigned Time", value: lead.assigned_time || "N/A" },
     { label: "Booked", value: lead.booked || "N/A" },
-    { label: "Lead Added User Type", value: lead.lead_added_user_type || "N/A" },
-    { label: "Lead Added User ID", value: lead.lead_added_user_id || "N/A" },
-    { label: "Assigned User Type", value: lead.assigned_user_type || "N/A" },
-    { label: "Status ID", value: lead.status_id || "N/A" },
+  
     { label: "Square Feet", value: lead.sqft || "N/A" },
     { label: "Budget", value: lead.budget || "N/A" },
-    { label: "Property ID", value: lead.property_id || "N/A" },
+  
     { label: "Flat Number", value: lead.flat_number || "N/A" },
     { label: "Floor Number", value: lead.floor_number || "N/A" },
     { label: "Block Number", value: lead.block_number || "N/A" },
