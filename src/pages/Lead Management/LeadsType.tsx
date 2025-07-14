@@ -125,9 +125,8 @@ const LeadsType: React.FC = () => {
             item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
             item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.assigned_emp_number.includes(searchQuery) ||
-            item.assigned_priority.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.status_name.toLowerCase().includes(searchQuery.toLowerCase());
+            item.assigned_emp_number.includes(searchQuery) 
+           
 
         const matchesUserType = !selectedUserType
           ? true

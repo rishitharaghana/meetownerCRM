@@ -11,9 +11,9 @@ const statusText = (status: number) => {
   switch (status) {
     case 0:
       return "Pending";
-    case 2:
+    case 1:
       return "Approved";
-    case 3:
+    case 2:
       return "Rejected";
     default:
       return "Inactive";
@@ -101,14 +101,7 @@ const EmployeeDetail = () => {
           <Info label="City" value={selectedUser.city} />
           <Info label="State" value={selectedUser.state} />
           <Info label="Pincode" value={selectedUser.pincode} />
-          <Info label="GST Number" value={selectedUser.gst_number || "N/A"} />
-          <Info label="RERA Number" value={selectedUser.rera_number || "N/A"} />
-          <Info label="Company Name" value={selectedUser.company_name || "N/A"} />
-          <Info label="Company Number" value={selectedUser.company_number || "N/A"} />
-          <Info label="Company Address" value={selectedUser.company_address || "N/A"} />
-          <Info label="Representative Name" value={selectedUser.representative_name || "N/A"} />
-          <Info label="PAN Card Number" value={selectedUser.pan_card_number || "N/A"} />
-          <Info label="Aadhar Number" value={selectedUser.aadhar_number || "N/A"} />
+
           <Info label="Created By" value={selectedUser.created_by || "N/A"} />
           <Info
             label="Status"
@@ -131,7 +124,7 @@ const EmployeeDetail = () => {
             })}
           />
           <Info label="Created Time" value={selectedUser.created_time || "N/A"} />
-          <Info label="Feedback" value={selectedUser.feedback || "N/A"} />
+          
         </div>
       </div>
     </div>
