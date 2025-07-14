@@ -18,13 +18,14 @@ import { clearLeads, getBookedLeads, } from "../../store/slices/leadslice";
 
 
 
-const LeadsType: React.FC = () => {
+const BookingsDone: React.FC = () => {
  
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [initialSearch, setInitialSearch] = useState<string>("");
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
+   const navigate = useNavigate();
   
  
 
@@ -112,6 +113,10 @@ const LeadsType: React.FC = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [initialSearch]);
 
+  const handleViewDetails = (leadId: number) => {
+    navigate(`/booking/${leadId}`);
+  };
+
   
  
 
@@ -149,7 +154,7 @@ const LeadsType: React.FC = () => {
 
   return (
     <div className="relative min-h-screen">
-      <PageMeta title={`Lead Management - Bookd}`} />
+      <PageMeta title={`Booked Leads`} />
       <PageBreadcrumb
         pageTitle={'Booked Leads'}
         pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
@@ -227,6 +232,12 @@ const LeadsType: React.FC = () => {
                       >
                         Lead Type
                       </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
+                      >
+                        Actions
+                      </TableCell>
                      
                     </TableRow>
                   </TableHeader>
@@ -271,6 +282,15 @@ const LeadsType: React.FC = () => {
                           className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
                         >
                           {item.status_id || "N/A"}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => handleViewDetails(item.lead_id)}
+                          >
+                            View Details
+                          </Button>
                         </TableCell>
 
                       </TableRow>
@@ -323,4 +343,4 @@ const LeadsType: React.FC = () => {
   );
 };
 
-export default LeadsType;
+export default BookingsDone;
