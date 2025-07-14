@@ -30,6 +30,7 @@ import PartnerProfile from "./pages/Channel Partners/ChannelPartnerProfileScreen
 import CreateEmployee from "./pages/Employee Management/CreateEmployee";
 import AllLeadDetails from "./pages/Lead Management/AllLeadDetails";
 import AssignLeadEmployeePage from "./pages/Lead Management/AssignLeadToEmployee";
+import BookingDetails from "./pages/Bookings/BookingDetails";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -61,6 +62,7 @@ export default function App() {
 
 
               <Route path="/bookings/bookings-done" element={<BookingsDone />} />
+              <Route path="/booking/:leadId" element={<BookingDetails />} />
 
 
               <Route path="/employee/:status" element={<EmployeesScreen />} />

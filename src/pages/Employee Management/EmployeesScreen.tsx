@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate, useParams } from "react-router";
+import { Link, useNavigate, useParams } from "react-router"; // Fixed import
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
 
@@ -15,10 +15,11 @@ import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Pagination from "../../components/ui/pagination/Pagination";
+import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
 
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice"; // Import deleteUser
+import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 
@@ -76,9 +77,11 @@ export default function EmployeesScreen() {
   const [dropdownOpen, setDropdownOpen] = useState<{ userId: string; x: number; y: number } | null>(null);
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false); 
-  const [selectedUser, setSelectedUser] = useState<User | null>(null); 
-  const [statusUpdated, setStatusUpdated] = useState<boolean>(false); 
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [selectedUser, setSelectedUser] = useState<User | null>(null);
+  const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
+  const [createdDate, setCreatedDate] = useState<string | null>(null); // New state for created start date
+  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null); // New state for created end date
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
@@ -109,8 +112,8 @@ export default function EmployeesScreen() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredUsers = users?.filter((user) =>
-    [
+  const filteredUsers = users?.filter((user) => {
+    const matchesTextFilter = [
       user.name,
       user.mobile,
       user.email,
@@ -120,8 +123,15 @@ export default function EmployeesScreen() {
       user.rera_number,
     ]
       .map((field) => field?.toLowerCase() || "")
-      .some((field) => field.includes(filterValue.toLowerCase()))
-  ) || [];
+      .some((field) => field.includes(filterValue.toLowerCase()));
+
+    const userCreatedDate = formatDate(user.created_date);
+    const matchesCreatedDate =
+      (!createdDate || userCreatedDate >= createdDate) &&
+      (!createdEndDate || userCreatedDate <= createdEndDate);
+
+    return matchesTextFilter && matchesCreatedDate;
+  }) || [];
 
   const totalItems = filteredUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -172,12 +182,29 @@ export default function EmployeesScreen() {
     setCurrentPage(1);
   };
 
+  const handleClearFilters = () => {
+    setFilterValue("");
+    setCreatedDate(null);
+    setCreatedEndDate(null);
+    setCurrentPage(1);
+  };
+
   return (
     <div className="relative min-h-screen">
       <PageBreadcrumbList
         pageTitle={`${categoryLabel} Table`}
         pagePlacHolder="Filter employees by name, mobile, email, city, GST, or RERA"
         onFilter={handleFilter}
+      />
+      <FilterBar
+        showCreatedDateFilter={true}
+        showCreatedEndDateFilter={true} // Enable created end date filter
+        onCreatedDateChange={setCreatedDate}
+        onCreatedEndDateChange={setCreatedEndDate} // Pass handler
+        createdDate={createdDate}
+        createdEndDate={createdEndDate} // Pass state
+        onClearFilters={handleClearFilters}
+        className="mb-4"
       />
       <div className="space-y-6">
         <ComponentCard title={`${categoryLabel} Table`}>

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router";
+import { Link, useNavigate, useLocation } from "react-router"; // Updated import
 import { useSelector, useDispatch } from "react-redux";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import ComponentCard from "../../components/common/ComponentCard";
@@ -12,31 +12,25 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
-
+import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
 import { RootState, AppDispatch } from "../../store/store";
-import { clearLeads, getBookedLeads, } from "../../store/slices/leadslice";
-
-
+import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
 
 const BookingsDone: React.FC = () => {
- 
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [initialSearch, setInitialSearch] = useState<string>("");
+  const [createdDate, setCreatedDate] = useState<string | null>(null); // New state for created date filter
+  const [updatedDate, setUpdatedDate] = useState<string | null>(null); // New state for updated date filter
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
-   const navigate = useNavigate();
-  
- 
+  const navigate = useNavigate();
 
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
 
   const itemsPerPage = 10;
-  
-
-
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -56,18 +50,24 @@ const BookingsDone: React.FC = () => {
   }, [isAuthenticated, user, dispatch]);
 
   const filteredLeads = bookedLeads?.filter((item) => {
-   
-    if (!searchQuery) return true;
-    const searchValue = searchQuery.toLowerCase();
-    return (
-      item.customer_name.toLowerCase().includes(searchValue) ||
-      item.customer_phone_number.includes(searchValue) ||
-      item.customer_email.toLowerCase().includes(searchValue) ||
-      item.interested_project_name.toLowerCase().includes(searchValue) ||
-      item.assigned_name.toLowerCase().includes(searchValue) ||
-      item.assigned_emp_number.includes(searchValue) ||
-      item.assigned_priority.toLowerCase().includes(searchValue) 
-    );
+    const matchesTextFilter = !searchQuery
+      ? true
+      : [
+          item.customer_name,
+          item.customer_phone_number,
+          item.customer_email,
+          item.interested_project_name,
+          item.assigned_name,
+          item.assigned_emp_number,
+          item.assigned_priority,
+        ]
+          .map((field) => field?.toLowerCase() || "")
+          .some((field) => field.includes(searchQuery.toLowerCase()));
+
+    const matchesCreatedDate = !createdDate || item.created_date === createdDate;
+    const matchesUpdatedDate = !updatedDate || item.updated_date === updatedDate;
+
+    return matchesTextFilter && matchesCreatedDate && matchesUpdatedDate;
   }) || [];
 
   const totalCount = filteredLeads.length;
@@ -93,18 +93,22 @@ const BookingsDone: React.FC = () => {
     localStorage.removeItem("searchQuery");
     setSearchQuery("");
     setInitialSearch("");
+    setCreatedDate(null);
+    setUpdatedDate(null);
     setLocalPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
     setLocalPage(1);
-  }, [searchQuery,]);
+  }, [searchQuery, createdDate, updatedDate]);
 
   useEffect(() => {
     const handleStorageChange = () => {
       const currentSearch = localStorage.getItem("searchQuery") || "";
       if (currentSearch === "" && initialSearch !== "") {
         setSearchQuery("");
+        setCreatedDate(null);
+        setUpdatedDate(null);
         setLocalPage(1);
         setInitialSearch("");
       }
@@ -113,15 +117,27 @@ const BookingsDone: React.FC = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [initialSearch]);
 
-  const handleViewDetails = (leadId: number) => {
-    navigate(`/booking/${leadId}`);
+  const handleViewDetails = (lead: any) => {
+    navigate(`/booking/${lead.lead_id}`, { state: { lead } });
   };
-
-  
- 
 
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
+  };
+
+  const handleCreatedDateChange = (date: string | null) => {
+    setCreatedDate(date);
+  };
+
+  const handleUpdatedDateChange = (date: string | null) => {
+    setUpdatedDate(date);
+  };
+
+  const handleClearFilters = () => {
+    setSearchQuery("");
+    setCreatedDate(null);
+    setUpdatedDate(null);
+    setLocalPage(1);
   };
 
   const goToPage = (page: number) => {
@@ -140,35 +156,40 @@ const BookingsDone: React.FC = () => {
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
     if (startPage > 1) pages.push(1);
-    if (startPage > 2) pages.push("...");
+    if (startPage > 2
+
+) pages.push("...");
     for (let i = startPage; i <= endPage; i++) pages.push(i);
     if (endPage < totalPages - 1) pages.push("...");
     if (endPage < totalPages) pages.push(totalPages);
     return pages;
   };
 
- 
-
-
- 
-
   return (
     <div className="relative min-h-screen">
-      <PageMeta title={`Booked Leads`} />
+      <PageMeta title="Booked Leads" />
       <PageBreadcrumb
-        pageTitle={'Booked Leads'}
+        pageTitle="Booked Leads"
         pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
         onFilter={handleSearch}
+      />
+      <FilterBar
+        className="mb-4"
+        showCreatedDateFilter={true}
+        showUpdatedDateFilter={true}
+        onCreatedDateChange={handleCreatedDateChange}
+        onUpdatedDateChange={handleUpdatedDateChange}
+        onClearFilters={handleClearFilters}
+        createdDate={createdDate}
+        updatedDate={updatedDate}
       />
       <div className="flex justify-between items-center gap-x-4 px-4 py-1">
         <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
           Search result - {filteredLeads.length}
         </h2>
-        
-
       </div>
       <div className="space-y-6">
-        <ComponentCard title={'Booked Leads'}>
+        <ComponentCard title="Booked Leads">
           {loading && (
             <div className="text-center text-gray-600 dark:text-gray-400 py-4">
               Loading leads...
@@ -216,19 +237,19 @@ const BookingsDone: React.FC = () => {
                       </TableCell>
                       <TableCell
                         isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                         Project name
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                         property type
-                      </TableCell>
-                      <TableCell
-                        isHeader
                         className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
+                      >
+                        Project Name
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
+                      >
+                        Property Type
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
                       >
                         Lead Type
                       </TableCell>
@@ -236,9 +257,20 @@ const BookingsDone: React.FC = () => {
                         isHeader
                         className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
                       >
+                        Created Date
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
+                      >
+                        Updated Date
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
+                      >
                         Actions
                       </TableCell>
-                     
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -247,52 +279,42 @@ const BookingsDone: React.FC = () => {
                         key={item.lead_id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
                           {(localPage - 1) * itemsPerPage + index + 1}
                         </TableCell>
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                           {item.customer_name || "N/A"}
                         </TableCell>
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                           {item.customer_phone_number || "N/A"}
                         </TableCell>
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                           {item.customer_email || "N/A"}
                         </TableCell>
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
                           {item.interested_project_name || "N/A"}
                         </TableCell>
-                         <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                           {item.property_subtype || "N/A"}
                         </TableCell>
-                        
-                        <TableCell
-                          className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]"
-                        >
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                           {item.status_id || "N/A"}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          {item.created_date || "N/A"}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          {item.updated_date || "N/A"}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                           <Button
                             variant="primary"
                             size="sm"
-                            onClick={() => handleViewDetails(item.lead_id)}
+                            onClick={() => handleViewDetails(item)}
                           >
                             View Details
                           </Button>
                         </TableCell>
-
                       </TableRow>
                     ))}
                   </TableBody>

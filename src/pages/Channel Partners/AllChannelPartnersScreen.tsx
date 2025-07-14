@@ -1,9 +1,8 @@
 import { useState, useEffect, useRef } from "react";
 import { createPortal } from "react-dom";
-import { Link, useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router"; // Fixed import
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-
 import {
   Table,
   TableBody,
@@ -16,18 +15,25 @@ import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { Modal } from "../../components/ui/modal";
 import Pagination from "../../components/ui/pagination/Pagination";
-import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal"; // Import the modal
+import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
+import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType, updateUserStatus, deleteUser } from "../../store/slices/userslice"; // Import deleteUser
+import { clearUsers, getUsersByType, updateUserStatus, deleteUser } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
+
+const statusFilterOptions = [
+  { value: "0", label: "Pending" },
+  { value: "1", label: "Verified" },
+  { value: "2", label: "Rejected" },
+];
 
 const renderDropdown = (
   user: User,
   handleAccept: (user: User) => void,
   handleReject: (user: User) => void,
   handleViewProfile: (userId: number) => void,
-  handleDelete: (user: User) => void, // Add handleDelete
+  handleDelete: (user: User) => void,
   dropdownRef: React.RefObject<HTMLDivElement>,
   dropdownOpen: { userId: string; x: number; y: number } | null
 ) => (
@@ -82,10 +88,13 @@ export default function PartnerScreen() {
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
-  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false); // State for delete modal
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rejectReason, setRejectReason] = useState<string>("");
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [createdEndDate, setCreatedEndDate] = useState<string | null>(null); // New state for created end date
+  const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
 
@@ -115,8 +124,8 @@ export default function PartnerScreen() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  const filteredUsers = users?.filter((user) =>
-    [
+  const filteredUsers = users?.filter((user) => {
+    const matchesTextFilter = [
       user.name,
       user.mobile,
       user.email,
@@ -126,8 +135,17 @@ export default function PartnerScreen() {
       user.rera_number,
     ]
       .map((field) => field?.toLowerCase() || "")
-      .some((field) => field.includes(filterValue.toLowerCase()))
-  ) || [];
+      .some((field) => field.includes(filterValue.toLowerCase()));
+
+    const userCreatedDate = user.created_date.split("T")[0];
+    const matchesCreatedDate =
+      (!createdDate || userCreatedDate >= createdDate) &&
+      (!createdEndDate || userCreatedDate <= createdEndDate);
+
+    const matchesStatus = selectedStatus === null || user.status === parseInt(selectedStatus);
+
+    return matchesTextFilter && matchesCreatedDate && matchesStatus;
+  }) || [];
 
   const totalItems = filteredUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -204,7 +222,7 @@ export default function PartnerScreen() {
             created_user_type: user.user_type,
           })
         ).unwrap();
-        setStatusUpdated(!statusUpdated); // Trigger refetch
+        setStatusUpdated(!statusUpdated);
         setIsDeleteModalOpen(false);
         setSelectedUser(null);
       } catch (error) {
@@ -224,6 +242,29 @@ export default function PartnerScreen() {
     setCurrentPage(1);
   };
 
+  const handleCreatedDateChange = (date: string | null) => {
+    setCreatedDate(date);
+    setCurrentPage(1);
+  };
+
+  const handleCreatedEndDateChange = (date: string | null) => {
+    setCreatedEndDate(date);
+    setCurrentPage(1);
+  };
+
+  const handleStatusChange = (value: string | null) => {
+    setSelectedStatus(value);
+    setCurrentPage(1);
+  };
+
+  const handleClearFilters = () => {
+    setFilterValue("");
+    setCreatedDate(null);
+    setCreatedEndDate(null);
+    setSelectedStatus(null);
+    setCurrentPage(1);
+  };
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toISOString().split("T")[0];
@@ -235,6 +276,20 @@ export default function PartnerScreen() {
         pageTitle={`${categoryLabel} Table`}
         pagePlacHolder="Filter partners by name, mobile, email, city, GST, or RERA"
         onFilter={handleFilter}
+      />
+      <FilterBar
+        showCreatedDateFilter={true}
+        showCreatedEndDateFilter={true} // Enable created end date filter
+        showStatusFilter={true}
+        statusFilterOptions={statusFilterOptions}
+        onCreatedDateChange={handleCreatedDateChange}
+        onCreatedEndDateChange={handleCreatedEndDateChange} // Pass handler
+        onStatusChange={handleStatusChange}
+        onClearFilters={handleClearFilters}
+        createdDate={createdDate}
+        createdEndDate={createdEndDate} // Pass state
+        selectedStatus={selectedStatus}
+        className="mb-4"
       />
       <div className="space-y-6">
         <ComponentCard title={`${categoryLabel} Table`}>

@@ -262,7 +262,8 @@ const LeadsType: React.FC = () => {
       />
       <FilterBar
         showUserTypeFilter={true}
-        showDateFilters={true}
+        showCreatedDateFilter={true}
+        showUpdatedDateFilter={true}
         userFilterOptions={userFilterOptions}
         onUserTypeChange={handleUserTypeChange}
         onCreatedDateChange={handleCreatedDateChange}
