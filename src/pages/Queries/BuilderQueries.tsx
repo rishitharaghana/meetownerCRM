@@ -35,7 +35,7 @@ export default function BuilderQueries() {
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
-      dispatch(getBuilderQueries({ admin_user_id: 1, admin_user_type: 1 }));
+      dispatch(getBuilderQueries({ admin_user_id: user.id, admin_user_type: user.user_type }));
     }
   }, [isAuthenticated, user, dispatch]);
 

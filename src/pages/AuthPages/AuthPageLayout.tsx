@@ -22,7 +22,7 @@ export default function AuthLayout({
               />
 
               <p className="text-center text-gray-400 dark:text-white/60">
-                ---
+               Welcome to Meet Owner, where we believe that finding the perfect property should be a seamless and empowering experience.
               </p>
             </div>
           </div>
