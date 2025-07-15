@@ -31,6 +31,7 @@ export interface InsertUserRequest {
   photo?:string;
   account_number:string;
   ifsc_code:string;
+  company_logo?:string;
 }
 
 export interface InsertUserResponse {

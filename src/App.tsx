@@ -33,6 +33,9 @@ import AssignLeadEmployeePage from "./pages/Lead Management/AssignLeadToEmployee
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import MarkBookingPage from "./pages/Lead Management/MarkBookingDone";
 import StoppedProjectsLeads from "./pages/Project/stoppedProjects";
+import AddBuilder from "./pages/Builders/AddBuilder";
+import AllBuildersScreen from "./pages/Builders/AllBuilders";
+import BuilderQueries from "./pages/Queries/BuilderQueries";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -61,6 +64,10 @@ export default function App() {
               <Route path="/partners" element={<PartnerScreen />} />
               <Route path="/partner/:id" element={<PartnerProfile />} />
               <Route path="/partners/addpartners" element={<AddChannelPartner />} />
+
+              <Route path="/builders" element={<AllBuildersScreen />} />
+              <Route path="/builders/addbuilders" element={<AddBuilder />} />
+              <Route path="/builder/queries" element = {<BuilderQueries/>} />
 
 
               <Route path="/bookings/bookings-done" element={<BookingsDone />} />

@@ -44,7 +44,22 @@ const navItems: NavItem[] = [
       { name: "Stopped Projects", path: "/projects/stopped-projects", pro: false },
     ],
   },
- 
+   {
+    icon: <FaUser />,
+    name: "Builders",
+    subItems: [
+      { name: "All Builders", path: "/builders" },
+      { name: "Add Builders", path: "/builders/addbuilders" },
+     
+    ],
+  }, 
+  {
+    icon: <FaSwatchbook />,
+    name: "Queries",
+    subItems: [
+      { name: "All Queries", path: "/builder/queries" },
+    ],
+  }, 
   {
     icon: <FaUser />,
     name: "Partners",
@@ -54,7 +69,7 @@ const navItems: NavItem[] = [
      
     ],
   },
-
+  
    {
     name: "Bookings",
     icon: <FaSwatchbook />,
@@ -84,6 +99,7 @@ const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
   const userType = useSelector((state: RootState) => state.auth.user?.user_type);
+  const {user} = useSelector((state:RootState) => state.auth);
   
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main"; index: number } | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number } | null>(null);
@@ -324,11 +340,26 @@ const AppSidebar: React.FC = () => {
         <Link to="/" className="flex items-center">
           {shouldShowText ? (
             <div className="flex items-center">
-              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg flex items-center justify-center mr-3">
-                <Building2 className="w-5 h-5 text-white" />
+             <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                  {user?.company_logo ? (
+                <img
+                  src={user.company_logo}
+                  alt={`${user.company_name} logo`}
+                  className="w-full h-full object-contain"
+                  onError={(e) => {
+                    e.currentTarget.src = "https://via.placeholder.com/32";
+                  }}
+                />
+                ) : (
+                  <div className="w-full h-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
+                    <span className="text-white text-sm font-bold">
+                      {user?.company_name?.charAt(0) || "C"}
+                    </span>
+                  </div>
+                )}
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900">MNTechs </span>
+                <span className="text-xl font-bold text-gray-900">{user?.company_name} </span>
                 <span className="text-xs text-gray-500">Real Estate CRM</span>
               </div>
             </div>

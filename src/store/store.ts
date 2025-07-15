@@ -6,7 +6,7 @@ import userSlice from './slices/userslice';
 import propertyDetails from './slices/propertyDetails';
 import leadSlice from './slices/leadslice';
 import projectSlice from './slices/projectSlice';
-
+import builderReducer from './slices/builderslice';
 
 
 import { initializeAuthState } from "../utils/authutils";
@@ -22,6 +22,7 @@ const store =  configureStore({
         property:propertyDetails,
         lead:leadSlice,
         projects:projectSlice,
+        builder:builderReducer
     },
     preloadedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false}),

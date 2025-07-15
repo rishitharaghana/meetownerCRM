@@ -1,18 +1,13 @@
-import React from 'react';
+
 import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
-import { Building2, IdCard, BadgeCheck, FileText, MapPin, User2 } from 'lucide-react';
+import { Building2, IdCard, BadgeCheck, FileText, MapPin, } from 'lucide-react';
 
 export default function UserInfoCard() {
   const { selectedUser } = useSelector((state: RootState) => state.user);
 
   const infoItems = [
-      {
-      icon: User2,
-      label: "Representative Name",
-      value: selectedUser?.representative_name || "N/A",
-      gradient: "from-lime-500 to-green-500",
-    },
+   
     {
       icon: IdCard,
       label: "Aadhar Card",

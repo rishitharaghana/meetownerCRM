@@ -45,6 +45,7 @@ export interface User {
   pan_card_number: string;
   aadhar_number: string;
   feedback: string | null;
+  company_logo:string | null;
 }
 
 export interface LoginResponse {

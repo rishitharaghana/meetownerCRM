@@ -37,11 +37,13 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
 
   return navItems
     .filter((item) => {
-      if (userType === 3) return !["Employee Management", "Partners",].includes(item.name); // channel partner
-      if (userType === 4) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // sales Manager
-      if (userType === 5) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // Telecallers 
-      if (userType === 6) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // Marketing agent
-      if (userType === 7) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // Receptionists
+      if (userType == 1) return !["Employee Management", "Bookings", "Partners","Lead Management","Project Management","Dashboard"].includes(item.name); // admin
+      if(userType == 2) return !["Builders","Queries"].includes(item.name); // builders
+      if (userType === 3) return !["Employee Management", "Partners","Builders","Queries"].includes(item.name); // channel partner
+      if (userType === 4) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // sales Manager
+      if (userType === 5) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Telecallers 
+      if (userType === 6) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Marketing agent
+      if (userType === 7) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Receptionists
       return true; 
     })
     .map((item) => {
