@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { Link, useNavigate, useLocation } from "react-router"; // Updated import
 import { useSelector, useDispatch } from "react-redux";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -16,6 +16,7 @@ import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
 import { RootState, AppDispatch } from "../../store/store";
 import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
 import { leadSourceOptions } from "../../components/common/reusedList";
+import { BUILDER_USER_TYPE } from "../Lead Management/CustomComponents";
 
 const BookingsDone: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
@@ -33,24 +34,68 @@ const BookingsDone: React.FC = () => {
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
 
-  const itemsPerPage = 10;
+   const itemsPerPage = 10;
+  const isBuilder = user?.user_type === BUILDER_USER_TYPE;
+ 
+
+ const leadsParams = useMemo(() => {
+    if (
+      !isAuthenticated ||
+      !user?.id ||
+      !user.user_type ||
+      (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
+    ) {
+      console.log("leadsParams: Invalid auth state, returning null", {
+        isAuthenticated,
+        userId: user?.id,
+        userType: user?.user_type,
+        createdUserId: user?.created_user_id,
+        createdUserType: user?.created_user_type,
+      });
+      return null;
+    }
+
+    const params = {
+      lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
+      lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
+    };
+
+    if (!isBuilder) {
+      console.log("Channel Partner: Adding assigned_user_type and assigned_id", {
+        assigned_user_type: user.user_type,
+        assigned_id: user.id,
+      });
+      return {
+        ...params,
+        assigned_user_type: user.user_type.toString(),
+        assigned_id: user.id.toString(),
+      };
+    }
+
+    console.log("Builder: Using params without assigned fields", params);
+    return params;
+  }, [isAuthenticated, user, isBuilder]);
 
   useEffect(() => {
-    if (isAuthenticated && user?.id) {
-      const params: {
-        lead_added_user_type: number;
-        lead_added_user_id: number;
-      } = {
-        lead_added_user_type: user.user_type,
-        lead_added_user_id: user.id,
-      };
-
-      dispatch(getBookedLeads(params));
+    if (leadsParams) {
+      console.log("Dispatching getBookedLeads with params:", leadsParams);
+      dispatch(getBookedLeads(leadsParams)).unwrap().catch((err) => {
+        console.error("Failed to fetch booked leads:", err);
+       
+      });
+    } else if (isAuthenticated && user) {
+      console.warn("Skipping getBookedLeads: Invalid user data", {
+        id: user.id,
+        user_type: user.user_type,
+        created_user_id: user.created_user_id,
+        created_user_type: user.created_user_type,
+      });
     }
     return () => {
       dispatch(clearLeads());
     };
-  }, [isAuthenticated, user, dispatch]);
+  }, [leadsParams, dispatch]);
+
 
   const filteredLeads = bookedLeads?.filter((item) => {
     const matchesTextFilter = !searchQuery

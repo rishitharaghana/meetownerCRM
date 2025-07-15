@@ -16,7 +16,7 @@ export interface Property {
 }
 
 export interface Lead {
-  city: any;
+ 
   lead_id: number;
   customer_name: string;
   customer_phone_number: string;
@@ -52,6 +52,8 @@ export interface Lead {
   property_subtype: string | null;
   property: Property | null;
   status_name?: string; 
+  state?:string | null;
+  city?:string | null;
 }
 
 export interface LeadUpdate {

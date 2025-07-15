@@ -141,14 +141,18 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
 export const getBookedLeads = createAsyncThunk<
   Lead[],
   {
-    
     lead_added_user_id: number;
     lead_added_user_type: number;
+    assigned_user_type?: number; // Made optional
+    assigned_id?: number; // Made optional
   },
   { rejectValue: string }
 >(
   "lead/getBookedLeads",
-  async ({ lead_added_user_id, lead_added_user_type }, { rejectWithValue }) => {
+  async (
+    { lead_added_user_id, lead_added_user_type, assigned_user_type, assigned_id },
+    { rejectWithValue }
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -156,10 +160,13 @@ export const getBookedLeads = createAsyncThunk<
       }
 
       const queryParams = new URLSearchParams({
-       
         lead_added_user_id: lead_added_user_id.toString(),
         lead_added_user_type: lead_added_user_type.toString(),
+        ...(assigned_user_type !== undefined && { assigned_user_type: assigned_user_type.toString() }),
+        ...(assigned_id !== undefined && { assigned_id: assigned_id.toString() }),
       });
+
+      console.log("getBookedLeads query params:", queryParams.toString()); // Debug log
 
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/leads/bookedleads?${queryParams}`,
@@ -184,7 +191,7 @@ export const getBookedLeads = createAsyncThunk<
           case 401:
             return rejectWithValue("Unauthorized: Invalid or expired token");
           case 404:
-            return rejectWithValue("No booked leads found for this lead");
+            return rejectWithValue("No booked leads found for this user");
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:

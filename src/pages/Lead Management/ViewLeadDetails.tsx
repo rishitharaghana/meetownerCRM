@@ -147,6 +147,12 @@ const ViewLeadDetails = () => {
             <p>
               <strong>Status:</strong> {lead.status_name}
             </p>
+            <p>
+              <strong>city:</strong> {lead.city}
+            </p>
+             <p>
+              <strong>state:</strong> {lead.state}
+            </p>
           </div>
         </div>
 

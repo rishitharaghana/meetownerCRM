@@ -60,6 +60,8 @@ const BookingDetails: React.FC = () => {
     { label: "Asset", value: lead.asset || "N/A" },
     { label: "Project Name", value: lead.project_name || "N/A" },
     { label: "Property Subtype", value: lead.property_subtype || "N/A" },
+    { label: "city", value: lead.city || "N/A" },
+      { label: "state", value: lead.state || "N/A" },
   ];
 
   return (
