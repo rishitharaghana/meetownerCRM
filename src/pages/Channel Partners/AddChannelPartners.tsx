@@ -23,7 +23,7 @@ import { setCityDetails } from "../../store/slices/propertyDetails";
 interface FormData {
   name: string;
   mobile: string;
-  email: string; 
+  email: string;
   password: string;
   city: string;
   state: string;
@@ -38,7 +38,9 @@ interface FormData {
   gstNumber: string;
   reraNumber: string;
   address: string;
-  photo?: File | null; 
+  photo?: File | null;
+  accountNumber: string; // New field
+  ifscCode: string; // New field
 }
 
 interface Errors {
@@ -47,10 +49,10 @@ interface Errors {
 
 const AddChannelPartner = () => {
   const dispatch = useDispatch<AppDispatch>();
-   const navigate = useNavigate();
-  const {  states } = useSelector((state: RootState) => state.property);
-  const { loading, } = useSelector((state: RootState) => state.user);
-     const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const navigate = useNavigate();
+  const { states } = useSelector((state: RootState) => state.property);
+  const { loading } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -71,14 +73,15 @@ const AddChannelPartner = () => {
     reraNumber: "",
     address: "",
     photo: null,
+    accountNumber: "", // Initialize new field
+    ifscCode: "", // Initialize new field
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
   const { citiesQuery, statesQuery } = usePropertyQueries();
   const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
 
-
-   useEffect(() => {
+  useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate('/login');
       toast.error('Please log in to access this page');
@@ -86,18 +89,18 @@ const AddChannelPartner = () => {
     }
 
     if (user.user_type !== 2) {
-      navigate('/'); 
+      navigate('/');
       toast.error('Access denied: Only builders can create employees');
     }
   }, [isAuthenticated, user, navigate]);
-  
-    useEffect(() => {
-      if (citiesResult.data) {
-        dispatch(setCityDetails(citiesResult.data));
-      }
-    }, [citiesResult.data, dispatch]);
-  
-   useEffect(() => {
+
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  useEffect(() => {
     if (citiesResult.isError) {
       toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
     }
@@ -167,7 +170,14 @@ const AddChannelPartner = () => {
     }
     if (!formData.reraNumber.trim()) newErrors.reraNumber = "RERA number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    // Photo is optional, so no validation required
+    // Account Number validation (optional)
+    if (formData.accountNumber && formData.accountNumber.length > 20) {
+      newErrors.accountNumber = "Account number must not exceed 20 characters";
+    }
+    // IFSC Code validation (optional)
+    if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
+      newErrors.ifscCode = "Invalid IFSC code (e.g., SBIN0001234)";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -189,7 +199,7 @@ const AddChannelPartner = () => {
       user_type: 3,
       name: formData.name,
       mobile: formData.mobile,
-      email:formData.email,
+      email: formData.email,
       password: formData.password,
       status: 0,
       state: stateName,
@@ -201,7 +211,7 @@ const AddChannelPartner = () => {
       rera_number: formData.reraNumber,
       created_by: createdBy,
       created_user_id: createdUserId,
-      created_user_type:2,
+      created_user_type: 2,
       company_name: formData.companyName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
@@ -209,6 +219,8 @@ const AddChannelPartner = () => {
       pan_card_number: formData.panCardNumber,
       aadhar_number: formData.aadharNumber,
       photo: formData.photo || undefined,
+      account_number: formData.accountNumber, 
+      ifsc_code: formData.ifscCode, 
     };
 
     const formDataToSend = new FormData();
@@ -244,6 +256,8 @@ const AddChannelPartner = () => {
         reraNumber: "",
         address: "",
         photo: null,
+        accountNumber: "", 
+        ifscCode: "", 
       });
       setErrors({});
     } catch (err) {
@@ -289,7 +303,7 @@ const AddChannelPartner = () => {
 
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Mail size={16} /> Email (Optional)
+              <Mail size={16} /> Email 
             </label>
             <Input
               type="email"
@@ -413,6 +427,28 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
+            <label className="text-sm font-medium text-gray-700">Account Number</label>
+            <Input
+              value={formData.accountNumber}
+              onChange={(e) => handleChange("accountNumber")(e.target.value)}
+              placeholder="Enter account number"
+            />
+            {errors.accountNumber && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.accountNumber}</p>
+            )}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">IFSC Code </label>
+            <Input
+              value={formData.ifscCode}
+              onChange={(e) => handleChange("ifscCode")(e.target.value)}
+              placeholder="Enter IFSC code (e.g., SBIN0001234)"
+            />
+            {errors.ifscCode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.ifscCode}</p>}
+          </div>
+
+          <div>
             <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
             <Input
               value={formData.aadharNumber}
@@ -426,7 +462,7 @@ const AddChannelPartner = () => {
 
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Image size={16} /> Photo (Optional)
+              <Image size={16} /> Photo 
             </label>
             <input
               type="file"

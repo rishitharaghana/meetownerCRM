@@ -29,6 +29,8 @@ export interface InsertUserRequest {
   pan_card_number?: string; 
   aadhar_number?: string;
   photo?:string;
+  account_number:string;
+  ifsc_code:string;
 }
 
 export interface InsertUserResponse {
