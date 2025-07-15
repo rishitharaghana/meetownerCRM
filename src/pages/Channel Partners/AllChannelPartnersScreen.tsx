@@ -586,6 +586,7 @@ export default function PartnerScreen() {
       <ConfirmDeleteUserModal
         isOpen={isDeleteModalOpen}
         userName={selectedUser?.name || ""}
+        description="are you sure want to delete"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />

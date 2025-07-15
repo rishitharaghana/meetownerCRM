@@ -32,6 +32,7 @@ import AllLeadDetails from "./pages/Lead Management/AllLeadDetails";
 import AssignLeadEmployeePage from "./pages/Lead Management/AssignLeadToEmployee";
 import BookingDetails from "./pages/Bookings/BookingDetails";
 import MarkBookingPage from "./pages/Lead Management/MarkBookingDone";
+import StoppedProjectsLeads from "./pages/Project/stoppedProjects";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -79,6 +80,7 @@ export default function App() {
               <Route path="/projects/details/:id" element={<ProjectDetailsPage />} />
               <Route path="/projects/upcoming-projects" element={<UpcomingProjects />} />
               <Route path="/projects/ongoing-projects" element={<OnGoingProjects/>} />
+              <Route path="/projects/stopped-projects" element={<StoppedProjectsLeads/>} />
               
             </Route>
           </Route>

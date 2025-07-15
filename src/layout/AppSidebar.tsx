@@ -41,8 +41,7 @@ const navItems: NavItem[] = [
       { name: "All Projects", path: "/projects/allprojects", pro: false },
       { name: "Up-Coming Projects", path: "/projects/upcoming-projects", pro: false },
       { name: "On-Going Projects", path: "/projects/ongoing-projects", pro: false },
-
-
+      { name: "Stopped Projects", path: "/projects/stopped-projects", pro: false },
     ],
   },
  

@@ -4,6 +4,7 @@ import Button from "../../components/ui/button/Button";
 interface ConfirmDeleteUserModalProps {
   isOpen: boolean;
   userName: string;
+  description:string;
   onConfirm: () => void;
   onCancel: () => void;
 }
@@ -11,6 +12,7 @@ interface ConfirmDeleteUserModalProps {
 const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
   isOpen,
   userName,
+  description,
   onConfirm,
   onCancel,
 }) => {
@@ -23,7 +25,7 @@ const ConfirmDeleteUserModal: React.FC<ConfirmDeleteUserModalProps> = ({
           Confirm Delete
         </h2>
         <p className="text-gray-600 dark:text-gray-300 mb-6">
-          Are you sure you want to delete <strong>{userName}</strong>?
+          {description} <strong>{userName}</strong>?
         </p>
         <div className="flex justify-end space-x-3">
           <Button

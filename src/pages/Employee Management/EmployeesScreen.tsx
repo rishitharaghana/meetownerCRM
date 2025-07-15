@@ -472,6 +472,7 @@ export default function EmployeesScreen() {
       <ConfirmDeleteUserModal
         isOpen={isDeleteModalOpen}
         userName={selectedUser?.name || ""}
+        description="are you sure want to delete"
         onConfirm={handleConfirmDelete}
         onCancel={handleCancelDelete}
       />
