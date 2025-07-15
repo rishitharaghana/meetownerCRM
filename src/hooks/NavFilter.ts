@@ -26,7 +26,7 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
     if (!subItems) return subItems;
     return subItems.filter(subItem => {
       if (subItem.name === "Add New Lead") {
-        return userType === 2; 
+        return userType === 2 || 3; 
       }
       if (subItem.name === "Add Projects") {
         return userType === 2; 
@@ -37,7 +37,7 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
 
   return navItems
     .filter((item) => {
-      if (userType === 3) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // channel partner
+      if (userType === 3) return !["Employee Management", "Partners",].includes(item.name); // channel partner
       if (userType === 4) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // sales Manager
       if (userType === 5) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // Telecallers 
       if (userType === 6) return !["Employee Management", "Bookings", "Partners",].includes(item.name); // Marketing agent
