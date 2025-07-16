@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+
 import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
@@ -35,9 +35,13 @@ const LeadsType: React.FC = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
+  
+  // Filter states
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
@@ -137,10 +141,17 @@ const LeadsType: React.FC = () => {
           ? true
           : item.updated_date?.split("T")[0] === updatedDate;
 
-        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate;
+        
+       
+
+        const matchesCity = !selectedCity
+          ? true
+          : item.city?.toString() === selectedCity;
+
+        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate  && matchesCity;
       }) || []
     );
-  }, [leads, searchQuery, selectedUserType, createdDate, updatedDate]);
+  }, [leads, searchQuery, selectedUserType, createdDate, updatedDate, selectedState, selectedCity]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -231,6 +242,7 @@ const LeadsType: React.FC = () => {
     setDropdownOpen(null);
   };
 
+  // Filter handlers
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
     setLocalPage(1);
@@ -246,10 +258,23 @@ const LeadsType: React.FC = () => {
     setLocalPage(1);
   };
 
+  const handleStateChange = (value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setLocalPage(1);
+  };
+
+  const handleCityChange = (value: string | null) => {
+    setSelectedCity(value);
+    setLocalPage(1);
+  };
+
   const handleClearFilters = () => {
     setSelectedUserType(null);
     setCreatedDate(null);
     setUpdatedDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setSearchQuery("");
     setLocalPage(1);
   };
@@ -257,25 +282,28 @@ const LeadsType: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       <PageMeta title={`Lead Management - ${getPageTitle()}`} />
-      <PageBreadcrumb
-        pageTitle={getPageTitle()}
-        pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
-        onFilter={handleSearch}
-      />
+      
       <FilterBar
         showUserTypeFilter={true}
         showCreatedDateFilter={true}
         showUpdatedDateFilter={true}
+        showStateFilter={true}
+        showCityFilter={true}
         userFilterOptions={userFilterOptions}
         onUserTypeChange={handleUserTypeChange}
         onCreatedDateChange={handleCreatedDateChange}
         onUpdatedDateChange={handleUpdatedDateChange}
+        onStateChange={handleStateChange}
+        onCityChange={handleCityChange}
         onClearFilters={handleClearFilters}
         selectedUserType={selectedUserType}
         createdDate={createdDate}
         updatedDate={updatedDate}
+        selectedState={selectedState}
+        selectedCity={selectedCity}
         className="mb-4"
       />
+
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
@@ -288,34 +316,31 @@ const LeadsType: React.FC = () => {
               <Table className="w-full table-layout-fixed overflow-x-auto">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow className="bg-blue-900 text-white">
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]">
                       Sl. No
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Customer Name
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Customer Number
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
-                      Email
-                    </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Interested Project
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Lead Type
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Created Date
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Updated Date
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Lead Assigned
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
+                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
                       Actions
                     </TableCell>
                   </TableRow>
@@ -326,34 +351,31 @@ const LeadsType: React.FC = () => {
                       key={item.lead_id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
                         {(localPage - 1) * itemsPerPage + index + 1}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.customer_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.customer_phone_number || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.customer_email || "N/A"}
-                      </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.interested_project_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.status_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                         {userTypeMap[item.assigned_user_type] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
+                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
                         <Button
                           variant="outline"
                           size="sm"

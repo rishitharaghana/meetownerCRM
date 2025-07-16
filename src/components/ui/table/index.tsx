@@ -86,8 +86,8 @@ const TableCell: React.FC<TableCellProps> = ({
     <CellTag
       className={`${
         isHeader
-          ? "px-5 py-3 font-semibold text-white text-theme-xs dark:text-white"
-          : "px-5 py-4 text-black dark:text-black text-theme-sm dark:text-gray-400"
+          ? "px-1 py-2 font-semibold text-white text-theme-xs dark:text-white"
+          : "px-1 py-2 text-black text-xs dark:text-gray-400"
       } ${className || ""}`}
     >
       {children}

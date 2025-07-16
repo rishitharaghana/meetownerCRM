@@ -149,24 +149,25 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const displayUpdatedDateFilter = showUpdatedDateFilter || showDateFilters;
 
   return (
-    <div className={`flex flex-col sm:flex-row items-center gap-3 py-2 w-full ${className}`}>
-      <div className="flex flex-wrap items-center gap-3 w-full sm:w-auto">
+    <div className={`flex items-center gap-1 py-2 w-full ${className}`}>
+      <div className="flex items-center gap-1 w-full">
         {showUserTypeFilter && userFilterOptions.length > 0 && (
-          <div className="w-full sm:w-40">
+          <div className="w-[140px] flex-shrink-0">
             <Select
               options={userFilterOptions}
-              placeholder="Select User Type"
+              placeholder="User Type"
               onChange={(value: string) => onUserTypeChange?.(value || null)}
               value={selectedUserType || ""}
-              className="dark:bg-dark-900"
+              className="dark:bg-dark-900 text-sm"
             />
           </div>
         )}
+        
         {showStateFilter && stateOptions.length > 0 && (
-          <div className="w-full sm:w-40">
+          <div className="w-[120px] flex-shrink-0 ">
             <Dropdown
               id="state"
-              label="Select State"
+            
               options={stateOptions}
               value={selectedState || ""}
               onChange={(value: string) => {
@@ -175,65 +176,74 @@ const FilterBar: React.FC<FilterBarProps> = ({
                   onCityChange?.(null); // Reset city when state changes
                 }
               }}
-              placeholder="Search for a state..."
+              placeholder="state..."
             />
           </div>
         )}
+        
         {showCityFilter && (
-          <div className="w-full sm:w-40">
+          <div className="w-[120px] flex-shrink-0">
             <Dropdown
               id="city"
-              label="Select City"
               options={cityOptions}
               value={selectedCity || ""}
               onChange={(value: string) => onCityChange?.(value || null)}
-              placeholder="Search for a city..."
+              placeholder="city..."
               disabled={!selectedState}
             />
           </div>
         )}
-        {(displayCreatedDateFilter || displayCreatedEndDateFilter || displayUpdatedDateFilter) && (
-          <div className="flex flex-wrap items-center gap-3">
-            {displayCreatedDateFilter && (
+        
+        <div className="flex items-center gap-2">
+          {displayCreatedDateFilter && (
+            <div className="w-[100px] flex-shrink-0">
               <DatePicker
                 id="createdDate"
-                placeholder="Select created start date"
+                placeholder="start"
                 onChange={handleCreatedDateChange}
                 defaultDate={createdDate ? new Date(createdDate) : undefined}
-                className="w-full sm:w-40"
+                className="w-full text-sm"
               />
-            )}
-            {displayCreatedEndDateFilter && (
+            </div>
+          )}
+          
+          {displayCreatedEndDateFilter && (
+            <div className="w-[100px] flex-shrink-0">
               <DatePicker
                 id="createdEndDate"
-                placeholder="Select created end date"
+                placeholder="end"
                 onChange={handleCreatedEndDateChange}
                 defaultDate={createdEndDate ? new Date(createdEndDate) : undefined}
-                className="w-full sm:w-40"
+                className="w-full text-sm"
               />
-            )}
-            {displayUpdatedDateFilter && (
-              <DatePicker
-                id="updatedDate"
-                placeholder="Select updated date"
-                onChange={handleUpdatedDateChange}
-                defaultDate={updatedDate ? new Date(updatedDate) : undefined}
-                className="w-full sm:w-40"
-              />
-            )}
+            </div>
+          )}
+        </div>
+        
+        {displayUpdatedDateFilter && (
+          <div className="w-[100px] flex-shrink-0">
+            <DatePicker
+              id="updatedDate"
+              placeholder="updated"
+              onChange={handleUpdatedDateChange}
+              defaultDate={updatedDate ? new Date(updatedDate) : undefined}
+              className="w-full text-sm"
+            />
           </div>
         )}
+        
         {showStatusFilter && statusFilterOptions.length > 0 && (
-          <div className="w-full sm:w-40">
+          <div className="w-[140px] flex-shrink-0">
             <Select
               options={statusFilterOptions}
               placeholder="Select Status"
               onChange={(value: string) => onStatusChange?.(value || null)}
               value={selectedStatus || ""}
-              className="dark:bg-dark-900"
+              className="dark:bg-dark-900 text-sm"
             />
           </div>
         )}
+        
         {(showUserTypeFilter ||
           showStateFilter ||
           showCityFilter ||
@@ -244,7 +254,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
           <Button
             variant="outline"
             onClick={handleClearFilters}
-            className="px-4 py-2 w-full sm:w-auto bg-gray-100 hover:bg-gray-200 rounded-lg text-sm"
+            className="px-3 py-2 ml-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm whitespace-nowrap flex-shrink-0"
           >
             Clear
           </Button>

@@ -8,7 +8,7 @@ interface Option {
 
 interface DropdownProps {
   id: string;
-  label: string;
+  label?: string; // Made label optional with '?'
   options: Option[];
   value: string;
   onChange: (value: string, text: string) => void;
@@ -78,8 +78,8 @@ export default function Dropdown({
   }, [id]);
 
   return (
-    <div className="mb-6 max-w-2xl" id={`${id}-dropdown`}>
-      <Label htmlFor={`${id}-search`}>{label}</Label>
+    <div className="max-w-2xl" id={`${id}-dropdown`}>
+      {label && <Label htmlFor={`${id}-search`}>{label}</Label>} {/* Render label conditionally */}
       <div className="relative">
         <input
           id={`${id}-search`}
@@ -123,7 +123,7 @@ export default function Dropdown({
               ))
             ) : (
               <li className="px-4 py-2 text-sm text-gray-500 dark:text-gray-400">
-                No {label.toLowerCase()} found
+                No {label?.toLowerCase() || "options"} found
               </li>
             )}
           </ul>
