@@ -289,19 +289,9 @@ export default function AllBuildersScreen() {
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                             <div className="flex items-center gap-3">
-                              <Link
-                                to="/lead/allLeads"
-                                state={{
-                                  admin_user_id: createdUserId,
-                                  admin_user_type: 2,
-                                  assigned_user_type: user.user_type,
-                                  assigned_id: user.id,
-                                  name: user.name,
-                                }}
-                                className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
-                              >
+                              
                                 {user.name}
-                              </Link>
+                             
                             </div>
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">

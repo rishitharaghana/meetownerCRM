@@ -35,17 +35,16 @@ const OnGoingProjects: React.FC = () => {
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
 
-  // Fetch cities based on selected state
   const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
 
-  // Dispatch cities to Redux store
+
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle errors for city and state fetching
+
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
@@ -342,14 +341,14 @@ const OnGoingProjects: React.FC = () => {
                   )}
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                  <Button
+                 {user.user_type == 2 && <Button
                     variant="primary"
                     size="sm"
                     onClick={() => handleStopLeadsClick(project)} // Trigger modal
                     disabled={project.stop_leads === 'Yes'} // Disable if already stopped
                   >
                     Stop Leads
-                  </Button>
+                  </Button>}
                   <Button
                     variant="primary"
                     size="sm"
