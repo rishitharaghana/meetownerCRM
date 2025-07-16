@@ -1,6 +1,7 @@
 
 export interface ErrorResponse {
-  message?: string;
+ status: string;
+  message: string;
 }
 
 export interface Property {

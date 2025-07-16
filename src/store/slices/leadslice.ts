@@ -379,7 +379,7 @@ export const insertLead = createAsyncThunk<
           case 401:
             return rejectWithValue("Unauthorized: Invalid or expired token");
           case 400:
-            return rejectWithValue("Invalid lead data provided");
+            return rejectWithValue(axiosError.response.data?.message || "Invalid lead data provided");
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:

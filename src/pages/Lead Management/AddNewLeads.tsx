@@ -254,7 +254,7 @@ const LeadForm: React.FC = () => {
           : {}),
       };
 
-      console.log("leadData:", leadData); // Debug payload
+     
 
       const result = await dispatch(insertLead(leadData)).unwrap();
       setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
