@@ -1,5 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
-import { createPortal } from "react-dom";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 
@@ -16,9 +15,10 @@ import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
 import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
 import toast from "react-hot-toast";
-import { BUILDER_USER_TYPE, renderDropdown, sidebarSubItems } from "./CustomComponents";
+import { BUILDER_USER_TYPE, sidebarSubItems } from "./CustomComponents";
 import UpdateLeadModal from "./UpdateLeadModel";
 import FilterBar from "../../components/common/FilterBar";
+import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 
 const userTypeMap: { [key: number]: string } = {
   3: "Channel Partner",
@@ -29,7 +29,6 @@ const userTypeMap: { [key: number]: string } = {
 };
 
 const LeadsType: React.FC = () => {
-  const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
@@ -43,7 +42,9 @@ const LeadsType: React.FC = () => {
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  const dropdownRef = useRef<HTMLDivElement>(null);
+  // New state for single selected lead
+  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
+
   const navigate = useNavigate();
   const { lead_in, status } = useParams<{ lead_in: string; status: string }>();
   const dispatch = useDispatch<AppDispatch>();
@@ -141,14 +142,11 @@ const LeadsType: React.FC = () => {
           ? true
           : item.updated_date?.split("T")[0] === updatedDate;
 
-        
-       
-
         const matchesCity = !selectedCity
           ? true
           : item.city?.toString() === selectedCity;
 
-        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate  && matchesCity;
+        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate && matchesCity;
       }) || []
     );
   }, [leads, searchQuery, selectedUserType, createdDate, updatedDate, selectedState, selectedCity]);
@@ -162,9 +160,7 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(null);
-      }
+      // No dropdown to handle, this can be removed or kept for future use
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -200,12 +196,10 @@ const LeadsType: React.FC = () => {
 
   const handleViewHistory = (item: Lead) => {
     navigate("/leads/view", { state: { property: item } });
-    setDropdownOpen(null);
   };
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
-    setDropdownOpen(null);
   };
 
   const handleUpdateModalSubmit = (data: any) => {
@@ -225,7 +219,6 @@ const LeadsType: React.FC = () => {
           propertyId: lead.interested_project_id || 2,
         },
       });
-      setDropdownOpen(null);
     } else {
       toast.error("Lead not found");
     }
@@ -234,12 +227,6 @@ const LeadsType: React.FC = () => {
   const handleUpdateLead = (leadId: number) => {
     setSelectedLeadId(leadId);
     setIsUpdateModalOpen(true);
-    setDropdownOpen(null);
-  };
-
-  const handleDelete = (leadId: number) => {
-    console.log(`Delete lead: ${leadId}`);
-    setDropdownOpen(null);
   };
 
   // Filter handlers
@@ -260,7 +247,7 @@ const LeadsType: React.FC = () => {
 
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
-    setSelectedCity(null); // Reset city when state changes
+    setSelectedCity(null); 
     setLocalPage(1);
   };
 
@@ -277,6 +264,45 @@ const LeadsType: React.FC = () => {
     setSelectedCity(null);
     setSearchQuery("");
     setLocalPage(1);
+  };
+
+  // Handle checkbox selection (single selection)
+  const handleCheckboxChange = (leadId: number) => {
+    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId)); // Toggle or select new, deselect if same
+  };
+
+  // Handle bulk actions (adjusted for single selection)
+  const handleBulkAssign = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    handleLeadAssign(selectedLeadIdSingle);
+  };
+
+  const handleBulkViewHistory = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    const lead = currentLeads.find((item) => item.lead_id === selectedLeadIdSingle);
+    if (lead) handleViewHistory(lead);
+  };
+
+  const handleBulkBookingDone = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    handleMarkAsBooked(selectedLeadIdSingle);
+  };
+
+  const handleBulkUpdateLead = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    handleUpdateLead(selectedLeadIdSingle);
   };
 
   return (
@@ -304,6 +330,63 @@ const LeadsType: React.FC = () => {
         className="mb-4"
       />
 
+      
+      <div className="mb-4 flex gap-2">
+        <PageBreadcrumbList
+          pageTitle={getPageTitle()}
+          pagePlacHolder="Search by Name, Mobile, Email, Project"
+          onFilter={handleSearch}
+        />
+        {isBuilder ? (
+          <>
+            <Button
+              variant="primary"
+              onClick={handleBulkAssign}
+              disabled={selectedLeadIdSingle === null}
+              className="px-4 py-1 h-10"
+            >
+              Assign Lead
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleBulkViewHistory}
+              disabled={selectedLeadIdSingle === null}
+              size="xs"
+              className="px-4 py-2 h-10"
+            >
+              View History
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleBulkBookingDone}
+              disabled={selectedLeadIdSingle === null}
+              className="px-4 py-2 h-10"
+            >
+              Booking Done
+            </Button>
+          </>
+        ) : (
+          <>
+            <Button
+              variant="primary"
+              onClick={handleBulkUpdateLead}
+              disabled={selectedLeadIdSingle === null}
+              className="px-4 py-2 h-10"
+            >
+              Update Lead
+            </Button>
+            <Button
+              variant="primary"
+              onClick={handleBulkViewHistory}
+              disabled={selectedLeadIdSingle === null}
+              className="px-4 py-2 h-10"
+            >
+              View History
+            </Button>
+          </>
+        )}
+      </div>
+
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
@@ -312,36 +395,36 @@ const LeadsType: React.FC = () => {
         )}
         {!loading && !error && filteredLeads.length > 0 && (
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-            <div className="max-w-full overflow-x-auto">
-              <Table className="w-full table-layout-fixed overflow-x-auto">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow className="bg-blue-900 text-white">
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]">
-                      Sl. No
+                    <TableCell isHeader className="text-center font-medium text-xs whitespace-nowrap">
+                      Select
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Customer Name
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Name
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Customer Number
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Number
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Interested Project
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Project
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
                       Lead Type
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Created Date
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Created
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Updated Date
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Updated
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Lead Assigned
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Assigned
                     </TableCell>
-                    <TableCell isHeader className="px-1 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Actions
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      City
                     </TableCell>
                   </TableRow>
                 </TableHeader>
@@ -351,52 +434,41 @@ const LeadsType: React.FC = () => {
                       key={item.lead_id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
-                        {(localPage - 1) * itemsPerPage + index + 1}
+                      <TableCell className="text-center">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIdSingle === item.lead_id}
+                          onChange={() => handleCheckboxChange(item.lead_id)}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                        {item.customer_name || "N/A"}
+                      <TableCell className="text-left truncate max-w-[120px]">
+                        <span title={item.customer_name || "N/A"}>
+                          {item.customer_name || "N/A"}
+                        </span>
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                      <TableCell className="text-left">
                         {item.customer_phone_number || "N/A"}
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                        {item.interested_project_name || "N/A"}
+                      <TableCell className="text-left truncate max-w-[120px]">
+                        <span title={item.interested_project_name || "N/A"}>
+                          {item.interested_project_name || "N/A"}
+                        </span>
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                      <TableCell className="text-left">
                         {item.status_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                      <TableCell className="text-left">
                         {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                      <TableCell className="text-left">
                         {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                      <TableCell className="text-left">
                         {userTypeMap[item.assigned_user_type] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-1 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                          onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setDropdownOpen({
-                              leadId: item.lead_id.toString(),
-                              x: rect.right,
-                              y: rect.top + window.scrollY,
-                            });
-                          }}
-                        >
-                          <svg
-                            className="w-5 h-5 text-gray-500 dark:text-gray-400"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0zm6 0a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </Button>
+                      <TableCell className="text-left">
+                        {item.city || "N/A"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -443,22 +515,6 @@ const LeadsType: React.FC = () => {
           </div>
         )}
       </div>
-      {dropdownOpen && currentLeads.find((item) => item.lead_id.toString() === dropdownOpen.leadId) && (
-        createPortal(
-          renderDropdown(
-            currentLeads.find((item) => item.lead_id.toString() === dropdownOpen.leadId)!,
-            handleLeadAssign,
-            handleViewHistory,
-            handleMarkAsBooked,
-            handleDelete,
-            handleUpdateLead,
-            dropdownRef,
-            dropdownOpen,
-            isBuilder
-          ),
-          document.body
-        )
-      )}
       {isUpdateModalOpen && selectedLeadId && (
         <UpdateLeadModal
           leadId={selectedLeadId}

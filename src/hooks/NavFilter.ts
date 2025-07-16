@@ -26,7 +26,7 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
     if (!subItems) return subItems;
     return subItems.filter(subItem => {
       if (subItem.name === "Add New Lead") {
-        return userType === 2 || 3; 
+        return userType === 2 || userType === 3; 
       }
       if (subItem.name === "Add Projects") {
         return userType === 2; 

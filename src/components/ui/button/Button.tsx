@@ -2,7 +2,7 @@ import { ReactNode, ButtonHTMLAttributes } from "react";
 
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
   children: ReactNode;
-  size?: "sm" | "md";
+  size?: "xs" | "sm" | "md"; // Added 'xs' size
   variant?: "primary" | "outline";
   startIcon?: ReactNode;
   endIcon?: ReactNode;
@@ -21,9 +21,10 @@ const Button: React.FC<ButtonProps> = ({
   className = "",
   disabled = false,
   isActive = false,
-  ...rest 
+  ...rest
 }) => {
   const sizeClasses = {
+    xs: "px-3 py-1 text-xs", // Smaller padding (py-1 = 0.25rem = 4px) and text size
     sm: "px-4 py-3 text-sm",
     md: "px-5 py-3.5 text-sm",
   };
@@ -50,7 +51,7 @@ const Button: React.FC<ButtonProps> = ({
       }`}
       onClick={onClick}
       disabled={disabled}
-      {...rest} 
+      {...rest}
     >
       {startIcon && <span className="flex items-center">{startIcon}</span>}
       {children}
