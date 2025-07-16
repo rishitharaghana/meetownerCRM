@@ -1,9 +1,7 @@
-import { useState, useEffect, useRef } from "react";
-import { createPortal } from "react-dom";
-import {  useNavigate, useLocation } from "react-router";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
-import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
@@ -17,6 +15,7 @@ import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
 import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
 import FilterBar from "../../components/common/FilterBar";
+import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },
@@ -38,68 +37,18 @@ const statusOptions = [
   { value: "8", label: "Revoked" },
 ];
 
-const renderDropdown = (
-  item: Lead,
-  handleLeadAssign: (leadId: number) => void,
-  handleViewHistory: (item: Lead) => void,
-  handleMarkAsBooked: (leadId: number) => void,
-  handleDelete: (leadId: number) => void,
-  dropdownRef: React.RefObject<HTMLDivElement>,
-  dropdownOpen: { leadId: string; x: number; y: number } | null
-) => (
-  <div
-    ref={dropdownRef}
-    className="absolute z-50 w-48 rounded-xl bg-white dark:bg-gray-800 shadow-lg border border-gray-200 dark:border-gray-700 p-2"
-    style={{ top: dropdownOpen?.y, left: dropdownOpen?.x, transform: "translate(-100%, 0)" }}
-  >
-    <ul className="py-2">
-      <li>
-        <button
-          onClick={() => handleLeadAssign(item.lead_id)}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-        >
-          Assign Lead
-        </button>
-      </li>
-      <li>
-        <button
-          onClick={() => handleViewHistory(item)}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-        >
-          View History
-        </button>
-      </li>
-      <li>
-        <button
-          onClick={() => handleMarkAsBooked(item.lead_id)}
-          className="w-full text-left px-4 py-2 text-sm text-gray-700 dark:text-white hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors rounded-md"
-        >
-          Bookings Done
-        </button>
-      </li>
-      <li>
-        <button
-          onClick={() => handleDelete(item.lead_id)}
-          className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-700 transition-colors rounded-md"
-        >
-          Delete
-        </button>
-      </li>
-    </ul>
-  </div>
-);
-
 const AllLeadDetails: React.FC = () => {
-  const [dropdownOpen, setDropdownOpen] = useState<{ leadId: string; x: number; y: number } | null>(null);
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
-  const [createdDate, setCreatedDate] = useState<string | null>(null);
-  const [updatedDate, setUpdatedDate] = useState<string | null>(null);
+  const [startCreatedDate, setStartCreatedDate] = useState<string | null>(null);
+  const [endCreatedDate, setEndCreatedDate] = useState<string | null>(null);
+  const [startUpdatedDate, setStartUpdatedDate] = useState<string | null>(null);
+  const [endUpdatedDate, setEndUpdatedDate] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null); 
 
-
-
-  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
@@ -126,20 +75,6 @@ const AllLeadDetails: React.FC = () => {
     };
   }, [isAuthenticated, user, admin_user_id, admin_user_type, dispatch]);
 
-  useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(event.target as Node) &&
-        !(event.target as HTMLElement).closest("button")
-      ) {
-        setDropdownOpen(null);
-      }
-    };
-    document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
-
   const filteredLeads = leads?.filter((item) => {
     const matchesSearch = !searchQuery
       ? true
@@ -154,15 +89,21 @@ const AllLeadDetails: React.FC = () => {
       ? true
       : item.status_id.toString() === selectedStatus;
 
-    const matchesCreatedDate = !createdDate
-      ? true
-      : item.created_date.split("T")[0] === createdDate;
+    const itemCreatedDate = item.created_date?.split("T")[0] || "";
+    const matchesCreatedDate =
+      (!startCreatedDate || itemCreatedDate >= startCreatedDate) &&
+      (!endCreatedDate || itemCreatedDate <= endCreatedDate);
 
-    const matchesUpdatedDate = !updatedDate
-      ? true
-      : item.updated_date?.split("T")[0] === updatedDate;
+    const itemUpdatedDate = item.updated_date?.split("T")[0] || "";
+    const matchesUpdatedDate =
+      (!startUpdatedDate || itemUpdatedDate >= startUpdatedDate) &&
+      (!endUpdatedDate || itemUpdatedDate <= endUpdatedDate);
 
-    return matchesSearch && matchesStatus && matchesCreatedDate && matchesUpdatedDate;
+    const matchesCity = !selectedCity
+      ? true
+      : item.city?.toString() === selectedCity;
+
+    return matchesSearch && matchesStatus && matchesCreatedDate && matchesUpdatedDate && matchesCity;
   }) || [];
 
   const totalCount = filteredLeads.length;
@@ -173,7 +114,6 @@ const AllLeadDetails: React.FC = () => {
   );
 
   const getUserType = userTypeOptions.find((option) => option.value === assigned_user_type?.toString())?.label || "Unknown";
-  const getPageTitle = () => `${getUserType} - ${name} All Leads`;
 
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
@@ -185,21 +125,43 @@ const AllLeadDetails: React.FC = () => {
     setLocalPage(1);
   };
 
-  const handleCreatedDateChange = (date: string | null) => {
-    setCreatedDate(date);
+  const handleStartCreatedDateChange = (date: string | null) => {
+    setStartCreatedDate(date);
     setLocalPage(1);
   };
 
-  const handleUpdatedDateChange = (date: string | null) => {
-    setUpdatedDate(date);
+  const handleEndCreatedDateChange = (date: string | null) => {
+    setEndCreatedDate(date);
+    setLocalPage(1);
+  };
+
+  const handleStartUpdatedDateChange = (date: string | null) => {
+    setStartUpdatedDate(date);
+    setLocalPage(1);
+  };
+
+
+
+  const handleStateChange = (value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setLocalPage(1);
+  };
+
+  const handleCityChange = (value: string | null) => {
+    setSelectedCity(value);
     setLocalPage(1);
   };
 
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedStatus("");
-    setCreatedDate(null);
-    setUpdatedDate(null);
+    setStartCreatedDate(null);
+    setEndCreatedDate(null);
+    setStartUpdatedDate(null);
+    setEndUpdatedDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setLocalPage(1);
   };
 
@@ -226,12 +188,10 @@ const AllLeadDetails: React.FC = () => {
 
   const handleViewHistory = (item: Lead) => {
     navigate("/leads/view", { state: { property: item } });
-    setDropdownOpen(null);
   };
 
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
-    setDropdownOpen(null);
   };
 
   const handleMarkAsBooked = (leadId: number) => {
@@ -245,51 +205,99 @@ const AllLeadDetails: React.FC = () => {
           propertyId: lead.interested_project_id || 2,
         },
       });
-      setDropdownOpen(null);
     } else {
       toast.error("Lead not found");
     }
   };
 
-  const handleDelete = (leadId: number) => {
-    console.log(`Delete lead: ${leadId}`);
-    setDropdownOpen(null);
+  const handleCheckboxChange = (leadId: number) => {
+    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId));
+  };
+
+  const handleBulkAssign = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    handleLeadAssign(selectedLeadIdSingle);
+  };
+
+  const handleBulkViewHistory = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    const lead = currentLeads.find((item) => item.lead_id === selectedLeadIdSingle);
+    if (lead) handleViewHistory(lead);
+  };
+
+  const handleBulkBookingDone = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    handleMarkAsBooked(selectedLeadIdSingle);
   };
 
   return (
     <div className="relative min-h-screen">
       <PageMeta title="Lead Management - All Leads" />
-      <PageBreadcrumb
-        pageTitle={getPageTitle()}
-        pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
-        onFilter={handleSearch}
-      />
       <FilterBar
         showUserTypeFilter={false}
         showStatusFilter={true}
         showCreatedDateFilter={true}
         showUpdatedDateFilter={true}
-        showStateFilter={false}
-        showCityFilter={false}
+        showStateFilter={true}
+        showCityFilter={true}
         statusFilterOptions={statusOptions}
         onStatusChange={handleStatusChange}
-        onCreatedDateChange={handleCreatedDateChange}
-        onUpdatedDateChange={handleUpdatedDateChange}
+        onCreatedDateChange={handleStartCreatedDateChange}
+        onCreatedEndDateChange={handleEndCreatedDateChange} // End date for created
+        onUpdatedDateChange={handleStartUpdatedDateChange}
+    
+        onStateChange={handleStateChange}
+        onCityChange={handleCityChange}
         onClearFilters={handleClearFilters}
+        createdDate={startCreatedDate}
+        createdEndDate={endCreatedDate}
+        updatedDate={startUpdatedDate}
+  
         selectedStatus={selectedStatus}
-        createdDate={createdDate}
-        updatedDate={updatedDate}
+        selectedState={selectedState}
+        selectedCity={selectedCity}
         className="mb-4"
       />
-      {/* Display active filters */}
-      {(searchQuery || selectedStatus || createdDate || updatedDate) && (
-        <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
-          Filters: Search: {searchQuery || "None"} | 
-          Status: {selectedStatus ? statusOptions.find((s) => s.value === selectedStatus)?.label || "All" : "All"} | 
-          Created Date: {createdDate || "Any"} | 
-          Updated Date: {updatedDate || "Any"}
-        </div>
-      )}
+      <div className="mb-4 flex gap-2">
+        <PageBreadcrumbList
+          pageTitle={`${getUserType} - ${name} All Leads`}
+          pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
+          onFilter={handleSearch}
+        />
+        <Button
+          variant="primary"
+          onClick={handleBulkAssign}
+          disabled={selectedLeadIdSingle === null}
+          className="px-4 py-1 h-10"
+        >
+          Assign Lead
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleBulkViewHistory}
+          disabled={selectedLeadIdSingle === null}
+          className="px-4 py-1 h-10"
+        >
+          View History
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleBulkBookingDone}
+          disabled={selectedLeadIdSingle === null}
+          className="px-4 py-1 h-10"
+        >
+          Booking Done
+        </Button>
+      </div>
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
@@ -302,32 +310,29 @@ const AllLeadDetails: React.FC = () => {
               <Table className="w-full table-layout-fixed overflow-x-auto">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-blue-900">
                   <TableRow className="text-white">
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]">
-                      Sl. No
+                    <TableCell isHeader className="text-center font-medium text-xs whitespace-nowrap">
+                      Select
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
-                      Customer Name
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Name
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
-                      Customer Number
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Number
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
-                      Email
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Project
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]">
-                      Interested Project
-                    </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
                       Lead Type
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
-                      Created Date
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Created
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]">
-                      Updated Date
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      Updated
                     </TableCell>
-                    <TableCell isHeader className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]">
-                      Actions
+                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                      City
                     </TableCell>
                   </TableRow>
                 </TableHeader>
@@ -337,52 +342,34 @@ const AllLeadDetails: React.FC = () => {
                       key={item.lead_id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                     >
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
-                        {(localPage - 1) * itemsPerPage + index + 1}
+                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIdSingle === item.lead_id}
+                          onChange={() => handleCheckboxChange(item.lead_id)}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[20%]">
+                      <TableCell className="text-left truncate max-w-[120px]">
                         {item.customer_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
+                      <TableCell className="text-left">
                         {item.customer_phone_number || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                        {item.customer_email || "N/A"}
-                      </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
+                      <TableCell className="text-left truncate max-w-[120px]">
                         {item.interested_project_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="text-left">
                         {item.status_name || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="text-left">
                         {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                      <TableCell className="text-left">
                         {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                          onClick={(e) => {
-                            const rect = e.currentTarget.getBoundingClientRect();
-                            setDropdownOpen({
-                              leadId: item.lead_id.toString(),
-                              x: rect.right,
-                              y: rect.top + window.scrollY,
-                            });
-                          }}
-                        >
-                          <svg
-                            className="w-5 h-5 text-gray-800 dark:text-gray-400"
-                            fill="currentColor"
-                            viewBox="0 0 20 20"
-                          >
-                            <path d="M6 10a2 2 0 11-4 0 2 2 0 014 0zM12 10a2 2 0 11-4 0 2 2 0 014 0zM18 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                          </svg>
-                        </Button>
+                      <TableCell className="text-left">
+                        {item.city || "N/A"}
                       </TableCell>
                     </TableRow>
                   ))}
@@ -429,20 +416,6 @@ const AllLeadDetails: React.FC = () => {
           </div>
         )}
       </div>
-      {dropdownOpen && currentLeads.find((item) => item.lead_id.toString() === dropdownOpen.leadId) && (
-        createPortal(
-          renderDropdown(
-            currentLeads.find((item) => item.lead_id.toString() === dropdownOpen.leadId)!,
-            handleLeadAssign,
-            handleViewHistory,
-            handleMarkAsBooked,
-            handleDelete,
-            dropdownRef,
-            dropdownOpen
-          ),
-          document.body
-        )
-      )}
     </div>
   );
 };

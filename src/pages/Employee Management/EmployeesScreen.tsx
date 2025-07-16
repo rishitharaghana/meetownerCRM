@@ -190,12 +190,12 @@ export default function EmployeesScreen() {
     setCurrentPage(1);
   };
 
-  // Handle checkbox selection (single selection)
+  
   const handleCheckboxChange = (userId: number) => {
-    setSelectedUserId((prev) => (prev === userId ? null : userId)); // Toggle or select new, deselect if same
+    setSelectedUserId((prev) => (prev === userId ? null : userId)); 
   };
 
-  // Handle bulk actions (adjusted for single selection)
+ 
   const handleBulkViewProfile = () => {
     if (selectedUserId === null) {
       toast.error("Please select an employee.");
