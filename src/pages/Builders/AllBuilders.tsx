@@ -1,5 +1,4 @@
-import { useState, useEffect, useRef } from "react";
-
+import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import toast from "react-hot-toast";
@@ -13,20 +12,13 @@ import {
 import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-
 import Pagination from "../../components/ui/pagination/Pagination";
-
 import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
-
 import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
-
-
-
-
 
 export default function AllBuildersScreen() {
   const navigate = useNavigate();
@@ -35,16 +27,15 @@ export default function AllBuildersScreen() {
   const { users, loading, error } = useSelector((state: RootState) => state.user);
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-  
+
   const [filterValue, setFilterValue] = useState<string>("");
   const [currentPage, setCurrentPage] = useState<number>(1);
- 
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  
+
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
   const itemsPerPage = 10;
   const categoryLabel = "Partners";
@@ -69,7 +60,7 @@ export default function AllBuildersScreen() {
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       dispatch(getUsersByType({
-          admin_user_id: 1,
+        admin_user_id: user.id,
       }));
     }
     return () => {
@@ -77,9 +68,9 @@ export default function AllBuildersScreen() {
     };
   }, [isAuthenticated, user, dispatch]);
 
-  
-
-  const filteredUsers = users?.filter((user) => {
+  // Skip the first user in the filteredUsers array
+  const filteredUsers = users?.filter((user, index) => {
+    if (index === 0) return false; // Skip the first user
     const matchesTextFilter = [
       user.name,
       user.mobile,
@@ -116,21 +107,12 @@ export default function AllBuildersScreen() {
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
 
-  const handleViewProfile = (id: number) => {
+  const handleViewProfile = (user: any) => {
     if (isAuthenticated && user?.id) {
-      navigate(`/partner/${id}`);
+      navigate(`/builder/${user.id}`, { state: { userDetails: user } }); // Pass user details in state
     }
-   
   };
 
-  
- 
-  
-
-
-  
-
- 
   const handleFilter = (value: string) => {
     setFilterValue(value);
     setCurrentPage(1);
@@ -153,7 +135,7 @@ export default function AllBuildersScreen() {
 
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
-    setSelectedCity(null); 
+    setSelectedCity(null);
     setCurrentPage(1);
   };
 
@@ -190,7 +172,6 @@ export default function AllBuildersScreen() {
         showStatusFilter={true}
         showStateFilter={true}
         showCityFilter={true}
-       
         onCreatedDateChange={handleCreatedDateChange}
         onCreatedEndDateChange={handleCreatedEndDateChange}
         onStatusChange={handleStatusChange}
@@ -204,11 +185,9 @@ export default function AllBuildersScreen() {
         selectedCity={selectedCity}
         className="mb-4"
       />
-      {/* Display active filters */}
       {(filterValue || selectedStatus || selectedState || selectedCity || createdDate || createdEndDate) && (
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
           Filters: Search: {filterValue || "None"} | 
-         
           State: {selectedState ? states.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"} | 
           City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
           Date: {createdDate || "Any"} to {createdEndDate || "Any"}
@@ -228,7 +207,7 @@ export default function AllBuildersScreen() {
                 variant="primary"
                 size="sm"
                 onClick={() =>
-                  dispatch(getUsersByType({ admin_user_id: user!.id, emp_user_type: 3 }))
+                  dispatch(getUsersByType({ admin_user_id: user!.id }))
                 }
                 className="ml-4"
               >
@@ -331,7 +310,7 @@ export default function AllBuildersScreen() {
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {user.mobile}
                           </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {`${user.city}, ${user.state}`}
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
@@ -349,7 +328,7 @@ export default function AllBuildersScreen() {
                               variant="outline"
                               size="sm"
                               className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                              
+                              onClick={() => handleViewProfile(user)} // Pass entire user object
                             >
                               View Details
                             </Button>
@@ -362,7 +341,6 @@ export default function AllBuildersScreen() {
               </div>
             </div>
           )}
-          
           {totalItems > itemsPerPage && (
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
               <div className="text-sm text-gray-500 dark:text-gray-400">
@@ -377,8 +355,6 @@ export default function AllBuildersScreen() {
           )}
         </ComponentCard>
       </div>
-      
-      
     </div>
   );
 }

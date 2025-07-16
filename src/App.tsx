@@ -36,6 +36,7 @@ import StoppedProjectsLeads from "./pages/Project/stoppedProjects";
 import AddBuilder from "./pages/Builders/AddBuilder";
 import AllBuildersScreen from "./pages/Builders/AllBuilders";
 import BuilderQueries from "./pages/Queries/BuilderQueries";
+import BuilderDetailsScreen from "./pages/Builders/BuilderDetails";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
@@ -68,6 +69,7 @@ export default function App() {
               <Route path="/builders" element={<AllBuildersScreen />} />
               <Route path="/builders/addbuilders" element={<AddBuilder />} />
               <Route path="/builder/queries" element = {<BuilderQueries/>} />
+              <Route path="/builder/:id" element={<BuilderDetailsScreen />} />
 
 
               <Route path="/bookings/bookings-done" element={<BookingsDone />} />
