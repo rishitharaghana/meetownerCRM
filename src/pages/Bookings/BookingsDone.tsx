@@ -1,8 +1,8 @@
 import { useState, useRef, useEffect, useMemo } from "react";
-import { Link, useNavigate, useLocation } from "react-router"; // Updated import
+import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import ComponentCard from "../../components/common/ComponentCard";
+
 import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
@@ -12,33 +12,34 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
-import FilterBar from "../../components/common/FilterBar"; // Import FilterBar
+import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
 import { leadSourceOptions } from "../../components/common/reusedList";
 import { BUILDER_USER_TYPE } from "../Lead Management/CustomComponents";
+import toast from "react-hot-toast";
+import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 
 const BookingsDone: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [initialSearch, setInitialSearch] = useState<string>("");
-  const [createdDate, setCreatedDate] = useState<string | null>(null); // New state for created date filter
-  const [updatedDate, setUpdatedDate] = useState<string | null>(null); // New state for updated date filter
+  const [createdDate, setCreatedDate] = useState<string | null>(null);
+  const [updatedDate, setUpdatedDate] = useState<string | null>(null);
+  const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
-
-
-
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
 
-   const itemsPerPage = 10;
+  const itemsPerPage = 10;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
- 
 
- const leadsParams = useMemo(() => {
+  const leadsParams = useMemo(() => {
     if (
       !isAuthenticated ||
       !user?.id ||
@@ -81,7 +82,6 @@ const BookingsDone: React.FC = () => {
       console.log("Dispatching getBookedLeads with params:", leadsParams);
       dispatch(getBookedLeads(leadsParams)).unwrap().catch((err) => {
         console.error("Failed to fetch booked leads:", err);
-       
       });
     } else if (isAuthenticated && user) {
       console.warn("Skipping getBookedLeads: Invalid user data", {
@@ -96,27 +96,32 @@ const BookingsDone: React.FC = () => {
     };
   }, [leadsParams, dispatch]);
 
+  const filteredLeads = useMemo(() => {
+    return (
+      bookedLeads?.filter((item) => {
+        const matchesTextFilter = !searchQuery
+          ? true
+          : [
+              item.customer_name,
+              item.customer_phone_number,
+              item.customer_email,
+              item.interested_project_name,
+              item.assigned_name,
+              item.assigned_emp_number,
+              item.assigned_priority,
+            ]
+              .map((field) => field?.toLowerCase() || "")
+              .some((field) => field.includes(searchQuery.toLowerCase()));
 
-  const filteredLeads = bookedLeads?.filter((item) => {
-    const matchesTextFilter = !searchQuery
-      ? true
-      : [
-          item.customer_name,
-          item.customer_phone_number,
-          item.customer_email,
-          item.interested_project_name,
-          item.assigned_name,
-          item.assigned_emp_number,
-          item.assigned_priority,
-        ]
-          .map((field) => field?.toLowerCase() || "")
-          .some((field) => field.includes(searchQuery.toLowerCase()));
+        const matchesCreatedDate = !createdDate || item.created_date?.split("T")[0] === createdDate;
+        const matchesUpdatedDate = !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
+        const matchesState = !selectedState || item.state?.toString() === selectedState;
+        const matchesCity = !selectedCity || item.city?.toString() === selectedCity;
 
-    const matchesCreatedDate = !createdDate || item.created_date === createdDate;
-    const matchesUpdatedDate = !updatedDate || item.updated_date === updatedDate;
-
-    return matchesTextFilter && matchesCreatedDate && matchesUpdatedDate;
-  }) || [];
+        return matchesTextFilter && matchesCreatedDate && matchesUpdatedDate && matchesState && matchesCity;
+      }) || []
+    );
+  }, [bookedLeads, searchQuery, createdDate, updatedDate, selectedState, selectedCity]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -143,12 +148,14 @@ const BookingsDone: React.FC = () => {
     setInitialSearch("");
     setCreatedDate(null);
     setUpdatedDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setLocalPage(1);
   }, [location.pathname]);
 
   useEffect(() => {
     setLocalPage(1);
-  }, [searchQuery, createdDate, updatedDate]);
+  }, [searchQuery, createdDate, updatedDate, selectedState, selectedCity]);
 
   useEffect(() => {
     const handleStorageChange = () => {
@@ -157,6 +164,8 @@ const BookingsDone: React.FC = () => {
         setSearchQuery("");
         setCreatedDate(null);
         setUpdatedDate(null);
+        setSelectedState(null);
+        setSelectedCity(null);
         setLocalPage(1);
         setInitialSearch("");
       }
@@ -165,8 +174,21 @@ const BookingsDone: React.FC = () => {
     return () => window.removeEventListener("storage", handleStorageChange);
   }, [initialSearch]);
 
-  const handleViewDetails = (lead: any) => {
-    navigate(`/booking/${lead.lead_id}`, { state: { lead } });
+  const handleCheckboxChange = (leadId: number) => {
+    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId));
+  };
+
+  const handleViewDetails = () => {
+    if (selectedLeadIdSingle === null) {
+      toast.error("Please select a lead.");
+      return;
+    }
+    const lead = currentLeads.find((item) => item.lead_id === selectedLeadIdSingle);
+    if (lead) {
+      navigate(`/booking/${lead.lead_id}`, { state: { lead } });
+    } else {
+      toast.error("Lead not found");
+    }
   };
 
   const handleSearch = (value: string) => {
@@ -181,10 +203,21 @@ const BookingsDone: React.FC = () => {
     setUpdatedDate(date);
   };
 
+  const handleStateChange = (value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+  };
+
+  const handleCityChange = (value: string | null) => {
+    setSelectedCity(value);
+  };
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setCreatedDate(null);
     setUpdatedDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
     setLocalPage(1);
   };
 
@@ -204,53 +237,59 @@ const BookingsDone: React.FC = () => {
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
     if (startPage > 1) pages.push(1);
-    if (startPage > 2
-
-) pages.push("...");
+    if (startPage > 2) pages.push("...");
     for (let i = startPage; i <= endPage; i++) pages.push(i);
     if (endPage < totalPages - 1) pages.push("...");
     if (endPage < totalPages) pages.push(totalPages);
     return pages;
   };
 
-
-   const leadSourceMap = Object.fromEntries(
+  const leadSourceMap = Object.fromEntries(
     leadSourceOptions.map((option) => [option.value, option.label])
   );
+
   return (
     <div className="relative min-h-screen">
       <PageMeta title="Booked Leads" />
-      <PageBreadcrumb
-        pageTitle="Booked Leads"
-        pagePlacHolder="Search by Customer Name, Mobile, Email, Project, Budget, Priority, or Status"
-        onFilter={handleSearch}
-      />
+     
       <FilterBar
         className="mb-4"
         showCreatedDateFilter={true}
         showUpdatedDateFilter={true}
+        showStateFilter={true}
+        showCityFilter={true}
         onCreatedDateChange={handleCreatedDateChange}
         onUpdatedDateChange={handleUpdatedDateChange}
+        onStateChange={handleStateChange}
+        onCityChange={handleCityChange}
         onClearFilters={handleClearFilters}
         createdDate={createdDate}
         updatedDate={updatedDate}
+        selectedState={selectedState}
+        selectedCity={selectedCity}
       />
-      <div className="flex justify-between items-center gap-x-4 px-4 py-1">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
-          Search result - {filteredLeads.length}
-        </h2>
+      <div className="mb-4 flex gap-2">
+         <PageBreadcrumbList
+          pagePlacHolder="Search by Name, Mobile, Email, Project"
+          onFilter={handleSearch} pageTitle={""}        />
+        <Button
+          variant="primary"
+          onClick={handleViewDetails}
+          disabled={selectedLeadIdSingle === null}
+          className="px-4 py-2 h-10"
+        >
+          View Details
+        </Button>
       </div>
       <div className="space-y-6">
-        <ComponentCard title="Booked Leads">
+       
           {loading && (
             <div className="text-center text-gray-600 dark:text-gray-400 py-4">
               Loading leads...
             </div>
           )}
           {error && (
-            <div className="text-center text-red-500 py-4">
-              {error}
-            </div>
+            <div className="text-center text-red-500 py-4">{error}</div>
           )}
           {!loading && !error && filteredLeads.length === 0 && (
             <div className="text-center text-gray-600 dark:text-gray-400 py-4">
@@ -259,69 +298,33 @@ const BookingsDone: React.FC = () => {
           )}
           {!loading && !error && filteredLeads.length > 0 && (
             <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-              <div className="max-w-full overflow-x-auto">
-                <Table className="w-full table-layout-fixed overflow-x-auto">
+              <div className="w-full overflow-x-auto">
+                <Table className="w-full">
                   <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                     <TableRow className="bg-blue-900 text-white">
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[5%]"
-                      >
-                        Sl. No
+                      <TableCell isHeader className="text-center font-medium text-xs whitespace-nowrap w-[5%]">
+                        Select
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Customer Name
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
+                        Name
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Customer Number
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
+                        Number
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                        Email
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
+                        Project
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Project Name
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Property Type
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
                         Lead Type
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Created Date
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
+                        Created
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Updated Date
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
+                        Updated
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Actions
+                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
+                        City
                       </TableCell>
                     </TableRow>
                   </TableHeader>
@@ -331,41 +334,36 @@ const BookingsDone: React.FC = () => {
                         key={item.lead_id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
-                          {(localPage - 1) * itemsPerPage + index + 1}
+                        <TableCell className="text-center w-[5%]">
+                          <input
+                            type="checkbox"
+                            checked={selectedLeadIdSingle === item.lead_id}
+                            onChange={() => handleCheckboxChange(item.lead_id)}
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                          {item.customer_name || "N/A"}
+                        <TableCell className="text-left truncate max-w-[120px] w-[15%]">
+                          <span title={item.customer_name || "N/A"}>{item.customer_name || "N/A"}</span>
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                        <TableCell className="text-left w-[15%]">
                           {item.customer_phone_number || "N/A"}
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                          {item.customer_email || "N/A"}
+                        <TableCell className="text-left truncate max-w-[120px] w-[15%]">
+                          <span title={item.interested_project_name || "N/A"}>
+                            {item.interested_project_name || "N/A"}
+                          </span>
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                          {item.interested_project_name || "N/A"}
+                        <TableCell className="text-left w-[10%]">
+                          {leadSourceMap[item.lead_source_id] || "N/A"}
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          {item.property_subtype || "N/A"}
+                        <TableCell className="text-left w-[10%]">
+                          {item.created_date?.split("T")[0] || "N/A"}
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          {leadSourceMap[item.lead_source_id]  || "N/A"}
+                        <TableCell className="text-left w-[10%]">
+                          {item.updated_date?.split("T")[0] || "N/A"}
                         </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          {item.created_date || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          {item.updated_date || "N/A"}
-                        </TableCell>
-                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                          <Button
-                            variant="primary"
-                            size="sm"
-                            onClick={() => handleViewDetails(item)}
-                          >
-                            View Details
-                          </Button>
+                        <TableCell className="text-left w-[10%]">
+                          {item.city || "N/A"}
                         </TableCell>
                       </TableRow>
                     ))}
@@ -411,7 +409,7 @@ const BookingsDone: React.FC = () => {
               </div>
             </div>
           )}
-        </ComponentCard>
+      
       </div>
     </div>
   );
