@@ -84,7 +84,7 @@ const navItems: NavItem[] = [
     name: "Employee Management",
     icon: <FaUserTie />,
     subItems: [
-      { name: "Sales Manger", path: "/employee/4", pro: false },
+      { name: "Sales Manager", path: "/employee/4", pro: false },
       { name: "Telecallers", path: "/employee/5", pro: false },
       { name: "Marketing Executors", path: "/employee/6", pro: false },
       { name: "Receptionists", path: "/employee/7", pro: false },
