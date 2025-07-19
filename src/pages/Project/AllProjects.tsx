@@ -1,4 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
@@ -16,7 +22,9 @@ const BUILDER_USER_TYPE = 2;
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
+    {}
+  );
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -25,14 +33,20 @@ const AllProjects: React.FC = () => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
-  const { allProjects, loading, error } = useSelector((state: RootState) => state.projects);
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { allProjects, loading, error } = useSelector(
+    (state: RootState) => state.projects
+  );
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
 
   // Fetch cities based on selected state
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
 
   // Dispatch cities to Redux store
   useEffect(() => {
@@ -44,7 +58,11 @@ const AllProjects: React.FC = () => {
   // Handle errors for city and state fetching
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
   }, [citiesResult.isError, citiesResult.error]);
 
@@ -70,7 +88,9 @@ const AllProjects: React.FC = () => {
       dispatch(fetchAllProjects(projectParams))
         .unwrap()
         .catch((err) => {
-          toast.error(`Failed to fetch projects: ${err.message || "Unknown error"}`);
+          toast.error(
+            `Failed to fetch projects: ${err.message || "Unknown error"}`
+          );
         });
     } else if (isAuthenticated && user) {
       toast.error("Invalid user data for fetching projects");
@@ -82,49 +102,68 @@ const AllProjects: React.FC = () => {
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
 
-
-
   // Client-side filtering for search, city, and dates
   const filteredProjects = useMemo(() => {
     return allProjects
-     .filter((project: Project) =>
-      (project.stop_leads || "").trim().toLowerCase() !== "yes"
-    )
-    .filter((project: Project) => {
-      const matchesSearch =
-        project.project_name.toLowerCase().includes(search.toLowerCase()) ||
-        project.locality?.toLowerCase().includes(search.toLowerCase()) ||
-        project.city?.toLowerCase().includes(search.toLowerCase()) ||
-        project.state?.toLowerCase().includes(search.toLowerCase());
+      .filter(
+        (project: Project) =>
+          (project.stop_leads || "").trim().toLowerCase() !== "yes"
+      )
+      .filter((project: Project) => {
+        const matchesSearch =
+          project.project_name.toLowerCase().includes(search.toLowerCase()) ||
+          project.locality?.toLowerCase().includes(search.toLowerCase()) ||
+          project.city?.toLowerCase().includes(search.toLowerCase()) ||
+          project.state?.toLowerCase().includes(search.toLowerCase());
 
-      const matchesCity =
-        !selectedCity ||
-        (citiesResult.data &&
-          citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
-            project.city?.toLowerCase());
+        const matchesCity =
+          !selectedCity ||
+          (citiesResult.data &&
+            citiesResult.data
+              .find((c) => c.value.toString() === selectedCity)
+              ?.label.toLowerCase() === project.city?.toLowerCase());
 
-      let matchesDate = true;
-      if (createdDate || createdEndDate) {
-        if (!project.created_date) {
-          matchesDate = false;
-        } else {
-          try {
-            const projectDate = project.created_date.split("T")[0];
-            matchesDate =
-              (!createdDate || projectDate >= createdDate) &&
-              (!createdEndDate || projectDate <= createdEndDate);
-          } catch {
+        let matchesDate = true;
+        if (createdDate || createdEndDate) {
+          if (!project.created_date) {
             matchesDate = false;
+          } else {
+            try {
+              const projectDate = project.created_date.split("T")[0];
+              matchesDate =
+                (!createdDate || projectDate >= createdDate) &&
+                (!createdEndDate || projectDate <= createdEndDate);
+            } catch {
+              matchesDate = false;
+            }
           }
         }
-      }
 
-      return matchesSearch && matchesCity && matchesDate;
-    });
-  }, [allProjects, search, selectedCity, createdDate, createdEndDate, citiesResult.data]);
+        return matchesSearch && matchesCity && matchesDate;
+      });
+  }, [
+    allProjects,
+    search,
+    selectedCity,
+    createdDate,
+    createdEndDate,
+    citiesResult.data,
+  ]);
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
+  };
+
+  const formatDistance = (value: string): string => {
+    if (!value) return "N/A";
+    const trimmed = value.trim().toLowerCase();
+    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+    if (regex.test(trimmed)) {
+      // Capitalize the unit (m -> m, km -> km)
+      const [, number, , , unit] = trimmed.match(regex)!;
+      return `${number} ${unit}`;
+    }
+    return value;
   };
 
   // Pagination logic
@@ -135,8 +174,10 @@ const AllProjects: React.FC = () => {
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
-  const goToPreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-  const goToNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const goToPreviousPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const goToNextPage = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
@@ -177,10 +218,13 @@ const AllProjects: React.FC = () => {
   }, []);
 
   if (!isAuthenticated || !user) {
-    return <div className="p-6 text-center">Please log in to view projects.</div>;
+    return (
+      <div className="p-6 text-center">Please log in to view projects.</div>
+    );
   }
   if (loading) return <div className="p-6 text-center">Loading...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+  if (error)
+    return <div className="p-6 text-center text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -215,10 +259,20 @@ const AllProjects: React.FC = () => {
       </div>
 
       {/* Display active filters */}
-      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
+      {(search ||
+        selectedState ||
+        selectedCity ||
+        createdDate ||
+        createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState || "All"} | City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
-          Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
+          | City:{" "}
+          {selectedCity
+            ? citiesResult.data?.find(
+                (c) => c.value.toString() === selectedCity
+              )?.label || "All"
+            : "All"}{" "}
+          | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
 
@@ -252,12 +306,15 @@ const AllProjects: React.FC = () => {
                     <strong>Builder:</strong> {project.builder_name}
                   </p>
                   <p>
-                    <strong>Type:</strong> {project.property_type} ({project.property_subtype})
+                    <strong>Type:</strong> {project.property_type} (
+                    {project.property_subtype})
                   </p>
                   <p>
                     <strong>Possession:</strong>{" "}
                     {project.possession_end_date
-                      ? new Date(project.possession_end_date).toLocaleDateString()
+                      ? new Date(
+                          project.possession_end_date
+                        ).toLocaleDateString()
                       : "Ready to Move"}
                   </p>
                   <p>
@@ -275,17 +332,18 @@ const AllProjects: React.FC = () => {
                         key={item.title}
                         className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                       >
-                        {item.title} ({item.distance} km)
+                        {item.title} ({formatDistance(item.distance)})
                       </span>
                     ))}
-                    {hiddenAmenities.length > 0 && !isExpanded && (
-                      <button
-                        onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline"
+
+                    {hiddenAmenities.map((item) => (
+                      <span
+                        key={item.title}
+                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                       >
-                        +{hiddenAmenities.length} more
-                      </button>
-                    )}
+                        {item.title} ({formatDistance(item.distance)})
+                      </span>
+                    ))}
                   </div>
                   {isExpanded && (
                     <div className="flex flex-wrap gap-2 mt-2">
@@ -294,7 +352,7 @@ const AllProjects: React.FC = () => {
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                         >
-                          {item.title} ({item.distance} km)
+                          {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
                       <button

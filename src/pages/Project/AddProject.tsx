@@ -125,6 +125,7 @@ export default function AddProject() {
   const [errors, setErrors] = useState<Errors>({});
   const [placeAroundProperty, setPlaceAroundProperty] = useState("");
   const [distanceFromProperty, setDistanceFromProperty] = useState("");
+  const [distanceUnit, setDistanceUnit] = useState("m");
 
   const brochureInputRef = useRef<HTMLInputElement>(null);
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
@@ -443,29 +444,36 @@ export default function AddProject() {
       ],
     }));
   };
+const handleAddAroundProperty = () => {
+  const trimmedPlace = placeAroundProperty.trim();
+  const trimmedDistance = distanceFromProperty.trim();
 
-  const handleAddAroundProperty = () => {
-    if (placeAroundProperty.trim() && distanceFromProperty.trim()) {
-      setFormData((prev) => ({
-        ...prev,
-        aroundProperty: [
-          ...prev.aroundProperty,
-          {
-            place: placeAroundProperty.trim(),
-            distance: distanceFromProperty.trim(),
-          },
-        ],
-      }));
-      setPlaceAroundProperty("");
-      setDistanceFromProperty("");
-      setErrors((prev) => ({ ...prev, aroundProperty: undefined }));
-    } else {
-      setErrors((prev) => ({
-        ...prev,
-        aroundProperty: "Both place and distance are required",
-      }));
-    }
-  };
+  if (trimmedPlace && trimmedDistance) {
+    const fullDistance = `${trimmedDistance}${distanceUnit}`;
+
+    setFormData((prev) => ({
+      ...prev,
+      aroundProperty: [
+        ...prev.aroundProperty,
+        {
+          place: trimmedPlace,
+          distance: fullDistance,
+        },
+      ],
+    }));
+
+    // Reset
+    setPlaceAroundProperty("");
+    setDistanceFromProperty("");
+    setDistanceUnit("m");
+    setErrors((prev) => ({ ...prev, aroundProperty: undefined }));
+  } else {
+    setErrors((prev) => ({
+      ...prev,
+      aroundProperty: "Both place and distance are required",
+    }));
+  }
+};
 
   const handleDeleteAroundProperty = (index: number) => () => {
     setFormData((prev) => ({
@@ -1130,31 +1138,44 @@ export default function AddProject() {
             <Label htmlFor="aroundProperty" className="mt-4">
               Around This Property *
             </Label>
-            <div className="flex space-x-6 my-4 w-full">
-              <Input
-                type="text"
-                id="aroundProperty-place"
-                placeholder="Place around property"
-                value={placeAroundProperty}
-                onChange={(e) => setPlaceAroundProperty(e.target.value)}
-                className="dark:bg-gray-800"
-              />
-              <Input
-                type="number"
-                id="aroundProperty-distance"
-                placeholder="Distance from property"
-                value={distanceFromProperty}
-                onChange={(e) => setDistanceFromProperty(e.target.value)}
-                className="dark:bg-gray-800"
-              />
-              <button
-                type="button"
-                onClick={handleAddAroundProperty}
-                className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-900 transition-colors duration-200 w-[20%]"
-              >
-                Add
-              </button>
-            </div>
+          <div className="flex space-x-6 my-4 w-full">
+  <Input
+    type="text"
+    id="aroundProperty-place"
+    placeholder="Place around property"
+    value={placeAroundProperty}
+    onChange={(e) => setPlaceAroundProperty(e.target.value)}
+    className="dark:bg-gray-800"
+  />
+
+  <div className="flex w-[40%] space-x-2">
+    <Input
+      type="number"
+      id="aroundProperty-distance"
+      placeholder="Distance"
+      value={distanceFromProperty}
+      onChange={(e) => setDistanceFromProperty(e.target.value)}
+      className="dark:bg-gray-800"
+    />
+    <select
+      value={distanceUnit}
+      onChange={(e) => setDistanceUnit(e.target.value)}
+      className="rounded-md px-2 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
+    >
+      <option value="m">m</option>
+      <option value="km">km</option>
+    </select>
+  </div>
+
+  <button
+    type="button"
+    onClick={handleAddAroundProperty}
+    className="px-4 py-2 bg-[#1D3A76] text-white rounded-lg hover:bg-blue-900 transition-colors duration-200 w-[20%]"
+  >
+    Add
+  </button>
+</div>
+
             {errors.aroundProperty && (
               <p className="text-red-500 text-sm mt-1">
                 {errors.aroundProperty}
