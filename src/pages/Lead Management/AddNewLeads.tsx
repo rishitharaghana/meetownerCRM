@@ -131,6 +131,7 @@ const LeadForm: React.FC = () => {
     { value: "4bhk", label: "4 BHK" },
     { value: "5bhk", label: "5 BHK" },
     { value: "6bhk", label: "6 BHK" },
+   
   ];
 
   const handleInputChange = (field: keyof FormData) => (value: string) => {
@@ -194,11 +195,16 @@ const LeadForm: React.FC = () => {
 
     if (!formData.squareFeet.trim()) {
       newErrors.squareFeet = "Square feet is required";
-    }
+    }else if (Number(formData.squareFeet) < 100 || Number(formData.squareFeet) > 10000) {
+  newErrors.squareFeet = "Square feet must be between 100 and 10000";
+}
+   
 
-    if (!formData.budget.trim()) {
-      newErrors.budget = "Budget is required";
-    }
+if (!formData.budget.trim()) {
+  newErrors.budget = "Budget is required";
+} else if (!/^\d+$/.test(formData.budget)) {
+  newErrors.budget = "Budget must be a valid number";
+}
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -342,11 +348,12 @@ const LeadForm: React.FC = () => {
                   Mobile Number
                 </label>
                 <Input
-                  type="tel"
+                  type="number"
                   value={formData.mobile}
                   onChange={(e) => handleInputChange("mobile")(e.target.value)}
                   placeholder="Enter 10-digit mobile number"
                   className={errors.mobile ? "border-red-500" : ""}
+                  maxLength={10}
                 />
                 {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
               </div>
@@ -360,6 +367,7 @@ const LeadForm: React.FC = () => {
                   value={formData.email}
                   onChange={(e) => handleInputChange("email")(e.target.value)}
                   placeholder="Enter email address"
+                  
                   className={errors.email ? "border-red-500" : ""}
                 />
                 {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
@@ -457,11 +465,14 @@ const LeadForm: React.FC = () => {
                 Square Feet
               </label>
               <Input
-                type="text"
+                type="number"
                 value={formData.squareFeet}
                 onChange={(e) => handleInputChange("squareFeet")(e.target.value)}
                 placeholder="Enter square feet area"
+                min="100"
+                 max="10000"
                 className={errors.squareFeet ? "border-red-500" : ""}
+                
               />
               {errors.squareFeet && (
                 <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>
@@ -473,7 +484,7 @@ const LeadForm: React.FC = () => {
                 Budget
               </label>
               <Input
-                type="text"
+                type="number"
                 value={formData.budget}
                 onChange={(e) => handleInputChange("budget")(e.target.value)}
                 placeholder="Enter your budget"
