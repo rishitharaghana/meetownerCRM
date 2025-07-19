@@ -162,12 +162,12 @@ const MarkBookingPage: React.FC = () => {
             </div>
           </div>
           <div className="space-y-1">
-            <Label>Square Footage</Label>
+            <Label>Square Feet</Label>
             <Input
               type="text"
               value={formData.sqft}
               onChange={(e) => handleInputChange('sqft')(e.target.value)}
-              placeholder="Enter Square Footage (e.g., 1500)"
+              placeholder="Enter Square Feet (e.g., 1500)"
               className={errors.sqft ? 'border-red-500' : ''}
             />
             {errors.sqft && <p className="text-red-500 text-sm mt-1">{errors.sqft}</p>}
