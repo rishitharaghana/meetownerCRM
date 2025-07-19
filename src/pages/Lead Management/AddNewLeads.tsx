@@ -156,6 +156,8 @@ const LeadForm: React.FC = () => {
 
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
+    }else if(!/^[A-Za-z\s]+$/.test(formData.name.trim())){
+      newErrors.name ="Name can only contain alphabets and Spaces";
     }
 
     if (!formData.mobile.trim()) {

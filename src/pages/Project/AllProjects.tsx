@@ -82,9 +82,15 @@ const AllProjects: React.FC = () => {
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
 
+
+
   // Client-side filtering for search, city, and dates
   const filteredProjects = useMemo(() => {
-    return allProjects.filter((project: Project) => {
+    return allProjects
+     .filter((project: Project) =>
+      (project.stop_leads || "").trim().toLowerCase() !== "yes"
+    )
+    .filter((project: Project) => {
       const matchesSearch =
         project.project_name.toLowerCase().includes(search.toLowerCase()) ||
         project.locality?.toLowerCase().includes(search.toLowerCase()) ||

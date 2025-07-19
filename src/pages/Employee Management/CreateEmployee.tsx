@@ -51,12 +51,13 @@ interface Errors {
 
 const CreateEmployee = () => {
   const dispatch = useDispatch<AppDispatch>();
-   const navigate = useNavigate();
+  const navigate = useNavigate();
   const { states } = useSelector((state: RootState) => state.property);
-  const { loading,  } = useSelector((state: RootState) => state.user); 
+  const { loading } = useSelector((state: RootState) => state.user);
   const { citiesQuery, statesQuery } = usePropertyQueries();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -74,35 +75,50 @@ const CreateEmployee = () => {
 
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
-  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
+  const citiesResult = citiesQuery(
+    formData.state ? parseInt(formData.state) : undefined
+  );
 
-   useEffect(() => {
+  useEffect(() => {
     if (!isAuthenticated || !user) {
-      navigate('/login');
-      toast.error('Please log in to access this page');
+      navigate("/login");
+      toast.error("Please log in to access this page");
       return;
     }
 
     if (user.user_type !== 2) {
-      navigate('/'); 
-      toast.error('Access denied: Only builders can create employees');
+      navigate("/");
+      toast.error("Access denied: Only builders can create employees");
     }
   }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
-        if (citiesResult.data) {
-          dispatch(setCityDetails(citiesResult.data));
-        }
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
   }, [citiesResult.data, dispatch]);
 
- useEffect(() => {
+  useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
     if (statesQuery.isError) {
-      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to fetch states: ${
+          statesQuery.error?.message || "Unknown error"
+        }`
+      );
     }
-  }, [citiesResult.isError, citiesResult.error, statesQuery.isError, statesQuery.error]);
+  }, [
+    citiesResult.isError,
+    citiesResult.error,
+    statesQuery.isError,
+    statesQuery.error,
+  ]);
 
   const allDesignationOptions = [
     { value: "4", text: "Sales Manager" },
@@ -110,34 +126,52 @@ const CreateEmployee = () => {
     { value: "6", text: "Marketing Agent" },
     { value: "7", text: "Receptionists" },
   ];
-const cityOptions =
-    citiesResult?.data?.map((city: any) => ({ value: city.value, text: city.label })) || [];
-  const stateOptions = states?.map((s: any) => ({ value: s.value, text: s.label })) || [];
+  const cityOptions =
+    citiesResult?.data?.map((city: any) => ({
+      value: city.value,
+      text: city.label,
+    })) || [];
+  const stateOptions =
+    states?.map((s: any) => ({ value: s.value, text: s.label })) || [];
 
-  const handleChange = (field: keyof FormData) => (value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
+  const handleChange =
+    (field: keyof FormData) => (value: string | File | null) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
 
   const handleDropdownChange = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => ({
       ...prev,
       [field]: value,
-      ...(field === "state" && { city: "" }), // Reset city if state changes
+      ...(field === "state" && { city: "" }),
     }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
   };
 
   const validateForm = () => {
     const newErrors: Errors = {};
-    if (!formData.name.trim()) newErrors.name = "Name is required";
-    if (!formData.mobile.trim()) newErrors.mobile = "Mobile number is required";
+    if (!formData.name.trim()) {
+      newErrors.name = "Name is required";
+    } else if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
+      newErrors.name = "Name should be alphabets and name spaces";
+    }
+    if (!formData.mobile.trim()) {
+      newErrors.mobile = "Mobile number is required";
+    } else if (!/^[6-9]\d{9}$/.test(formData.mobile.trim())) {
+      newErrors.mobile = "Enter a valid 10 digit mobile number";
+    }
     if (!formData.email.trim()) {
       newErrors.email = "Email is required";
     } else if (!/\S+@\S+\.\S+/.test(formData.email)) {
       newErrors.email = "Email is invalid";
     }
-    if (!formData.designation) newErrors.designation = "Select a designation";
+    if (!formData.designation) {
+      newErrors.designation = "Select a designation";
+    } else if (!/^[A-Za-z]+$/.test(formData.name.trim())) {
+      newErrors.designation = "Designation only contains Alphabets and Spaces";
+    }
+
     if (!formData.password) newErrors.password = "Password is required";
     if (!formData.city) newErrors.city = "Select a city";
     if (!formData.state) newErrors.state = "Select a state";
@@ -166,22 +200,28 @@ const cityOptions =
     formDataToSend.append("mobile", formData.mobile);
     formDataToSend.append("email", formData.email);
     formDataToSend.append("password", formData.password);
-    formDataToSend.append("city", cityOptions.find((c) => c.value === formData.city)?.text || formData.city);
-    formDataToSend.append("state", stateOptions.find((s) => s.value === formData.state)?.text || formData.state);
+    formDataToSend.append(
+      "city",
+      cityOptions.find((c) => c.value === formData.city)?.text || formData.city
+    );
+    formDataToSend.append(
+      "state",
+      stateOptions.find((s) => s.value === formData.state)?.text ||
+        formData.state
+    );
     formDataToSend.append("pincode", formData.pincode);
     formDataToSend.append("location", formData.location);
     formDataToSend.append("address", formData.address);
     if (formData.photo) formDataToSend.append("photo", formData.photo);
-    formDataToSend.append('status',"1");
+    formDataToSend.append("status", "1");
     formDataToSend.append("user_type", formData.designation);
     formDataToSend.append("created_by", createdBy);
     formDataToSend.append("created_user_id", createdUserId.toString());
-    formDataToSend.append("created_user_type","2");
-    
+    formDataToSend.append("created_user_type", "2");
 
     try {
       await dispatch(insertUser(formDataToSend)).unwrap();
-     
+
       setFormData({
         name: "",
         mobile: "",
@@ -197,17 +237,21 @@ const cityOptions =
       });
       setErrors({});
     } catch (error) {
-     
+      console.error("User Insertion failed:", error);
     }
+    
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
-         
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Create Employee</h1>
-          <p className="text-gray-600">Add a new team member to your organization</p>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">
+            Create Employee
+          </h1>
+          <p className="text-gray-600">
+            Add a new team member to your organization
+          </p>
         </div>
 
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30">
@@ -222,19 +266,25 @@ const cityOptions =
                 onChange={(e) => handleChange("name")(e.target.value)}
                 placeholder="Enter employee name"
               />
-              {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
+              {errors.name && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>
+              )}
             </div>
 
             {/* Mobile */}
             <div>
-              <label className="text-sm font-medium text-gray-700">Mobile</label>
+              <label className="text-sm font-medium text-gray-700">
+                Mobile
+              </label>
               <PhoneInput
                 countries={[{ code: "IN", label: "+91" }]}
                 value={formData.mobile}
                 placeholder="Enter mobile number"
                 onChange={handleChange("mobile")}
               />
-              {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
+              {errors.mobile && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>
+              )}
             </div>
 
             {/* Email */}
@@ -248,7 +298,9 @@ const cityOptions =
                 onChange={(e) => handleChange("email")(e.target.value)}
                 placeholder="example@domain.com"
               />
-              {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>
+              )}
             </div>
 
             {/* Designation */}
@@ -282,7 +334,11 @@ const cityOptions =
               >
                 {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
               </button>
-              {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.password}
+                </p>
+              )}
             </div>
 
             {/* State */}
@@ -322,7 +378,11 @@ const cityOptions =
                 onChange={(e) => handleChange("location")(e.target.value)}
                 placeholder="Enter location"
               />
-              {errors.location && <p className="text-red-600 text-sm mt-1">⚠️ {errors.location}</p>}
+              {errors.location && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.location}
+                </p>
+              )}
             </div>
 
             {/* Address */}
@@ -337,7 +397,9 @@ const cityOptions =
                 className="w-full p-3 border rounded-md dark:bg-gray-800"
                 placeholder="Enter full address"
               />
-              {errors.address && <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>}
+              {errors.address && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
+              )}
             </div>
 
             {/* Pincode */}
@@ -350,7 +412,9 @@ const cityOptions =
                 onChange={(e) => handleChange("pincode")(e.target.value)}
                 placeholder="Enter pincode"
               />
-              {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
+              {errors.pincode && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>
+              )}
             </div>
 
             {/* Photo */}
@@ -361,10 +425,14 @@ const cityOptions =
               <input
                 type="file"
                 accept="image/*"
-                onChange={(e) => handleChange("photo")(e.target.files?.[0] || null)}
+                onChange={(e) =>
+                  handleChange("photo")(e.target.files?.[0] || null)
+                }
                 className="w-full p-3 border rounded-md"
               />
-              {errors.photo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>}
+              {errors.photo && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
+              )}
             </div>
 
             <div className="pt-4">
