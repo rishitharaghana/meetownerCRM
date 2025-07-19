@@ -35,14 +35,14 @@ const LeadsType: React.FC = () => {
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   
-  // Filter states
+  
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
 
-  // New state for single selected lead
+  
   const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
 
   const navigate = useNavigate();
@@ -102,7 +102,7 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        // toast.error(err || 'Failed to fetch leads');
+        
       });
     } else if (isAuthenticated && user) {
       console.warn("Invalid user data:", {
@@ -157,10 +157,11 @@ const LeadsType: React.FC = () => {
     (localPage - 1) * itemsPerPage,
     localPage * itemsPerPage
   );
+  console.log("currentLeads: ", currentLeads);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // No dropdown to handle, this can be removed or kept for future use
+      
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -229,7 +230,7 @@ const LeadsType: React.FC = () => {
     setIsUpdateModalOpen(true);
   };
 
-  // Filter handlers
+  
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
     setLocalPage(1);
@@ -266,12 +267,12 @@ const LeadsType: React.FC = () => {
     setLocalPage(1);
   };
 
-  // Handle checkbox selection (single selection)
+  
   const handleCheckboxChange = (leadId: number) => {
-    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId)); // Toggle or select new, deselect if same
+    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId)); 
   };
 
-  // Handle bulk actions (adjusted for single selection)
+  
   const handleBulkAssign = () => {
     if (selectedLeadIdSingle === null) {
       toast.error("Please select a lead.");

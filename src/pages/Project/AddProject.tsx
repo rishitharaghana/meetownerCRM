@@ -278,7 +278,7 @@ export default function AddProject() {
           }));
           return;
         }
-        if (file.size > 20 * 1024 * 1024) {
+        if (file.size > 10 * 1024 * 1024) {
           setErrors((prev) => ({
             ...prev,
             sizes: {
@@ -374,10 +374,10 @@ export default function AddProject() {
         }));
         return;
       }
-      if (file.size > 20 * 1024 * 1024) {
+      if (file.size > 10 * 1024 * 1024) {
         setErrors((prev) => ({
           ...prev,
-          priceSheet: 'File size must be less than 20MB',
+          priceSheet: 'File size must be less than 10MB',
         }));
         return;
       }

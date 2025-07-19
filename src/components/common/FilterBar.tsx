@@ -6,7 +6,7 @@ import { useDispatch, useSelector } from "react-redux";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { RootState, AppDispatch } from "../../store/store";
-import Dropdown from "../form/Dropdown"; // Assuming Dropdown is used for state/city
+import Dropdown from "../form/Dropdown"; 
 
 interface SelectOption {
   value: string;
@@ -19,8 +19,8 @@ interface FilterBarProps {
   showCreatedEndDateFilter?: boolean;
   showUpdatedDateFilter?: boolean;
   showStatusFilter?: boolean;
-  showStateFilter?: boolean; // New prop for state filter
-  showCityFilter?: boolean; // New prop for city filter
+  showStateFilter?: boolean; 
+  showCityFilter?: boolean; 
   userFilterOptions?: SelectOption[];
   statusFilterOptions?: SelectOption[];
   onUserTypeChange?: (value: string | null) => void;
@@ -28,16 +28,16 @@ interface FilterBarProps {
   onCreatedEndDateChange?: (date: string | null) => void;
   onUpdatedDateChange?: (date: string | null) => void;
   onStatusChange?: (value: string | null) => void;
-  onStateChange?: (value: string | null) => void; // New handler
-  onCityChange?: (value: string | null) => void; // New handler
+  onStateChange?: (value: string | null) => void; 
+  onCityChange?: (value: string | null) => void; 
   onClearFilters?: () => void;
   selectedUserType?: string | null;
   createdDate?: string | null;
   createdEndDate?: string | null;
   updatedDate?: string | null;
   selectedStatus?: string | null;
-  selectedState?: string | null; // New prop
-  selectedCity?: string | null; // New prop
+  selectedState?: string | null; 
+  selectedCity?: string | null; 
   className?: string;
   showDateFilters?: boolean;
 }
@@ -74,17 +74,17 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
 
-  // Fetch cities based on selected state
+  
   const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
 
-  // Dispatch cities to Redux store
+  
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Map states and cities to options
+  
   const stateOptions =
     states?.map((state: any) => ({ value: state.value.toString(), text: state.label })) || [];
   const cityOptions =
@@ -143,7 +143,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     onClearFilters?.();
   };
 
-  // For backward compatibility: if showDateFilters is true, enable all date filters
+  
   const displayCreatedDateFilter = showCreatedDateFilter || showDateFilters;
   const displayCreatedEndDateFilter = showCreatedEndDateFilter || showDateFilters;
   const displayUpdatedDateFilter = showUpdatedDateFilter || showDateFilters;
@@ -164,7 +164,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
         )}
         
         {showStateFilter && stateOptions.length > 0 && (
-          <div className="w-[120px] flex-shrink-0 ">
+          <div className="w-[150px] flex-shrink-0 ">
             <Dropdown
               id="state"
             
@@ -173,7 +173,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
               onChange={(value: string) => {
                 onStateChange?.(value || null);
                 if (value !== selectedState) {
-                  onCityChange?.(null); // Reset city when state changes
+                  onCityChange?.(null); 
                 }
               }}
               placeholder="state..."
@@ -182,12 +182,16 @@ const FilterBar: React.FC<FilterBarProps> = ({
         )}
         
         {showCityFilter && (
-          <div className="w-[120px] flex-shrink-0">
+          <div className="w-[150px] flex-shrink-0">
             <Dropdown
               id="city"
               options={cityOptions}
               value={selectedCity || ""}
-              onChange={(value: string) => onCityChange?.(value || null)}
+            onChange={(value: string) => {
+  const cityLabel = cityOptions.find((city) => city.value === value)?.text || null;
+  onCityChange?.(cityLabel);
+}}
+
               placeholder="city..."
               disabled={!selectedState}
             />

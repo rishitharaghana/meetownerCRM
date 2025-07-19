@@ -98,7 +98,7 @@ const LeadForm: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated && user?.id && isBuilder && formData.leadSource === "6") {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3 }));
+      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3, }));
     }
   }, [formData.leadSource, isAuthenticated, user, dispatch, isBuilder]);
 
@@ -129,6 +129,8 @@ const LeadForm: React.FC = () => {
     { value: "2bhk", label: "2 BHK" },
     { value: "3bhk", label: "3 BHK" },
     { value: "4bhk", label: "4 BHK" },
+    { value: "5bhk", label: "5 BHK" },
+    { value: "6bhk", label: "6 BHK" },
   ];
 
   const handleInputChange = (field: keyof FormData) => (value: string) => {
