@@ -357,6 +357,9 @@ export default function AddProject() {
   const handleDeleteBrochure = () => {
     setFormData((prev) => ({ ...prev, brochure: null }));
     setErrors((prev) => ({ ...prev, brochure: undefined }));
+    if(brochureInputRef.current){
+      brochureInputRef.current.value = ""
+    }
   };
 
   const handleDeleteFile = (id: string) => () => {
@@ -407,6 +410,9 @@ export default function AddProject() {
   const handleDeletePriceSheet = () => {
     setFormData((prev) => ({ ...prev, priceSheet: null }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
+    if (priceSheetInputRef.current) {
+  priceSheetInputRef.current.value = ""; // Reset the input so same file can be reselected
+}
   };
 
   const handleDeleteSize = (id: string) => () => {
@@ -1042,7 +1048,7 @@ export default function AddProject() {
                     Carpet Area (sq.ft)
                   </Label>
                   <Input
-                    type="text"
+                    type="number"
                     id={`carpetArea-${size.id}`}
                     value={size.carpetArea}
                     onChange={handleSizeChange(size.id, "carpetArea")}
@@ -1057,14 +1063,14 @@ export default function AddProject() {
                 </div>
                 <div className="min-h-[80px]">
                   <Label htmlFor={`sqftPrice-${size.id}`}>
-                    Square Foot Price
+                    Square Feet Price
                   </Label>
                   <Input
-                    type="text"
+                    type="number"
                     id={`sqftPrice-${size.id}`}
                     value={size.sqftPrice}
                     onChange={handleSizeChange(size.id, "sqftPrice")}
-                    placeholder="Enter square foot price"
+                    placeholder="Enter square feet price"
                     className="dark:bg-gray-800"
                   />
                   {errors.sizes?.[size.id]?.sqftPrice && (
@@ -1134,7 +1140,7 @@ export default function AddProject() {
                 className="dark:bg-gray-800"
               />
               <Input
-                type="text"
+                type="number"
                 id="aroundProperty-distance"
                 placeholder="Distance from property"
                 value={distanceFromProperty}
@@ -1212,17 +1218,9 @@ export default function AddProject() {
             {errors.brochure && (
               <p className="text-red-500 text-sm mt-1">{errors.brochure}</p>
             )}
-            <div className="min-h-[80px] flex items-end">
-              {formData.brochure ? (
-                <p className="text-sm text-gray-500 truncate">
-                  {formData.brochure.name}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-400"></p>
-              )}
-            </div>
+           
           </div>
-          <div className="space-y-1">
+          <div className=" mb-2 space-y-1">
             <Label>Upload Price Sheet (Optional)</Label>
             <div className="flex items-center space-x-2">
               <input
@@ -1258,15 +1256,7 @@ export default function AddProject() {
             {errors.priceSheet && (
               <p className="text-red-500 text-sm mt-1">{errors.priceSheet}</p>
             )}
-            <div className="min-h-[80px] flex items-end">
-              {formData.priceSheet ? (
-                <p className="text-sm text-gray-500 truncate">
-                  {formData.priceSheet.name}
-                </p>
-              ) : (
-                <p className="text-sm text-gray-400"></p>
-              )}
-            </div>
+       
           </div>
           <div className="flex justify-center">
             <button

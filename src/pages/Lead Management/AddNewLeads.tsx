@@ -195,10 +195,7 @@ const LeadForm: React.FC = () => {
 
     if (!formData.squareFeet.trim()) {
       newErrors.squareFeet = "Square feet is required";
-    }else if (Number(formData.squareFeet) < 100 || Number(formData.squareFeet) > 10000) {
-  newErrors.squareFeet = "Square feet must be between 100 and 10000";
-}
-   
+    }
 
 if (!formData.budget.trim()) {
   newErrors.budget = "Budget is required";
@@ -469,8 +466,7 @@ if (!formData.budget.trim()) {
                 value={formData.squareFeet}
                 onChange={(e) => handleInputChange("squareFeet")(e.target.value)}
                 placeholder="Enter square feet area"
-                min="100"
-                 max="10000"
+                
                 className={errors.squareFeet ? "border-red-500" : ""}
                 
               />
