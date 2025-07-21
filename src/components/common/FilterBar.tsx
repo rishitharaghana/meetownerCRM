@@ -70,24 +70,31 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const dispatch = useDispatch<AppDispatch>();
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
+
   const citiesResult = citiesQuery(
     selectedState ? parseInt(selectedState) : undefined
   );
-  useEffect(() => {
-    if (citiesResult.data) {
-      dispatch(setCityDetails(citiesResult.data));
-    }
-  }, [citiesResult.data, dispatch]);
   const stateOptions =
     states?.map((state: any) => ({
       value: state.value.toString(),
       text: state.label,
     })) || [];
+
+
   const cityOptions =
     citiesResult?.data?.map((city: any) => ({
-      value: city.value.toString(),
+      value: city.label,
       text: city.label,
     })) || [];
+
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  },
+    [citiesResult.data, dispatch]);
+  
+
   const handleCreatedDateChange = (selectedDates: Date[]) => {
     const dateObj = selectedDates[0];
     let date = "";
@@ -177,11 +184,12 @@ const FilterBar: React.FC<FilterBarProps> = ({
               options={cityOptions}
               value={selectedCity || ""}
               onChange={(value: string, text: string) => {
-                onCityChange?.(text || null);
+                onCityChange?.(value || null); // 'value' will be the city name (label)
               }}
               placeholder="city..."
               disabled={!selectedState}
             />
+
           </div>
         )}
         <div className="flex items-center gap-2">
@@ -239,14 +247,14 @@ const FilterBar: React.FC<FilterBarProps> = ({
           displayCreatedEndDateFilter ||
           displayUpdatedDateFilter ||
           showStatusFilter) && (
-          <Button
-            variant="outline"
-            onClick={handleClearFilters}
-            className="px-3 py-2 ml-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm whitespace-nowrap flex-shrink-0"
-          >
-            Clear
-          </Button>
-        )}
+            <Button
+              variant="outline"
+              onClick={handleClearFilters}
+              className="px-3 py-2 ml-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm whitespace-nowrap flex-shrink-0"
+            >
+              Clear
+            </Button>
+          )}
       </div>
     </div>
   );
