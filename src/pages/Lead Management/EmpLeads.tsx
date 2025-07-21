@@ -13,7 +13,11 @@ import {
 import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { Lead } from "../../types/LeadModel";
-import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
+import {
+  clearLeads,
+  getLeadsByID,
+  getLeadsByUser,
+} from "../../store/slices/leadslice";
 import FilterBar from "../../components/common/FilterBar";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 const userTypeOptions = [
@@ -34,7 +38,7 @@ const statusOptions = [
   { value: "7", label: "Lost" },
   { value: "8", label: "Revoked" },
 ];
-const AllLeadDetails: React.FC = () => {
+const EmpLeads: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [selectedStatus, setSelectedStatus] = useState<string>("");
@@ -53,25 +57,32 @@ const AllLeadDetails: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-  const { leads, loading, error } = useSelector(
+  const { cpLeads, loading, error } = useSelector(
     (state: RootState) => state.lead
   );
+  console.log("leads: ", cpLeads);
   const {
     admin_user_id,
     admin_user_type,
     assigned_user_type,
+    lead_source_user_id,
     assigned_id,
     name,
   } = location.state || {};
+  console.log("assigned_id: ", assigned_id);
+  console.log("user: ", location.state);
   const itemsPerPage = 10;
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       const params = {
         lead_added_user_type: admin_user_type || user.user_type,
         lead_added_user_id: admin_user_id || user.id,
+        lead_source_user_id: lead_source_user_id || user.id,
+        assigned_user_type: user.user_type,
         assigned_id,
       };
-      dispatch(getLeadsByUser(params))
+      console.log("params: ", params);
+      dispatch(getLeadsByID(params))
         .unwrap()
         .catch((err) => {
           toast.error(err || "Failed to fetch leads");
@@ -82,7 +93,7 @@ const AllLeadDetails: React.FC = () => {
     };
   }, [isAuthenticated, user, admin_user_id, admin_user_type, dispatch]);
   const filteredLeads =
-    leads?.filter((item) => {
+    cpLeads?.filter((item) => {
       const matchesSearch = !searchQuery
         ? true
         : item.customer_name
@@ -446,4 +457,4 @@ const AllLeadDetails: React.FC = () => {
     </div>
   );
 };
-export default AllLeadDetails;
+export default EmpLeads;

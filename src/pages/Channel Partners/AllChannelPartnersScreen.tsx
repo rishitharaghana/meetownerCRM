@@ -16,7 +16,11 @@ import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType, updateUserStatus } from "../../store/slices/userslice";
+import {
+  clearUsers,
+  getUsersByType,
+  updateUserStatus,
+} from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
@@ -30,8 +34,12 @@ const statusFilterOptions = [
 export default function PartnerScreen() {
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { users, loading, error } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const { users, loading, error } = useSelector(
+    (state: RootState) => state.user
+  );
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const [filterValue, setFilterValue] = useState<string>("");
@@ -51,7 +59,9 @@ export default function PartnerScreen() {
   const categoryLabel = "Partners";
 
   // Fetch cities based on selected state
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
 
   // Dispatch cities to Redux store
   useEffect(() => {
@@ -63,7 +73,11 @@ export default function PartnerScreen() {
   // Handle errors for city fetching
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
   }, [citiesResult.isError, citiesResult.error]);
 
@@ -76,36 +90,50 @@ export default function PartnerScreen() {
     };
   }, [isAuthenticated, user, statusUpdated, dispatch]);
 
-  const filteredUsers = users?.filter((user) => {
-    const matchesTextFilter = [
-      user.name,
-      user.mobile,
-      user.email,
-      user.city,
-      user.state,
-      user.gst_number,
-      user.rera_number,
-    ]
-      .map((field) => field?.toLowerCase() || "")
-      .some((field) => field.includes(filterValue.toLowerCase()));
+  const filteredUsers =
+    users?.filter((user) => {
+      const matchesTextFilter = [
+        user.name,
+        user.mobile,
+        user.email,
+        user.city,
+        user.state,
+        user.gst_number,
+        user.rera_number,
+      ]
+        .map((field) => field?.toLowerCase() || "")
+        .some((field) => field.includes(filterValue.toLowerCase()));
 
-    const userCreatedDate = user.created_date.split("T")[0];
-    const matchesCreatedDate =
-      (!createdDate || userCreatedDate >= createdDate) &&
-      (!createdEndDate || userCreatedDate <= createdEndDate);
+      const userCreatedDate = user.created_date.split("T")[0];
+      const matchesCreatedDate =
+        (!createdDate || userCreatedDate >= createdDate) &&
+        (!createdEndDate || userCreatedDate <= createdEndDate);
 
-    const matchesStatus = selectedStatus === null || user.status === parseInt(selectedStatus);
+      const matchesStatus =
+        selectedStatus === null || user.status === parseInt(selectedStatus);
 
-    const matchesState = !selectedState || user.state?.toLowerCase() === states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+      const matchesState =
+        !selectedState ||
+        user.state?.toLowerCase() ===
+          states
+            .find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase();
 
-    const matchesCity =
-      !selectedCity ||
-      (citiesResult.data &&
-        citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
-          user.city?.toLowerCase());
+      const matchesCity =
+        !selectedCity ||
+        (citiesResult.data &&
+          citiesResult.data
+            .find((c) => c.value.toString() === selectedCity)
+            ?.label.toLowerCase() === user.city?.toLowerCase());
 
-    return matchesTextFilter && matchesCreatedDate && matchesStatus && matchesState && matchesCity;
-  }) || [];
+      return (
+        matchesTextFilter &&
+        matchesCreatedDate &&
+        matchesStatus &&
+        matchesState &&
+        matchesCity
+      );
+    }) || [];
 
   const totalItems = filteredUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
@@ -136,8 +164,6 @@ export default function PartnerScreen() {
       toast.error(error as string);
     }
   };
-
-  
 
   const handleRejectSubmit = async () => {
     if (selectedUser && rejectReason) {
@@ -308,7 +334,9 @@ export default function PartnerScreen() {
               variant="primary"
               size="sm"
               onClick={() =>
-                dispatch(getUsersByType({ admin_user_id: user!.id, emp_user_type: 3 }))
+                dispatch(
+                  getUsersByType({ admin_user_id: user!.id, emp_user_type: 3 })
+                )
               }
               className="ml-4"
             >
@@ -367,7 +395,8 @@ export default function PartnerScreen() {
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
                   {paginatedUsers.map((user) => {
-                    const { text: statusText, className: statusClass } = getStatusDisplay(user.status);
+                    const { text: statusText, className: statusClass } =
+                      getStatusDisplay(user.status);
                     return (
                       <TableRow
                         key={user.id}
@@ -384,12 +413,13 @@ export default function PartnerScreen() {
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                           <div className="flex items-center gap-3">
                             <Link
-                              to="/lead/allLeads"
+                              to="/lead/Leads"
                               state={{
                                 admin_user_id: createdUserId,
                                 admin_user_type: 2,
                                 assigned_user_type: user.user_type,
                                 assigned_id: user.id,
+                                lead_source_user_id: user.id,
                                 name: user.name,
                               }}
                               className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
@@ -445,9 +475,12 @@ export default function PartnerScreen() {
         className="max-w-md p-6"
       >
         <div className="space-y-4">
-          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">Reject Partner</h2>
+          <h2 className="text-lg font-semibold text-gray-800 dark:text-white">
+            Reject Partner
+          </h2>
           <p className="text-sm text-gray-600 dark:text-gray-300">
-            Please provide a reason for rejecting {selectedUser?.name}'s application:
+            Please provide a reason for rejecting {selectedUser?.name}'s
+            application:
           </p>
           <textarea
             className="w-full h-24 p-2 border rounded-md bg-gray-50 dark:bg-gray-800 dark:border-gray-700 dark:text-white"

@@ -6,6 +6,7 @@ import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, Le
 
 const initialState: LeadState = {
   leads: null,
+  cpLeads: null,
   leadUpdates: null,
   bookedLeads: null,
   leadStatuses: null, 
@@ -46,6 +47,74 @@ export const getLeadsByUser = createAsyncThunk<
 
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/getLeadsByUser?${queryParams}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (!response.data.results || response.data.results.length === 0) {
+        return rejectWithValue("No leads found");
+      }
+
+      return response.data.results;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get leads by user error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 404:
+            return rejectWithValue("No leads found for this user");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch leads");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+export const getLeadsByID = createAsyncThunk<
+  Lead[],
+  {
+    lead_added_user_type: number;
+    lead_added_user_id: number;
+    lead_source_user_id:number;
+    assigned_user_type?: number;
+    assigned_id?: number;
+    status_id?: number; 
+  },
+  { rejectValue: string }
+>(
+  "lead/getLeadsByID",
+  async (
+    { lead_added_user_type, lead_added_user_id, assigned_user_type, assigned_id, status_id },
+    { rejectWithValue }
+  ) => {
+    console.log("assigned_id: ", assigned_id);
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const queryParams = new URLSearchParams({
+        lead_added_user_type: lead_added_user_type.toString(),
+        lead_added_user_id: lead_added_user_id.toString(),
+        lead_source_user_id: assigned_id.toString(),
+        assigned_id: assigned_id.toString(),
+        ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
+        ...(status_id !== undefined && { status_id: status_id.toString() }), 
+      });
+
+      console.log("queryParams: ", queryParams);
+      const response = await ngrokAxiosInstance.get<LeadsResponse>(
+        `/api/v1/leads/getLeadsChannelPartner?${queryParams}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -316,6 +385,7 @@ export const insertLead = createAsyncThunk<
     assigned_id?: number;
     assigned_name?: string;
     assigned_emp_number?: string;
+    lead_source_user_id?:number;
   },
   { rejectValue: string }
 >(
@@ -333,6 +403,7 @@ export const insertLead = createAsyncThunk<
         interested_project_id: leadData.interested_project_id,
         interested_project_name: leadData.interested_project_name,
         lead_source_id: leadData.lead_source_id,
+        lead_source_user_id:leadData.lead_source_user_id,
         sqft: leadData.sqft,
         budget: leadData.budget,
         lead_added_user_type: leadData.lead_added_user_type,
@@ -636,6 +707,17 @@ const leadSlice = createSlice({
         state.leads = action.payload;
       })
       .addCase(getLeadsByUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      }) .addCase(getLeadsByID.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getLeadsByID.fulfilled, (state, action) => {
+        state.loading = false;
+        state.cpLeads = action.payload;
+      })
+      .addCase(getLeadsByID.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })

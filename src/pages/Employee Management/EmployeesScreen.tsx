@@ -16,7 +16,11 @@ import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
-import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice";
+import {
+  clearUsers,
+  getUsersByType,
+  deleteUser,
+} from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
@@ -38,8 +42,12 @@ export default function EmployeesScreen() {
   const { status } = useParams<{ status: string }>();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { users, loading, error } = useSelector((state: RootState) => state.user);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const { users, loading, error } = useSelector(
+    (state: RootState) => state.user
+  );
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const [filterValue, setFilterValue] = useState<string>("");
@@ -58,7 +66,9 @@ export default function EmployeesScreen() {
   const categoryLabel = userTypeMap[empUserType] || "Employees";
 
   // Fetch cities based on selected state
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
 
   // Dispatch cities to Redux store
   useEffect(() => {
@@ -70,53 +80,69 @@ export default function EmployeesScreen() {
   // Handle errors for city fetching
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
   }, [citiesResult.isError, citiesResult.error]);
 
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: empUserType }));
+      dispatch(
+        getUsersByType({ admin_user_id: user.id, emp_user_type: empUserType })
+      );
     }
     return () => {
       dispatch(clearUsers());
     };
   }, [isAuthenticated, user, empUserType, statusUpdated, dispatch]);
 
-  const filteredUsers = users?.filter((user) => {
-    const matchesTextFilter = [
-      user.name,
-      user.mobile,
-      user.email,
-      user.city,
-      user.state,
-      user.gst_number,
-      user.rera_number,
-    ]
-      .map((field) => field?.toLowerCase() || "")
-      .some((field) => field.includes(filterValue.toLowerCase()));
+  const filteredUsers =
+    users?.filter((user) => {
+      const matchesTextFilter = [
+        user.name,
+        user.mobile,
+        user.email,
+        user.city,
+        user.state,
+        user.gst_number,
+        user.rera_number,
+      ]
+        .map((field) => field?.toLowerCase() || "")
+        .some((field) => field.includes(filterValue.toLowerCase()));
 
-    const userCreatedDate = formatDate(user.created_date);
-    const matchesCreatedDate =
-      (!createdDate || userCreatedDate >= createdDate) &&
-      (!createdEndDate || userCreatedDate <= createdEndDate);
+      const userCreatedDate = formatDate(user.created_date);
+      const matchesCreatedDate =
+        (!createdDate || userCreatedDate >= createdDate) &&
+        (!createdEndDate || userCreatedDate <= createdEndDate);
 
-    const matchesState = !selectedState || user.state?.toLowerCase() === states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+      const matchesState =
+        !selectedState ||
+        user.state?.toLowerCase() ===
+          states
+            .find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase();
 
-    const matchesCity =
-      !selectedCity ||
-      (citiesResult.data &&
-        citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
-          user.city?.toLowerCase());
+      const matchesCity =
+        !selectedCity ||
+        (citiesResult.data &&
+          citiesResult.data
+            .find((c) => c.value.toString() === selectedCity)
+            ?.label.toLowerCase() === user.city?.toLowerCase());
 
-    return matchesTextFilter && matchesCreatedDate && matchesState && matchesCity;
-  }) || [];
+      return (
+        matchesTextFilter && matchesCreatedDate && matchesState && matchesCity
+      );
+    }) || [];
 
   const totalItems = filteredUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
+  console.log("paginatedUsers: ", paginatedUsers);
 
   const handleViewProfile = (id: number) => {
     if (isAuthenticated && user?.id && empUserType) {
@@ -190,12 +216,10 @@ export default function EmployeesScreen() {
     setCurrentPage(1);
   };
 
-  
   const handleCheckboxChange = (userId: number) => {
-    setSelectedUserId((prev) => (prev === userId ? null : userId)); 
+    setSelectedUserId((prev) => (prev === userId ? null : userId));
   };
 
- 
   const handleBulkViewProfile = () => {
     if (selectedUserId === null) {
       toast.error("Please select an employee.");
@@ -218,7 +242,6 @@ export default function EmployeesScreen() {
 
   return (
     <div className="relative min-h-screen">
-      
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}
@@ -259,148 +282,151 @@ export default function EmployeesScreen() {
         </Button>
       </div>
       <div className="space-y-6">
-        
-          {loading && (
-            <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-              Loading employees...
-            </div>
-          )}
-          {error && (
-            <div className="text-center text-red-500 py-4">
-              {error}
-              <Button
-                variant="primary"
-                size="sm"
-                onClick={() =>
-                  dispatch(getUsersByType({ admin_user_id: user!.id, emp_user_type: empUserType }))
-                }
-                className="ml-4"
-              >
-                Retry
-              </Button>
-            </div>
-          )}
-          {!loading && !error && filteredUsers.length === 0 && (
-            <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-              No employees found.
-            </div>
-          )}
-          {!loading && !error && filteredUsers.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-              <div className="max-w-full overflow-x-auto">
-                <Table className="w-full table-layout-fixed overflow-x-auto">
-                  <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-blue-900">
-                    <TableRow>
-                     <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
+        {loading && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            Loading employees...
+          </div>
+        )}
+        {error && (
+          <div className="text-center text-red-500 py-4">
+            {error}
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() =>
+                dispatch(
+                  getUsersByType({
+                    admin_user_id: user!.id,
+                    emp_user_type: empUserType,
+                  })
+                )
+              }
+              className="ml-4"
+            >
+              Retry
+            </Button>
+          </div>
+        )}
+        {!loading && !error && filteredUsers.length === 0 && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            No employees found.
+          </div>
+        )}
+        {!loading && !error && filteredUsers.length > 0 && (
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="max-w-full overflow-x-auto">
+              <Table className="w-full table-layout-fixed overflow-x-auto">
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05] bg-blue-900">
+                  <TableRow>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
+                    >
+                      Select
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
+                    >
+                      Employee
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
+                    >
+                      Mobile
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
+                    >
+                      City
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
+                    >
+                      Since
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
+                    >
+                      Status
+                    </TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {paginatedUsers.map((user) => {
+                    const { text: statusText, className: statusClass } =
+                      getStatusDisplay(user.status);
+                    return (
+                      <TableRow
+                        key={user.id}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
-                        Select
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Employee
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
-                      >
-                        Mobile
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        City
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Since
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Status
-                      </TableCell>
-                      
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {paginatedUsers.map((user) => {
-                      const { text: statusText, className: statusClass } = getStatusDisplay(user.status);
-                      return (
-                        <TableRow
-                          key={user.id}
-                          className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                        >
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                            <input
-                              type="checkbox"
-                              checked={selectedUserId === user.id}
-                              onChange={() => handleCheckboxChange(user.id)}
-                              className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                            />
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
-                            <div className="flex items-center gap-3">
-                              <Link
-                                to="/lead/allLeads"
-                                state={{
-                                  admin_user_id: createdUserId,
-                                  admin_user_type: 2,
-                                  assigned_user_type: empUserType,
-                                  assigned_id: user.id,
-                                  name: user.name,
-                                }}
-                                className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
-                              >
-                                {user.name}
-                              </Link>
-                            </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
-                            {user.mobile}
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                            {user.city}
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
-                            {formatDate(user.created_date)}
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[10%]">
-                            <span
-                              className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusClass}`}
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          <input
+                            type="checkbox"
+                            checked={selectedUserId === user.id}
+                            onChange={() => handleCheckboxChange(user.id)}
+                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          />
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
+                          <div className="flex items-center gap-3">
+                            <Link
+                              to="/lead/Leads"
+                              state={{
+                                admin_user_id: createdUserId,
+                                admin_user_type: 2,
+                                assigned_user_type: user.user_type,
+                                assigned_id: user.id,
+                                lead_source_user_id: user.id,
+                                name: user.name,
+                              }}
+                              className="block font-medium text-blue-600 underline hover:text-blue-800 transition-colors"
                             >
-                              {statusText}
-                            </span>
-                          </TableCell>
-                          
-                        </TableRow>
-                      );
-                    })}
-                  </TableBody>
-                </Table>
-              </div>
+                              {user.name}
+                            </Link>
+                          </div>
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[15%]">
+                          {user.mobile}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          {user.city}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          {formatDate(user.created_date)}
+                        </TableCell>
+                        <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[10%]">
+                          <span
+                            className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusClass}`}
+                          >
+                            {statusText}
+                          </span>
+                        </TableCell>
+                      </TableRow>
+                    );
+                  })}
+                </TableBody>
+              </Table>
             </div>
-          )}
-          {totalItems > itemsPerPage && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {startIndex + 1} to {endIndex} of {totalItems} entries
-              </div>
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={(page) => setCurrentPage(page)}
-              />
+          </div>
+        )}
+        {totalItems > itemsPerPage && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Showing {startIndex + 1} to {endIndex} of {totalItems} entries
             </div>
-          )}
-
+            <Pagination
+              currentPage={currentPage}
+              totalPages={totalPages}
+              onPageChange={(page) => setCurrentPage(page)}
+            />
+          </div>
+        )}
       </div>
       <ConfirmDeleteUserModal
         isOpen={isDeleteModalOpen}

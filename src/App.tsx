@@ -1,4 +1,4 @@
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router"; 
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router";
 import SignIn from "./pages/AuthPages/SignIn";
 import NotFound from "./pages/OtherPage/NotFound";
 import UserProfiles from "./pages/UserProfiles";
@@ -19,7 +19,7 @@ import ViewLeadDetails from "./pages/Lead Management/ViewLeadDetails";
 import BookingsDone from "./pages/Bookings/BookingsDone";
 import EmployeeDetail from "./pages/Employee Management/EmployeeDetail";
 const LeadsType = lazy(() => import("./pages/Lead Management/LeadsType"));
-import ProjectDetailsPage from "./pages/Project/ProjectDetails"
+import ProjectDetailsPage from "./pages/Project/ProjectDetails";
 import UpcomingProjects from "./pages/Project/UpComingProjects";
 import OnGoingProjects from "./pages/Project/OnGoingProjects";
 import { useSelector } from "react-redux";
@@ -37,60 +37,86 @@ import AddBuilder from "./pages/Builders/AddBuilder";
 import AllBuildersScreen from "./pages/Builders/AllBuilders";
 import BuilderQueries from "./pages/Queries/BuilderQueries";
 import BuilderDetailsScreen from "./pages/Builders/BuilderDetails";
+import AllCpLeadDetails from "./pages/Lead Management/CpLeads";
+import EmpLeads from "./pages/Lead Management/EmpLeads";
 
 export default function App() {
-  const { isAuthenticated, token } = useSelector((state: RootState) => state.auth);
+  const { isAuthenticated, token } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   return (
     <>
       <Router>
         <ScrollToTop />
-       
 
         <Routes>
-         
           <Route element={<ProtectedRoute />}>
             <Route element={<AppLayout />}>
               <Route index path="/" element={<Home />} />
-             
-              
+
               <Route path="/leads/:lead_in/:status" element={<LeadsType />} />
               <Route path="/leads/addlead" element={<AddNewLead />} />
               <Route path="/leads/view" element={<ViewLeadDetails />} />
-            
-              <Route path="/lead/allLeads" element={<AllLeadDetails/>}/>
-              <Route path="/leads/assign/:leadId" element={<AssignLeadEmployeePage/>}/>
-            
-             
+
+              <Route path="/lead/allLeads" element={<AllLeadDetails />} />
+              <Route path="/lead/Leads" element={<AllCpLeadDetails />} />
+              <Route path="/lead/EmpLeads" element={<EmpLeads />} />
+              <Route
+                path="/leads/assign/:leadId"
+                element={<AssignLeadEmployeePage />}
+              />
+
               <Route path="/partners" element={<PartnerScreen />} />
               <Route path="/partner/:id" element={<PartnerProfile />} />
-              <Route path="/partners/addpartners" element={<AddChannelPartner />} />
+              <Route
+                path="/partners/addpartners"
+                element={<AddChannelPartner />}
+              />
 
               <Route path="/builders" element={<AllBuildersScreen />} />
               <Route path="/builders/addbuilders" element={<AddBuilder />} />
-              <Route path="/builder/queries" element = {<BuilderQueries/>} />
+              <Route path="/builder/queries" element={<BuilderQueries />} />
               <Route path="/builder/:id" element={<BuilderDetailsScreen />} />
 
-
-              <Route path="/bookings/bookings-done" element={<BookingsDone />} />
+              <Route
+                path="/bookings/bookings-done"
+                element={<BookingsDone />}
+              />
               <Route path="/booking/:leadId" element={<BookingDetails />} />
               <Route path="/leads/book/:leadId" element={<MarkBookingPage />} />
 
-
               <Route path="/employee/:status" element={<EmployeesScreen />} />
               <Route path="/create-employee" element={<CreateEmployee />} />
-              <Route  path="/employeedetails/:status/:id"  element={<EmployeeDetail />} />
-             
+              <Route
+                path="/employeedetails/:status/:id"
+                element={<EmployeeDetail />}
+              />
+
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/support" element={<Support />} />
 
-              <Route path="/projects/add-projects" element={<CreateProperty />} />
+              <Route
+                path="/projects/add-projects"
+                element={<CreateProperty />}
+              />
               <Route path="/projects/allprojects" element={<AllProjects />} />
-              <Route path="/projects/details/:id" element={<ProjectDetailsPage />} />
-              <Route path="/projects/upcoming-projects" element={<UpcomingProjects />} />
-              <Route path="/projects/ongoing-projects" element={<OnGoingProjects/>} />
-              <Route path="/projects/stopped-projects" element={<StoppedProjectsLeads/>} />
-              
+              <Route
+                path="/projects/details/:id"
+                element={<ProjectDetailsPage />}
+              />
+              <Route
+                path="/projects/upcoming-projects"
+                element={<UpcomingProjects />}
+              />
+              <Route
+                path="/projects/ongoing-projects"
+                element={<OnGoingProjects />}
+              />
+              <Route
+                path="/projects/stopped-projects"
+                element={<StoppedProjectsLeads />}
+              />
             </Route>
           </Route>
           <Route
@@ -106,10 +132,10 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Toaster
-            position="top-right"
-            toastOptions={{ duration: 3000, style: { zIndex: 9999 } }}
-            containerStyle={{ top: "5rem" }}
-          />
+          position="top-right"
+          toastOptions={{ duration: 3000, style: { zIndex: 9999 } }}
+          containerStyle={{ top: "5rem" }}
+        />
       </Router>
     </>
   );
