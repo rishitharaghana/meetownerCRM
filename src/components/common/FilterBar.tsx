@@ -6,21 +6,19 @@ import { useDispatch, useSelector } from "react-redux";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { RootState, AppDispatch } from "../../store/store";
-import Dropdown from "../form/Dropdown"; 
-
+import Dropdown from "../form/Dropdown";
 interface SelectOption {
   value: string;
   label: string;
 }
-
 interface FilterBarProps {
   showUserTypeFilter?: boolean;
   showCreatedDateFilter?: boolean;
   showCreatedEndDateFilter?: boolean;
   showUpdatedDateFilter?: boolean;
   showStatusFilter?: boolean;
-  showStateFilter?: boolean; 
-  showCityFilter?: boolean; 
+  showStateFilter?: boolean;
+  showCityFilter?: boolean;
   userFilterOptions?: SelectOption[];
   statusFilterOptions?: SelectOption[];
   onUserTypeChange?: (value: string | null) => void;
@@ -28,20 +26,19 @@ interface FilterBarProps {
   onCreatedEndDateChange?: (date: string | null) => void;
   onUpdatedDateChange?: (date: string | null) => void;
   onStatusChange?: (value: string | null) => void;
-  onStateChange?: (value: string | null) => void; 
-  onCityChange?: (value: string | null) => void; 
+  onStateChange?: (value: string | null) => void;
+  onCityChange?: (value: string | null) => void;
   onClearFilters?: () => void;
   selectedUserType?: string | null;
   createdDate?: string | null;
   createdEndDate?: string | null;
   updatedDate?: string | null;
   selectedStatus?: string | null;
-  selectedState?: string | null; 
-  selectedCity?: string | null; 
+  selectedState?: string | null;
+  selectedCity?: string | null;
   className?: string;
   showDateFilters?: boolean;
 }
-
 const FilterBar: React.FC<FilterBarProps> = ({
   showUserTypeFilter = false,
   showCreatedDateFilter = false,
@@ -73,24 +70,24 @@ const FilterBar: React.FC<FilterBarProps> = ({
   const dispatch = useDispatch<AppDispatch>();
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-
-  
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
-
-  
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
-
-  
   const stateOptions =
-    states?.map((state: any) => ({ value: state.value.toString(), text: state.label })) || [];
+    states?.map((state: any) => ({
+      value: state.value.toString(),
+      text: state.label,
+    })) || [];
   const cityOptions =
-    citiesResult?.data?.map((city: any) => ({ value: city.value.toString(), text: city.label })) ||
-    [];
-
+    citiesResult?.data?.map((city: any) => ({
+      value: city.value.toString(),
+      text: city.label,
+    })) || [];
   const handleCreatedDateChange = (selectedDates: Date[]) => {
     const dateObj = selectedDates[0];
     let date = "";
@@ -106,7 +103,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
     }
     onCreatedDateChange?.(date || null);
   };
-
   const handleCreatedEndDateChange = (selectedDates: Date[]) => {
     const dateObj = selectedDates[0];
     let date = "";
@@ -122,7 +118,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
     }
     onCreatedEndDateChange?.(date || null);
   };
-
   const handleUpdatedDateChange = (selectedDates: Date[]) => {
     const dateObj = selectedDates[0];
     let date = "";
@@ -138,21 +133,18 @@ const FilterBar: React.FC<FilterBarProps> = ({
     }
     onUpdatedDateChange?.(date || null);
   };
-
   const handleClearFilters = () => {
     onClearFilters?.();
   };
-
-  
   const displayCreatedDateFilter = showCreatedDateFilter || showDateFilters;
-  const displayCreatedEndDateFilter = showCreatedEndDateFilter || showDateFilters;
+  const displayCreatedEndDateFilter =
+    showCreatedEndDateFilter || showDateFilters;
   const displayUpdatedDateFilter = showUpdatedDateFilter || showDateFilters;
-
   return (
     <div className={`flex items-center gap-1 py-2 w-full ${className}`}>
-      <div className="flex items-center gap-1 w-full">
+      <div className="flex items-center gap-1 w-full flex-wrap">
         {showUserTypeFilter && userFilterOptions.length > 0 && (
-          <div className="w-[140px] flex-shrink-0">
+          <div className="w-[1/4] flex-shrink-0">
             <Select
               options={userFilterOptions}
               placeholder="User Type"
@@ -162,42 +154,36 @@ const FilterBar: React.FC<FilterBarProps> = ({
             />
           </div>
         )}
-        
         {showStateFilter && stateOptions.length > 0 && (
-          <div className="w-[150px] flex-shrink-0 ">
+          <div className="w-[1/4] flex-shrink-0">
             <Dropdown
               id="state"
-            
               options={stateOptions}
               value={selectedState || ""}
-              onChange={(value: string) => {
+              onChange={(value: string, text: string) => {
                 onStateChange?.(value || null);
                 if (value !== selectedState) {
-                  onCityChange?.(null); 
+                  onCityChange?.(null);
                 }
               }}
               placeholder="state..."
             />
           </div>
         )}
-        
         {showCityFilter && (
-          <div className="w-[150px] flex-shrink-0">
+          <div className="w-[1/4] flex-shrink-0">
             <Dropdown
               id="city"
               options={cityOptions}
               value={selectedCity || ""}
-            onChange={(value: string) => {
-  const cityLabel = cityOptions.find((city) => city.value === value)?.text || null;
-  onCityChange?.(cityLabel);
-}}
-
+              onChange={(value: string, text: string) => {
+                onCityChange?.(text || null);
+              }}
               placeholder="city..."
               disabled={!selectedState}
             />
           </div>
         )}
-        
         <div className="flex items-center gap-2">
           {displayCreatedDateFilter && (
             <div className="w-[100px] flex-shrink-0">
@@ -210,20 +196,20 @@ const FilterBar: React.FC<FilterBarProps> = ({
               />
             </div>
           )}
-          
           {displayCreatedEndDateFilter && (
             <div className="w-[100px] flex-shrink-0">
               <DatePicker
                 id="createdEndDate"
                 placeholder="end"
                 onChange={handleCreatedEndDateChange}
-                defaultDate={createdEndDate ? new Date(createdEndDate) : undefined}
+                defaultDate={
+                  createdEndDate ? new Date(createdEndDate) : undefined
+                }
                 className="w-full text-sm"
               />
             </div>
           )}
         </div>
-        
         {displayUpdatedDateFilter && (
           <div className="w-[100px] flex-shrink-0">
             <DatePicker
@@ -235,7 +221,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             />
           </div>
         )}
-        
         {showStatusFilter && statusFilterOptions.length > 0 && (
           <div className="w-[140px] flex-shrink-0">
             <Select
@@ -247,7 +232,6 @@ const FilterBar: React.FC<FilterBarProps> = ({
             />
           </div>
         )}
-        
         {(showUserTypeFilter ||
           showStateFilter ||
           showCityFilter ||
@@ -267,5 +251,4 @@ const FilterBar: React.FC<FilterBarProps> = ({
     </div>
   );
 };
-
 export default FilterBar;
