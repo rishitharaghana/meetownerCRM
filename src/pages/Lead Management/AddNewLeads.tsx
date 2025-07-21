@@ -118,7 +118,6 @@ const LeadForm: React.FC = () => {
       value: partner.id.toString(),
       label: `${partner.name} - ${partner.mobile}`,
     })) || [];
-  console.log("channelPartnerOptions: ", channelPartnerOptions);
   const campaignOptions =
     leadSources
       ?.filter(
@@ -252,7 +251,6 @@ const LeadForm: React.FC = () => {
             }
           : {}),
       };
-      console.log("leadData: ", leadData);
       const result = await dispatch(insertLead(leadData)).unwrap();
       setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
       setFormData({

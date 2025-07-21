@@ -2,7 +2,6 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
 
-
 import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
@@ -28,13 +27,19 @@ const BookingsDone: React.FC = () => {
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
+  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<
+    number | null
+  >(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const { bookedLeads, loading, error } = useSelector(
+    (state: RootState) => state.lead
+  );
 
   const itemsPerPage = 10;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
@@ -44,28 +49,27 @@ const BookingsDone: React.FC = () => {
       !isAuthenticated ||
       !user?.id ||
       !user.user_type ||
-      (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
+      (!isBuilder &&
+        (!user?.created_user_id || user?.created_user_type === undefined))
     ) {
-      console.log("leadsParams: Invalid auth state, returning null", {
-        isAuthenticated,
-        userId: user?.id,
-        userType: user?.user_type,
-        createdUserId: user?.created_user_id,
-        createdUserType: user?.created_user_type,
-      });
       return null;
     }
 
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
-      lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
+      lead_added_user_type: isBuilder
+        ? user.user_type
+        : Number(user.created_user_type),
     };
 
     if (!isBuilder) {
-      console.log("Channel Partner: Adding assigned_user_type and assigned_id", {
-        assigned_user_type: user.user_type,
-        assigned_id: user.id,
-      });
+      console.log(
+        "Channel Partner: Adding assigned_user_type and assigned_id",
+        {
+          assigned_user_type: user.user_type,
+          assigned_id: user.id,
+        }
+      );
       return {
         ...params,
         assigned_user_type: user.user_type.toString(),
@@ -80,9 +84,11 @@ const BookingsDone: React.FC = () => {
   useEffect(() => {
     if (leadsParams) {
       console.log("Dispatching getBookedLeads with params:", leadsParams);
-      dispatch(getBookedLeads(leadsParams)).unwrap().catch((err) => {
-        console.error("Failed to fetch booked leads:", err);
-      });
+      dispatch(getBookedLeads(leadsParams))
+        .unwrap()
+        .catch((err) => {
+          console.error("Failed to fetch booked leads:", err);
+        });
     } else if (isAuthenticated && user) {
       console.warn("Skipping getBookedLeads: Invalid user data", {
         id: user.id,
@@ -113,15 +119,32 @@ const BookingsDone: React.FC = () => {
               .map((field) => field?.toLowerCase() || "")
               .some((field) => field.includes(searchQuery.toLowerCase()));
 
-        const matchesCreatedDate = !createdDate || item.created_date?.split("T")[0] === createdDate;
-        const matchesUpdatedDate = !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
-        const matchesState = !selectedState || item.state?.toString() === selectedState;
-        const matchesCity = !selectedCity || item.city?.toString() === selectedCity;
+        const matchesCreatedDate =
+          !createdDate || item.created_date?.split("T")[0] === createdDate;
+        const matchesUpdatedDate =
+          !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
+        const matchesState =
+          !selectedState || item.state?.toString() === selectedState;
+        const matchesCity =
+          !selectedCity || item.city?.toString() === selectedCity;
 
-        return matchesTextFilter && matchesCreatedDate && matchesUpdatedDate && matchesState && matchesCity;
+        return (
+          matchesTextFilter &&
+          matchesCreatedDate &&
+          matchesUpdatedDate &&
+          matchesState &&
+          matchesCity
+        );
       }) || []
     );
-  }, [bookedLeads, searchQuery, createdDate, updatedDate, selectedState, selectedCity]);
+  }, [
+    bookedLeads,
+    searchQuery,
+    createdDate,
+    updatedDate,
+    selectedState,
+    selectedCity,
+  ]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -183,7 +206,9 @@ const BookingsDone: React.FC = () => {
       toast.error("Please select a lead.");
       return;
     }
-    const lead = currentLeads.find((item) => item.lead_id === selectedLeadIdSingle);
+    const lead = currentLeads.find(
+      (item) => item.lead_id === selectedLeadIdSingle
+    );
     if (lead) {
       navigate(`/booking/${lead.lead_id}`, { state: { lead } });
     } else {
@@ -251,7 +276,7 @@ const BookingsDone: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       <PageMeta title="Booked Leads" />
-     
+
       <FilterBar
         className="mb-4"
         showCreatedDateFilter={true}
@@ -269,9 +294,11 @@ const BookingsDone: React.FC = () => {
         selectedCity={selectedCity}
       />
       <div className="mb-4 flex gap-2">
-         <PageBreadcrumbList
+        <PageBreadcrumbList
           pagePlacHolder="Search by Name, Mobile, Email, Project"
-          onFilter={handleSearch} pageTitle={""}        />
+          onFilter={handleSearch}
+          pageTitle={""}
+        />
         <Button
           variant="primary"
           onClick={handleViewDetails}
@@ -282,134 +309,157 @@ const BookingsDone: React.FC = () => {
         </Button>
       </div>
       <div className="space-y-6">
-       
-          {loading && (
-            <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-              Loading leads...
-            </div>
-          )}
-          {error && (
-            <div className="text-center text-red-500 py-4">{error}</div>
-          )}
-          {!loading && !error && filteredLeads.length === 0 && (
-            <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-              No leads found.
-            </div>
-          )}
-          {!loading && !error && filteredLeads.length > 0 && (
-            <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
-              <div className="w-full overflow-x-auto">
-                <Table className="w-full">
-                  <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
-                    <TableRow className="bg-blue-900 text-white">
-                      <TableCell isHeader className="text-center font-medium text-xs whitespace-nowrap w-[5%]">
-                        Select
+        {loading && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            Loading leads...
+          </div>
+        )}
+        {error && <div className="text-center text-red-500 py-4">{error}</div>}
+        {!loading && !error && filteredLeads.length === 0 && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            No leads found.
+          </div>
+        )}
+        {!loading && !error && filteredLeads.length > 0 && (
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+            <div className="w-full overflow-x-auto">
+              <Table className="w-full">
+                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                  <TableRow className="bg-blue-900 text-white">
+                    <TableCell
+                      isHeader
+                      className="text-center font-medium text-xs whitespace-nowrap w-[5%]"
+                    >
+                      Select
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
+                    >
+                      Name
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
+                    >
+                      Number
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
+                    >
+                      Project
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
+                    >
+                      Lead Type
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
+                    >
+                      Created
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
+                    >
+                      Updated
+                    </TableCell>
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
+                    >
+                      City
+                    </TableCell>
+                  </TableRow>
+                </TableHeader>
+                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
+                  {currentLeads.map((item, index) => (
+                    <TableRow
+                      key={item.lead_id}
+                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                    >
+                      <TableCell className="text-center w-[5%]">
+                        <input
+                          type="checkbox"
+                          checked={selectedLeadIdSingle === item.lead_id}
+                          onChange={() => handleCheckboxChange(item.lead_id)}
+                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        />
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
-                        Name
+                      <TableCell className="text-left truncate max-w-[120px] w-[15%]">
+                        <span title={item.customer_name || "N/A"}>
+                          {item.customer_name || "N/A"}
+                        </span>
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
-                        Number
+                      <TableCell className="text-left w-[15%]">
+                        {item.customer_phone_number || "N/A"}
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[15%]">
-                        Project
+                      <TableCell className="text-left truncate max-w-[120px] w-[15%]">
+                        <span title={item.interested_project_name || "N/A"}>
+                          {item.interested_project_name || "N/A"}
+                        </span>
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
-                        Lead Type
+                      <TableCell className="text-left w-[10%]">
+                        {leadSourceMap[item.lead_source_id] || "N/A"}
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
-                        Created
+                      <TableCell className="text-left w-[10%]">
+                        {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
-                        Updated
+                      <TableCell className="text-left w-[10%]">
+                        {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap w-[10%]">
-                        City
+                      <TableCell className="text-left w-[10%]">
+                        {item.city || "N/A"}
                       </TableCell>
                     </TableRow>
-                  </TableHeader>
-                  <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {currentLeads.map((item, index) => (
-                      <TableRow
-                        key={item.lead_id}
-                        className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                      >
-                        <TableCell className="text-center w-[5%]">
-                          <input
-                            type="checkbox"
-                            checked={selectedLeadIdSingle === item.lead_id}
-                            onChange={() => handleCheckboxChange(item.lead_id)}
-                            className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                          />
-                        </TableCell>
-                        <TableCell className="text-left truncate max-w-[120px] w-[15%]">
-                          <span title={item.customer_name || "N/A"}>{item.customer_name || "N/A"}</span>
-                        </TableCell>
-                        <TableCell className="text-left w-[15%]">
-                          {item.customer_phone_number || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left truncate max-w-[120px] w-[15%]">
-                          <span title={item.interested_project_name || "N/A"}>
-                            {item.interested_project_name || "N/A"}
-                          </span>
-                        </TableCell>
-                        <TableCell className="text-left w-[10%]">
-                          {leadSourceMap[item.lead_source_id] || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left w-[10%]">
-                          {item.created_date?.split("T")[0] || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left w-[10%]">
-                          {item.updated_date?.split("T")[0] || "N/A"}
-                        </TableCell>
-                        <TableCell className="text-left w-[10%]">
-                          {item.city || "N/A"}
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                  ))}
+                </TableBody>
+              </Table>
             </div>
-          )}
-          {filteredLeads.length > itemsPerPage && (
-            <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
-                Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
-                {Math.min(localPage * itemsPerPage, filteredLeads.length)} of {filteredLeads.length} entries
-              </div>
-              <div className="flex gap-2 flex-wrap justify-center">
-                <Button
-                  variant={localPage === 1 ? "outline" : "primary"}
-                  size="sm"
-                  onClick={goToPreviousPage}
-                  disabled={localPage === 1}
-                >
-                  Previous
-                </Button>
-                {getPaginationItems().map((page, index) => (
-                  <Button
-                    key={`${page}-${index}`}
-                    variant={page === localPage ? "primary" : "outline"}
-                    size="sm"
-                    onClick={() => typeof page === "number" && goToPage(page)}
-                    disabled={page === "..."}
-                  >
-                    {page}
-                  </Button>
-                ))}
-                <Button
-                  variant={localPage === totalPages ? "outline" : "primary"}
-                  size="sm"
-                  onClick={goToNextPage}
-                  disabled={localPage === totalPages}
-                >
-                  Next
-                </Button>
-              </div>
+          </div>
+        )}
+        {filteredLeads.length > itemsPerPage && (
+          <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
+            <div className="text-sm text-gray-500 dark:text-gray-400">
+              Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
+              {Math.min(localPage * itemsPerPage, filteredLeads.length)} of{" "}
+              {filteredLeads.length} entries
             </div>
-          )}
-      
+            <div className="flex gap-2 flex-wrap justify-center">
+              <Button
+                variant={localPage === 1 ? "outline" : "primary"}
+                size="sm"
+                onClick={goToPreviousPage}
+                disabled={localPage === 1}
+              >
+                Previous
+              </Button>
+              {getPaginationItems().map((page, index) => (
+                <Button
+                  key={`${page}-${index}`}
+                  variant={page === localPage ? "primary" : "outline"}
+                  size="sm"
+                  onClick={() => typeof page === "number" && goToPage(page)}
+                  disabled={page === "..."}
+                >
+                  {page}
+                </Button>
+              ))}
+              <Button
+                variant={localPage === totalPages ? "outline" : "primary"}
+                size="sm"
+                onClick={goToNextPage}
+                disabled={localPage === totalPages}
+              >
+                Next
+              </Button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

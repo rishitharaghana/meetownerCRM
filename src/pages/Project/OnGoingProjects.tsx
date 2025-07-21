@@ -1,24 +1,34 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useNavigate } from 'react-router';
-import { useDispatch, useSelector } from 'react-redux';
-import Button from '../../components/ui/button/Button';
-import { InputWithRef } from '../../components/form/input/InputField';
-import { AppDispatch, RootState } from '../../store/store';
-import { fetchOngoingProjects, stopPropertyLeads } from '../../store/slices/projectSlice';
-import { Project } from '../../types/ProjectModel';
-import toast from 'react-hot-toast';
-import { usePropertyQueries } from '../../hooks/PropertyQueries';
-import { setCityDetails } from '../../store/slices/propertyDetails';
-import FilterBar from '../../components/common/FilterBar';
-import ConfirmDeleteUserModal from '../../components/common/ConfirmDeleteUserModal';
-
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
+import { useNavigate } from "react-router";
+import { useDispatch, useSelector } from "react-redux";
+import Button from "../../components/ui/button/Button";
+import { InputWithRef } from "../../components/form/input/InputField";
+import { AppDispatch, RootState } from "../../store/store";
+import {
+  fetchOngoingProjects,
+  stopPropertyLeads,
+} from "../../store/slices/projectSlice";
+import { Project } from "../../types/ProjectModel";
+import toast from "react-hot-toast";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
+import FilterBar from "../../components/common/FilterBar";
+import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 
 const BUILDER_USER_TYPE = 2;
 
 const OnGoingProjects: React.FC = () => {
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
+    {}
+  );
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -29,14 +39,19 @@ const OnGoingProjects: React.FC = () => {
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
-  const { ongoingProjects, loading, error } = useSelector((state: RootState) => state.projects);
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { ongoingProjects, loading, error } = useSelector(
+    (state: RootState) => state.projects
+  );
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
 
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
-
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
 
   useEffect(() => {
     if (citiesResult.data) {
@@ -44,10 +59,13 @@ const OnGoingProjects: React.FC = () => {
     }
   }, [citiesResult.data, dispatch]);
 
-
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
   }, [citiesResult.isError, citiesResult.error]);
 
@@ -73,11 +91,15 @@ const OnGoingProjects: React.FC = () => {
       dispatch(fetchOngoingProjects(projectParams))
         .unwrap()
         .catch((err) => {
-          toast.error(`Failed to fetch ongoing projects: ${err.message || 'Unknown error'}`);
+          toast.error(
+            `Failed to fetch ongoing projects: ${
+              err.message || "Unknown error"
+            }`
+          );
         });
     } else if (isAuthenticated && user) {
-      toast.error('Invalid user data for fetching projects');
-      console.warn('Invalid user data:', {
+      toast.error("Invalid user data for fetching projects");
+      console.warn("Invalid user data:", {
         id: user.id,
         user_type: user.user_type,
         created_user_id: user.created_user_id,
@@ -97,8 +119,9 @@ const OnGoingProjects: React.FC = () => {
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
-          citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
-            project.city?.toLowerCase());
+          citiesResult.data
+            .find((c) => c.label.toString() === selectedCity)
+            ?.label.toLowerCase() === project.city?.toLowerCase());
 
       let matchesDate = true;
       if (createdDate || createdEndDate) {
@@ -106,7 +129,7 @@ const OnGoingProjects: React.FC = () => {
           matchesDate = false;
         } else {
           try {
-            const projectDate = project.created_date.split('T')[0];
+            const projectDate = project.created_date.split("T")[0];
             matchesDate =
               (!createdDate || projectDate >= createdDate) &&
               (!createdEndDate || projectDate <= createdEndDate);
@@ -118,7 +141,14 @@ const OnGoingProjects: React.FC = () => {
 
       return matchesSearch && matchesCity && matchesDate;
     });
-  }, [ongoingProjects, search, selectedCity, createdDate, createdEndDate, citiesResult.data]);
+  }, [
+    ongoingProjects,
+    search,
+    selectedCity,
+    createdDate,
+    createdEndDate,
+    citiesResult.data,
+  ]);
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
@@ -148,7 +178,7 @@ const OnGoingProjects: React.FC = () => {
         dispatch(fetchOngoingProjects(projectParams));
       }
     } catch (err: any) {
-      toast.error(`Failed to stop leads: ${err.message || 'Unknown error'}`);
+      toast.error(`Failed to stop leads: ${err.message || "Unknown error"}`);
     } finally {
       setIsModalOpen(false);
       setSelectedProject(null);
@@ -169,8 +199,10 @@ const OnGoingProjects: React.FC = () => {
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
 
   const goToPage = (page: number) => setCurrentPage(page);
-  const goToPreviousPage = () => currentPage > 1 && setCurrentPage(currentPage - 1);
-  const goToNextPage = () => currentPage < totalPages && setCurrentPage(currentPage + 1);
+  const goToPreviousPage = () =>
+    currentPage > 1 && setCurrentPage(currentPage - 1);
+  const goToNextPage = () =>
+    currentPage < totalPages && setCurrentPage(currentPage + 1);
 
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
@@ -190,9 +222,9 @@ const OnGoingProjects: React.FC = () => {
         end = totalPages - 1;
       }
       pages.push(1);
-      if (start > 2) pages.push('...');
+      if (start > 2) pages.push("...");
       for (let i = start; i <= end; i++) pages.push(i);
-      if (end < totalPages - 1) pages.push('...');
+      if (end < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
 
@@ -201,20 +233,25 @@ const OnGoingProjects: React.FC = () => {
 
   // Clear all filters
   const handleClearFilters = useCallback(() => {
-    setSearch('');
+    setSearch("");
     setCreatedDate(null);
     setCreatedEndDate(null);
     setSelectedState(null);
     setSelectedCity(null);
     setCurrentPage(1);
-    if (searchRef.current) searchRef.current.value = '';
+    if (searchRef.current) searchRef.current.value = "";
   }, []);
 
   if (!isAuthenticated || !user) {
-    return <div className="p-6 text-center">Please log in to view ongoing projects.</div>;
+    return (
+      <div className="p-6 text-center">
+        Please log in to view ongoing projects.
+      </div>
+    );
   }
   if (loading) return <div className="p-6 text-center">Loading...</div>;
-  if (error) return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+  if (error)
+    return <div className="p-6 text-center text-red-500">Error: {error}</div>;
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
@@ -249,10 +286,20 @@ const OnGoingProjects: React.FC = () => {
       </div>
 
       {/* Display active filters */}
-      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
+      {(search ||
+        selectedState ||
+        selectedCity ||
+        createdDate ||
+        createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || 'None'} | State: {selectedState || 'All'} | City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || 'All' : 'All'} | 
-          Date: {createdDate || 'Any'} to {createdEndDate || 'Any'}
+          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
+          | City:{" "}
+          {selectedCity
+            ? citiesResult.data?.find(
+                (c) => c.label.toString() === selectedCity
+              )?.label || "All"
+            : "All"}{" "}
+          | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
 
@@ -286,19 +333,22 @@ const OnGoingProjects: React.FC = () => {
                     <strong>Builder:</strong> {project.builder_name}
                   </p>
                   <p>
-                    <strong>Type:</strong> {project.property_type} ({project.property_subtype})
+                    <strong>Type:</strong> {project.property_type} (
+                    {project.property_subtype})
                   </p>
                   <p>
-                    <strong>Possession:</strong>{' '}
+                    <strong>Possession:</strong>{" "}
                     {project.possession_end_date
-                      ? new Date(project.possession_end_date).toLocaleDateString()
-                      : 'Ready to Move'}
+                      ? new Date(
+                          project.possession_end_date
+                        ).toLocaleDateString()
+                      : "Ready to Move"}
                   </p>
                   <p>
-                    <strong>Created:</strong>{' '}
+                    <strong>Created:</strong>{" "}
                     {project.created_date
                       ? new Date(project.created_date).toLocaleDateString()
-                      : 'N/A'}
+                      : "N/A"}
                   </p>
                 </div>
                 <div className="mb-5">
@@ -341,14 +391,16 @@ const OnGoingProjects: React.FC = () => {
                   )}
                 </div>
                 <div className="flex justify-between items-center mt-4">
-                 {user.user_type == 2 && <Button
-                    variant="primary"
-                    size="sm"
-                    onClick={() => handleStopLeadsClick(project)} // Trigger modal
-                    disabled={project.stop_leads === 'Yes'} // Disable if already stopped
-                  >
-                    Stop Leads
-                  </Button>}
+                  {user.user_type == 2 && (
+                    <Button
+                      variant="primary"
+                      size="sm"
+                      onClick={() => handleStopLeadsClick(project)} // Trigger modal
+                      disabled={project.stop_leads === "Yes"} // Disable if already stopped
+                    >
+                      Stop Leads
+                    </Button>
+                  )}
                   <Button
                     variant="primary"
                     size="sm"
@@ -374,8 +426,8 @@ const OnGoingProjects: React.FC = () => {
       {/* Confirmation Modal */}
       <ConfirmDeleteUserModal
         isOpen={isModalOpen}
-        userName={selectedProject?.project_name || ''}
-        description='Are you sure  stop the leads for '
+        userName={selectedProject?.project_name || ""}
+        description="Are you sure  stop the leads for "
         onConfirm={handleConfirmStopLeads}
         onCancel={handleCancelStopLeads}
       />
@@ -387,7 +439,7 @@ const OnGoingProjects: React.FC = () => {
           </div>
           <div className="flex gap-2 flex-wrap justify-center">
             <Button
-              variant={currentPage === 1 ? 'outline' : 'primary'}
+              variant={currentPage === 1 ? "outline" : "primary"}
               size="sm"
               onClick={goToPreviousPage}
               disabled={currentPage === 1}
@@ -395,7 +447,7 @@ const OnGoingProjects: React.FC = () => {
               Previous
             </Button>
             {getPaginationItems().map((page, index) =>
-              page === '...' ? (
+              page === "..." ? (
                 <span
                   key={`ellipsis-${index}`}
                   className="px-3 py-1 text-gray-500"
@@ -405,13 +457,13 @@ const OnGoingProjects: React.FC = () => {
               ) : (
                 <Button
                   key={page}
-                  variant={page === currentPage ? 'primary' : 'outline'}
+                  variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
                   className={
                     page === currentPage
-                      ? 'bg-[#7D23E0] text-white'
-                      : 'text-gray-600'
+                      ? "bg-[#7D23E0] text-white"
+                      : "text-gray-600"
                   }
                 >
                   {page}
@@ -419,7 +471,7 @@ const OnGoingProjects: React.FC = () => {
               )
             )}
             <Button
-              variant={currentPage === totalPages ? 'outline' : 'primary'}
+              variant={currentPage === totalPages ? "outline" : "primary"}
               size="sm"
               onClick={goToNextPage}
               disabled={currentPage === totalPages}

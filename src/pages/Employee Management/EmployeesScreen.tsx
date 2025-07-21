@@ -10,7 +10,6 @@ import {
   TableRow,
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
-
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
@@ -25,19 +24,16 @@ import { getStatusDisplay } from "../../utils/statusdisplay";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
-
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
   5: "Telecallers",
   6: "Marketing Executors",
   7: "Receptionists",
 };
-
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   return date.toISOString().split("T")[0];
 };
-
 export default function EmployeesScreen() {
   const { status } = useParams<{ status: string }>();
   const navigate = useNavigate();
@@ -64,20 +60,14 @@ export default function EmployeesScreen() {
   const itemsPerPage = 10;
   const empUserType = Number(status);
   const categoryLabel = userTypeMap[empUserType] || "Employees";
-
-  // Fetch cities based on selected state
   const citiesResult = citiesQuery(
     selectedState ? parseInt(selectedState) : undefined
   );
-
-  // Dispatch cities to Redux store
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
-
-  // Handle errors for city fetching
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -87,7 +77,6 @@ export default function EmployeesScreen() {
       );
     }
   }, [citiesResult.isError, citiesResult.error]);
-
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
       dispatch(
@@ -98,7 +87,6 @@ export default function EmployeesScreen() {
       dispatch(clearUsers());
     };
   }, [isAuthenticated, user, empUserType, statusUpdated, dispatch]);
-
   const filteredUsers =
     users?.filter((user) => {
       const matchesTextFilter = [
@@ -112,49 +100,37 @@ export default function EmployeesScreen() {
       ]
         .map((field) => field?.toLowerCase() || "")
         .some((field) => field.includes(filterValue.toLowerCase()));
-
       const userCreatedDate = formatDate(user.created_date);
       const matchesCreatedDate =
         (!createdDate || userCreatedDate >= createdDate) &&
         (!createdEndDate || userCreatedDate <= createdEndDate);
-
       const matchesState =
         !selectedState ||
-        user.state?.toLowerCase() ===
+        (states &&
           states
             .find((s) => s.value.toString() === selectedState)
-            ?.label.toLowerCase();
-
+            ?.label.toLowerCase() === user.state?.toLowerCase());
       const matchesCity =
         !selectedCity ||
-        (citiesResult.data &&
-          citiesResult.data
-            .find((c) => c.value.toString() === selectedCity)
-            ?.label.toLowerCase() === user.city?.toLowerCase());
-
+        user.city?.toLowerCase() === selectedCity.toLowerCase();
       return (
         matchesTextFilter && matchesCreatedDate && matchesState && matchesCity
       );
     }) || [];
-
   const totalItems = filteredUsers.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedUsers = filteredUsers.slice(startIndex, endIndex);
-  console.log("paginatedUsers: ", paginatedUsers);
-
   const handleViewProfile = (id: number) => {
     if (isAuthenticated && user?.id && empUserType) {
       navigate(`/employeedetails/${empUserType}/${id}`);
     }
   };
-
   const handleDelete = (user: User) => {
     setSelectedUser(user);
     setIsDeleteModalOpen(true);
   };
-
   const handleConfirmDelete = async () => {
     if (selectedUser && user?.user_type) {
       try {
@@ -168,45 +144,38 @@ export default function EmployeesScreen() {
         setStatusUpdated(!statusUpdated);
         setIsDeleteModalOpen(false);
         setSelectedUser(null);
-        setSelectedUserId(null); // Deselect after deletion
+        setSelectedUserId(null);
       } catch (error) {
         console.error("Failed to delete user:", error);
         toast.error(error as string);
       }
     }
   };
-
   const handleCancelDelete = () => {
     setIsDeleteModalOpen(false);
     setSelectedUser(null);
   };
-
   const handleFilter = (value: string) => {
     setFilterValue(value);
     setCurrentPage(1);
   };
-
   const handleCreatedDateChange = (date: string | null) => {
     setCreatedDate(date);
     setCurrentPage(1);
   };
-
   const handleCreatedEndDateChange = (date: string | null) => {
     setCreatedEndDate(date);
     setCurrentPage(1);
   };
-
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
-    setSelectedCity(null); // Reset city when state changes
+    setSelectedCity(null);
     setCurrentPage(1);
   };
-
   const handleCityChange = (value: string | null) => {
     setSelectedCity(value);
     setCurrentPage(1);
   };
-
   const handleClearFilters = () => {
     setFilterValue("");
     setCreatedDate(null);
@@ -215,11 +184,9 @@ export default function EmployeesScreen() {
     setSelectedCity(null);
     setCurrentPage(1);
   };
-
   const handleCheckboxChange = (userId: number) => {
     setSelectedUserId((prev) => (prev === userId ? null : userId));
   };
-
   const handleBulkViewProfile = () => {
     if (selectedUserId === null) {
       toast.error("Please select an employee.");
@@ -227,7 +194,6 @@ export default function EmployeesScreen() {
     }
     handleViewProfile(selectedUserId);
   };
-
   const handleBulkDelete = () => {
     if (selectedUserId === null) {
       toast.error("Please select an employee.");
@@ -239,7 +205,6 @@ export default function EmployeesScreen() {
       setIsDeleteModalOpen(true);
     }
   };
-
   return (
     <div className="relative min-h-screen">
       <FilterBar
@@ -261,7 +226,7 @@ export default function EmployeesScreen() {
       <div className="mb-2 flex gap-2">
         <PageBreadcrumbList
           pageTitle={`${categoryLabel} Table`}
-          pagePlacHolder="Filter employees by name, mobile,city"
+          pagePlacHolder="Filter employees by name, mobile, city"
           onFilter={handleFilter}
         />
         <Button

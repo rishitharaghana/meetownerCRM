@@ -16,9 +16,7 @@ import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
-
 const BUILDER_USER_TYPE = 2;
-
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
@@ -29,7 +27,6 @@ const AllProjects: React.FC = () => {
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
@@ -39,23 +36,16 @@ const AllProjects: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
-
-  // Fetch cities based on selected state
   const citiesResult = citiesQuery(
     selectedState ? parseInt(selectedState) : undefined
   );
-
-  // Dispatch cities to Redux store
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
-
-  // Handle errors for city and state fetching
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -65,8 +55,6 @@ const AllProjects: React.FC = () => {
       );
     }
   }, [citiesResult.isError, citiesResult.error]);
-
-  // Project parameters for server-side fetching
   const projectParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -81,8 +69,6 @@ const AllProjects: React.FC = () => {
     }
     return Object.keys(baseParams).length > 0 ? baseParams : null;
   }, [isAuthenticated, user]);
-
-  // Fetch projects when parameters change
   useEffect(() => {
     if (projectParams) {
       dispatch(fetchAllProjects(projectParams))
@@ -101,8 +87,6 @@ const AllProjects: React.FC = () => {
       });
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
-
-  // Client-side filtering for search, city, and dates
   const filteredProjects = useMemo(() => {
     return allProjects
       .filter(
@@ -115,14 +99,12 @@ const AllProjects: React.FC = () => {
           project.locality?.toLowerCase().includes(search.toLowerCase()) ||
           project.city?.toLowerCase().includes(search.toLowerCase()) ||
           project.state?.toLowerCase().includes(search.toLowerCase());
-
         const matchesCity =
           !selectedCity ||
           (citiesResult.data &&
             citiesResult.data
-              .find((c) => c.value.toString() === selectedCity)
+              .find((c) => c.label.toString() === selectedCity)
               ?.label.toLowerCase() === project.city?.toLowerCase());
-
         let matchesDate = true;
         if (createdDate || createdEndDate) {
           if (!project.created_date) {
@@ -138,7 +120,6 @@ const AllProjects: React.FC = () => {
             }
           }
         }
-
         return matchesSearch && matchesCity && matchesDate;
       });
   }, [
@@ -149,40 +130,32 @@ const AllProjects: React.FC = () => {
     createdEndDate,
     citiesResult.data,
   ]);
-
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
-
   const formatDistance = (value: string): string => {
     if (!value) return "N/A";
     const trimmed = value.trim().toLowerCase();
     const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
     if (regex.test(trimmed)) {
-      // Capitalize the unit (m -> m, km -> km)
       const [, number, , , unit] = trimmed.match(regex)!;
       return `${number} ${unit}`;
     }
     return value;
   };
-
-  // Pagination logic
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
-
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
   const goToNextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
-
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
     const totalVisiblePages = 5;
-
     if (totalPages <= totalVisiblePages + 2) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
@@ -202,11 +175,8 @@ const AllProjects: React.FC = () => {
       if (end < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
-
     return pages;
   };
-
-  // Clear all filters
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setCreatedDate(null);
@@ -216,7 +186,6 @@ const AllProjects: React.FC = () => {
     setCurrentPage(1);
     if (searchRef.current) searchRef.current.value = "";
   }, []);
-
   if (!isAuthenticated || !user) {
     return (
       <div className="p-6 text-center">Please log in to view projects.</div>
@@ -225,7 +194,6 @@ const AllProjects: React.FC = () => {
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error)
     return <div className="p-6 text-center text-red-500">Error: {error}</div>;
-
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       <div className="flex flex-col gap-4 mb-6">
@@ -257,8 +225,7 @@ const AllProjects: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* Display active filters */}
+      {}
       {(search ||
         selectedState ||
         selectedCity ||
@@ -275,13 +242,11 @@ const AllProjects: React.FC = () => {
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
-
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {paginatedProjects.map((project: Project) => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-
           return (
             <div
               key={project.property_id}
@@ -335,7 +300,6 @@ const AllProjects: React.FC = () => {
                         {item.title} ({formatDistance(item.distance)})
                       </span>
                     ))}
-
                     {hiddenAmenities.map((item) => (
                       <span
                         key={item.title}
@@ -386,7 +350,6 @@ const AllProjects: React.FC = () => {
           );
         })}
       </div>
-
       {totalItems > itemsPerPage && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
           <div className="text-sm text-gray-500">
@@ -439,5 +402,4 @@ const AllProjects: React.FC = () => {
     </div>
   );
 };
-
 export default AllProjects;

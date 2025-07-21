@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef } from "react";
+import React, { useEffect, useState, useRef, useCallback } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
@@ -12,33 +12,37 @@ import Select from "../../components/form/Select";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
-
+import { useMemo } from "react";
 interface SelectOption {
   value: string;
   label: string;
 }
-
 interface Option {
   value: string;
   text: string;
 }
-
 interface SizeEntry {
   id: string;
-  areaUnits: string;
-  plotArea?: string; // Used for Plot
-  buildupArea?: string; // Used for non-Plot/Land
+  plotArea?: string;
+  plotAreaUnits?: string;
+  build_up_area?: string;
+  builtupAreaUnits?: string;
   carpetArea: string;
-  lengthArea?: string; // Used for Plot
+  carpetAreaUnits: string;
+  lengthArea?: string;
+  lengthAreaUnits?: string;
   floorPlan: File | null;
   sqftPrice: string;
 }
-
+const AREA_UNIT_OPTIONS: SelectOption[] = [
+  { value: "sq.ft", label: "Sq.ft" },
+  { value: "sq.yd", label: "Sq.yd" },
+  { value: "acres", label: "Acres" },
+];
 interface AroundPropertyEntry {
   place: string;
   distance: string;
 }
-
 interface FormData {
   state: string;
   city: string;
@@ -60,45 +64,40 @@ interface FormData {
   reraNumber: string;
   otpOptions: string[];
 }
-
 interface Errors {
-  state?: string;
-  city?: string;
-  locality?: string;
-  propertyType?: string;
-  propertySubType?: string;
-  projectName?: string;
-  builderName?: string;
-  sizes?: {
-    [key: string]: {
-      areaUnits?: string;
-      plotArea?: string;
-      buildupArea?: string;
-      carpetArea?: string;
-      lengthArea?: string;
-      floorPlan?: string;
-      sqftPrice?: string;
-    };
-  };
-  aroundProperty?: string;
-  brochure?: string;
-  priceSheet?: string;
-  launchDate?: string;
-  possessionEndDate?: string;
-  isReraRegistered?: string;
-  reraNumber?: string;
-  otpOptions?: string;
+  [key: string]: string | undefined | { [key: string]: string | undefined };
 }
-
-export default function AddProject() {
-  const dispatch = useDispatch<AppDispatch>();
-  const { states } = useSelector((state: RootState) => state.property);
-  const navigate = useNavigate();
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-
-  const [formData, setFormData] = useState<FormData>({
+const PROPERTY_TYPE_OPTIONS: SelectOption[] = [
+  { value: "Residential", label: "Residential" },
+  { value: "Commercial", label: "Commercial" },
+];
+const RESIDENTIAL_SUBTYPES: SelectOption[] = [
+  { value: "Apartment", label: "Apartment" },
+  { value: "Independent House", label: "Independent House" },
+  { value: "Independent Villa", label: "Independent Villa" },
+  { value: "Plot", label: "Plot" },
+  { value: "Land", label: "Land" },
+];
+const COMMERCIAL_SUBTYPES: SelectOption[] = [
+  { value: "Office", label: "Office" },
+  { value: "Retail Shop", label: "Retail Shop" },
+  { value: "Show Room", label: "Show Room" },
+  { value: "Warehouse", label: "Warehouse" },
+  { value: "Plot", label: "Plot" },
+  { value: "Others", label: "Others" },
+];
+const LAUNCH_TYPES: SelectOption[] = [
+  { value: "Pre Launch", label: "Pre Launch" },
+  { value: "Soft Launch", label: "Soft Launch" },
+  { value: "Launched", label: "Launched" },
+];
+const PAYMENT_OPTIONS: SelectOption[] = [
+  { value: "Regular", label: "Regular" },
+  { value: "OTP", label: "OTP" },
+  { value: "Offers", label: "Offers" },
+  { value: "EMI", label: "EMI" },
+];
+const INITIAL_FORM_STATE: FormData = {
   state: "",
   city: "",
   locality: "",
@@ -110,12 +109,16 @@ export default function AddProject() {
     {
       id: `${Date.now()}-1`,
       areaUnits: "",
-      plotArea: "", // Initialize for Plot
-      buildupArea: "", // Initialize for non-Plot/Land
+      plotArea: "",
+      build_up_area: "",
       carpetArea: "",
-      lengthArea: "", // Initialize for Plot
+      lengthArea: "",
       floorPlan: null,
       sqftPrice: "",
+      lengthArea: "",
+      lengthAreaUnits: "",
+      builtupAreaUnits: "",
+      carpetAreaUnits: "",
     },
   ],
   aroundProperty: [],
@@ -129,13 +132,19 @@ export default function AddProject() {
   isReraRegistered: false,
   reraNumber: "",
   otpOptions: [],
-});
-
+};
+export default function AddProject() {
+  const dispatch = useDispatch<AppDispatch>();
+  const { states } = useSelector((state: RootState) => state.property);
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const [formData, setFormData] = useState<FormData>(INITIAL_FORM_STATE);
   const [errors, setErrors] = useState<Errors>({});
   const [placeAroundProperty, setPlaceAroundProperty] = useState("");
   const [distanceFromProperty, setDistanceFromProperty] = useState("");
   const [distanceUnit, setDistanceUnit] = useState("m");
-
   const brochureInputRef = useRef<HTMLInputElement>(null);
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
@@ -143,26 +152,53 @@ export default function AddProject() {
   const citiesResult = citiesQuery(
     formData.state ? parseInt(formData.state) : undefined
   );
-
+  const isPlot = useMemo(
+    () => formData.propertySubType === "Plot",
+    [formData.propertySubType]
+  );
+  const isLand = useMemo(
+    () => formData.propertySubType === "Land",
+    [formData.propertySubType]
+  );
+  const propertySubTypeOptions = useMemo(() => {
+    return formData.propertyType === "Residential"
+      ? RESIDENTIAL_SUBTYPES
+      : formData.propertyType === "Commercial"
+      ? COMMERCIAL_SUBTYPES
+      : [];
+  }, [formData.propertyType]);
+  const cityOptions: Option[] = useMemo(
+    () =>
+      citiesResult?.data?.map((city) => ({
+        value: city.value.toString(),
+        text: city.label,
+      })) || [],
+    [citiesResult?.data]
+  );
+  const stateOptions: Option[] = useMemo(
+    () =>
+      states?.map((state: any) => ({
+        value: state.value.toString(),
+        text: state.label,
+      })) || [],
+    [states]
+  );
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate("/login");
       toast.error("Please log in to access this page");
       return;
     }
-
     if (user.user_type !== 2) {
       navigate("/");
       toast.error("Access denied: Only builders can create projects");
     }
   }, [isAuthenticated, user, navigate]);
-
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
-
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -184,83 +220,28 @@ export default function AddProject() {
     statesQuery.isError,
     statesQuery.error,
   ]);
-
-  const cityOptions: Option[] =
-    citiesResult?.data?.map((city) => ({
-      value: city.value.toString(),
-      text: city.label,
-    })) || [];
-
-  const stateOptions: Option[] =
-    states?.map((state: any) => ({
-      value: state.value.toString(), // Ensure value is a string
-      text: state.label,
-    })) || [];
-
-  const propertyTypeOptions: SelectOption[] = [
-    { value: "Residential", label: "Residential" },
-    { value: "Commercial", label: "Commercial" },
-  ];
-
-  const residentialSubTypeOptions: SelectOption[] = [
-    { value: "Apartment", label: "Apartment" },
-    { value: "Independent House", label: "Independent House" },
-    { value: "Independent Villa", label: "Independent Villa" },
-    { value: "Plot", label: "Plot" },
-    { value: "Land", label: "Land" },
-  ];
-
-  const commercialSubTypeOptions: SelectOption[] = [
-    { value: "Office", label: "Office" },
-    { value: "Retail Shop", label: "Retail Shop" },
-    { value: "Show Room", label: "Show Room" },
-    { value: "Warehouse", label: "Warehouse" },
-    { value: "Plot", label: "Plot" },
-    { value: "Others", label: "Others" },
-  ];
-
-  const propertySubTypeOptions =
-    formData.propertyType === "Residential"
-      ? residentialSubTypeOptions
-      : formData.propertyType === "Commercial"
-      ? commercialSubTypeOptions
-      : [];
-
-  const launchTypeOptions: SelectOption[] = [
-    { value: "Pre Launch", label: "Pre Launch" },
-    { value: "Soft Launch", label: "Soft Launch" },
-    { value: "Launched", label: "Launched" },
-  ];
-
-  const otpOptions: SelectOption[] = [
-    { value: "Regular", label: "Regular" },
-    { value: "OTP", label: "OTP" },
-    { value: "Offers", label: "Offers" },
-    { value: "EMI", label: "EMI" },
-  ];
-
-  const handleDropdownChange =
-    (field: "state" | "city" | "launchType") =>
-    (value: string, text: string) => {
+  const handleDropdownChange = useCallback(
+    (field: keyof FormData) => (value: string) => {
       setFormData((prev) => ({
         ...prev,
         [field]: value,
-        ...(field === "state" && { city: "", locality: "" }), // Reset city and locality when state changes
-        ...(field === "city" && { locality: "" }), // Reset locality when city changes
+        ...(field === "state" && { city: "", locality: "" }),
+        ...(field === "city" && { locality: "" }),
         ...(field === "launchType" &&
           value !== "Launched" && { launchDate: "" }),
       }));
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
-
-  const handleInputChange =
-    (field: "projectName" | "builderName" | "reraNumber" | "locality") =>
-    (e: React.ChangeEvent<HTMLInputElement>) => {
+    },
+    []
+  );
+  const handleInputChange = useCallback(
+    (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
-
-  const handleSelectChange =
+    },
+    []
+  );
+  const handleSelectChange = useCallback(
     (field: "propertyType" | "propertySubType") => (value: string) => {
       setFormData((prev) => ({
         ...prev,
@@ -268,64 +249,58 @@ export default function AddProject() {
         ...(field === "propertyType" && { propertySubType: "" }),
       }));
       setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
-
- const handleSizeChange =
-  (
-    id: string,
-    field:
-      | "areaUnits"
-      | "plotArea"
-      | "buildupArea"
-      | "carpetArea"
-      | "lengthArea"
-      | "sqftPrice"
-  ) =>
-  (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData((prev) => ({
-      ...prev,
-      sizes: prev.sizes.map((size) =>
-        size.id === id ? { ...size, [field]: e.target.value } : size
-      ),
-    }));
-    setErrors((prev) => ({
-      ...prev,
-      sizes: {
-        ...prev.sizes,
-        [id]: { ...prev.sizes?.[id], [field]: undefined },
+    },
+    []
+  );
+  const handleSizeChange = useCallback(
+    (id: string, field: keyof SizeEntry) =>
+      (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+        setFormData((prev) => ({
+          ...prev,
+          sizes: prev.sizes.map((size) =>
+            size.id === id ? { ...size, [field]: e.target.value } : size
+          ),
+        }));
+        setErrors((prev) => {
+          const updatedSizes = { ...prev.sizes };
+          if (updatedSizes && updatedSizes[id]) {
+            updatedSizes[id] = { ...updatedSizes[id], [field]: undefined };
+          }
+          return { ...prev, sizes: updatedSizes };
+        });
       },
-    }));
-  };
-
-  const handleFileChange =
+    []
+  );
+  const handleFileChange = useCallback(
     (id: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
       if (file) {
         const validFileTypes = ["image/jpeg", "image/png", "application/pdf"];
+        const maxSize = 10 * 1024 * 1024;
         if (!validFileTypes.includes(file.type)) {
-          setErrors((prev) => ({
-            ...prev,
-            sizes: {
-              ...prev.sizes,
-              [id]: {
-                ...prev.sizes?.[id],
+          setErrors((prev) => {
+            const updatedSizes = { ...prev.sizes };
+            if (updatedSizes && updatedSizes[id]) {
+              updatedSizes[id] = {
+                ...updatedSizes[id],
                 floorPlan: "Only JPEG, PNG, or PDF files are allowed",
-              },
-            },
-          }));
+              };
+            }
+            return { ...prev, sizes: updatedSizes };
+          });
           return;
         }
-        if (file.size > 10 * 1024 * 1024) {
-          setErrors((prev) => ({
-            ...prev,
-            sizes: {
-              ...prev.sizes,
-              [id]: {
-                ...prev.sizes?.[id],
-                floorPlan: "File size must be less than 20MB",
-              },
-            },
-          }));
+        if (file.size > maxSize) {
+          setErrors((prev) => {
+            const updatedSizes = { ...prev.sizes };
+            if (updatedSizes && updatedSizes[id]) {
+              updatedSizes[id] = {
+                ...updatedSizes[id],
+                floorPlan: "File size must be less than 10MB",
+              };
+            }
+            return { ...prev, sizes: updatedSizes };
+          });
           return;
         }
       }
@@ -335,25 +310,25 @@ export default function AddProject() {
           size.id === id ? { ...size, floorPlan: file } : size
         ),
       }));
-      setErrors((prev) => ({
-        ...prev,
-        sizes: {
-          ...prev.sizes,
-          [id]: { ...prev.sizes?.[id], floorPlan: undefined },
-        },
-      }));
-    };
-
+      setErrors((prev) => {
+        const updatedSizes = { ...prev.sizes };
+        if (updatedSizes && updatedSizes[id]) {
+          updatedSizes[id] = { ...updatedSizes[id], floorPlan: undefined };
+        }
+        return { ...prev, sizes: updatedSizes };
+      });
+    },
+    []
+  );
   const handleBrochureButtonClick = () => {
     if (brochureInputRef.current) {
       brochureInputRef.current.click();
     }
   };
-
   const handleBrochureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      const validFileTypes = ["application/pdf"]; // Server only allows PDFs for brochure
+      const validFileTypes = ["application/pdf"];
       if (!validFileTypes.includes(file.type)) {
         setErrors((prev) => ({
           ...prev,
@@ -372,7 +347,6 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, brochure: file }));
     setErrors((prev) => ({ ...prev, brochure: undefined }));
   };
-
   const handleDeleteBrochure = () => {
     setFormData((prev) => ({ ...prev, brochure: null }));
     setErrors((prev) => ({ ...prev, brochure: undefined }));
@@ -380,7 +354,6 @@ export default function AddProject() {
       brochureInputRef.current.value = "";
     }
   };
-
   const handleDeleteFile = (id: string) => () => {
     setFormData((prev) => ({
       ...prev,
@@ -396,17 +369,15 @@ export default function AddProject() {
       },
     }));
   };
-
   const handlePriceSheetButtonClick = () => {
     if (priceSheetInputRef.current) {
       priceSheetInputRef.current.click();
     }
   };
-
   const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
-      const validFileTypes = ["application/pdf"]; // Server only allows PDFs for price sheet
+      const validFileTypes = ["application/pdf"];
       if (!validFileTypes.includes(file.type)) {
         setErrors((prev) => ({
           ...prev,
@@ -425,15 +396,13 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, priceSheet: file }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
   };
-
   const handleDeletePriceSheet = () => {
     setFormData((prev) => ({ ...prev, priceSheet: null }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
     if (priceSheetInputRef.current) {
-      priceSheetInputRef.current.value = ""; // Reset the input so same file can be reselected
+      priceSheetInputRef.current.value = "";
     }
   };
-
   const handleDeleteSize = (id: string) => () => {
     setFormData((prev) => ({
       ...prev,
@@ -446,38 +415,32 @@ export default function AddProject() {
       ),
     }));
   };
-
-  const areaUnitOptions = [
-    { id: "sq.ft", label: "Sq. Ft" },
-    { id: "sq.yd", label: "Sq. Yd" },
-    { id: "acres", label: "Acres" },
-  ];
-
-const handleAddSize = () => {
-  setFormData((prev) => ({
-    ...prev,
-    sizes: [
-      ...prev.sizes,
-      {
-        id: `${Date.now()}-${prev.sizes.length + 1}`,
-        areaUnits: "",
-        plotArea: "",
-        buildupArea: "",
-        carpetArea: "",
-        lengthArea: "",
-        floorPlan: null,
-        sqftPrice: "",
-      },
-    ],
-  }));
-};
+  const handleAddSize = () => {
+    setFormData((prev) => ({
+      ...prev,
+      sizes: [
+        ...prev.sizes,
+        {
+          id: `${Date.now()}-${prev.sizes.length + 1}`,
+          areaUnits: "",
+          plotArea: "",
+          build_up_area: "",
+          carpetArea: "",
+          lengthArea: "",
+          floorPlan: null,
+          sqftPrice: "",
+          lengthAreaUnits: "",
+          builtupAreaUnits: "",
+          carpetAreaUnits: "",
+        },
+      ],
+    }));
+  };
   const handleAddAroundProperty = () => {
     const trimmedPlace = placeAroundProperty.trim();
     const trimmedDistance = distanceFromProperty.trim();
-
     if (trimmedPlace && trimmedDistance) {
       const fullDistance = `${trimmedDistance}${distanceUnit}`;
-
       setFormData((prev) => ({
         ...prev,
         aroundProperty: [
@@ -488,8 +451,6 @@ const handleAddSize = () => {
           },
         ],
       }));
-
-      // Reset
       setPlaceAroundProperty("");
       setDistanceFromProperty("");
       setDistanceUnit("m");
@@ -501,14 +462,12 @@ const handleAddSize = () => {
       }));
     }
   };
-
   const handleDeleteAroundProperty = (index: number) => () => {
     setFormData((prev) => ({
       ...prev,
       aroundProperty: prev.aroundProperty.filter((_, i) => i !== index),
     }));
   };
-
   const handleLaunchDateChange = (selectedDates: Date[]) => {
     const selectedDate = selectedDates[0];
     const formattedDate = selectedDate
@@ -519,7 +478,6 @@ const handleAddSize = () => {
     setFormData((prev) => ({ ...prev, launchDate: formattedDate }));
     setErrors((prev) => ({ ...prev, launchDate: undefined }));
   };
-
   const handlePossessionEndDateChange = (selectedDates: Date[]) => {
     const selectedDate = selectedDates[0];
     const formattedDate = selectedDate
@@ -530,7 +488,6 @@ const handleAddSize = () => {
     setFormData((prev) => ({ ...prev, possessionEndDate: formattedDate }));
     setErrors((prev) => ({ ...prev, possessionEndDate: undefined }));
   };
-
   const handleOtpOptionsChange = (option: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -540,256 +497,156 @@ const handleAddSize = () => {
     }));
     setErrors((prev) => ({ ...prev, otpOptions: undefined }));
   };
-
- const validateForm = () => {
-  const newErrors: Errors = {};
-
-  if (!formData.state) newErrors.state = "State is required";
-  if (!formData.city) newErrors.city = "City is required";
-  if (!formData.locality.trim()) newErrors.locality = "Locality is required";
-  if (!formData.propertyType)
-    newErrors.propertyType = "Property Type is required";
-  if (!formData.propertySubType)
-    newErrors.propertySubType = "Property Sub Type is required";
-  if (!formData.projectName.trim())
-    newErrors.projectName = "Project Name is required";
-  if (!formData.builderName.trim()) {
-    newErrors.builderName = "Builder Name is required";
-  } else if (!/^[A-Za-z\s&.-]+$/.test(formData.builderName.trim())) {
-    newErrors.builderName =
-      "Builder Name can only contain alphabets, spaces, &, ., and - ";
-  }
-  if (formData.aroundProperty.length === 0)
-    newErrors.aroundProperty = "At least one place around property is required";
-  if (formData.isReraRegistered && !formData.reraNumber.trim())
-    newErrors.reraNumber = "RERA Number is required";
-  if (formData.otpOptions.length === 0)
-    newErrors.otpOptions = "At least one payment mode is required";
-  if (formData.launchType === "Launched" && !formData.launchDate)
-    newErrors.launchDate = "Launch Date is required";
-  if (formData.status === "Under Construction" && !formData.possessionEndDate)
-    newErrors.possessionEndDate = "Possession End Date is required";
-
-  const isPlot = formData.propertySubType === "Plot";
-  const isLand = formData.propertySubType === "Land";
-  const isPlotOrLand = isPlot || isLand;
-
-  const sizeErrors: {
-    [key: string]: {
-      areaUnits?: string;
-      plotArea?: string;
-      buildupArea?: string;
-      carpetArea?: string;
-      lengthArea?: string;
-      floorPlan?: string;
-      sqftPrice?: string;
-    };
-  } = {};
-  formData.sizes.forEach((size) => {
-    const errorsForSize: {
-      areaUnits?: string;
-      plotArea?: string;
-      buildupArea?: string;
-      carpetArea?: string;
-      lengthArea?: string;
-      floorPlan?: string;
-      sqftPrice?: string;
-    } = {};
-    if (!size.areaUnits.trim())
-      errorsForSize.areaUnits = "Area units are required";
-
-    if (isPlot) {
-      if (!size.plotArea?.trim())
-        errorsForSize.plotArea = "Plot Area is required";
-      else if (!/^\d+(\.\d{1,2})?$/.test(size.plotArea.trim()))
-        errorsForSize.plotArea = "Plot Area must be a valid number";
-      if (!size.lengthArea?.trim())
-        errorsForSize.lengthArea = "Length Area is required";
-      else if (!/^\d+(\.\d{1,2})?$/.test(size.lengthArea.trim()))
-        errorsForSize.lengthArea = "Length Area must be a valid number";
-    } else {
-      if (!size.buildupArea?.trim())
-        errorsForSize.buildupArea = `${
-          isLand ? "Length Area" : "BuildUp Area"
-        } is required`;
-      else if (!/^\d+(\.\d{1,2})?$/.test(size.buildupArea.trim()))
-        errorsForSize.buildupArea = `${
-          isLand ? "Length Area" : "BuildUp Area"
-        } must be a valid number`;
+  const validateForm = () => {
+    const newErrors: Errors = {};
+    if (!formData.state) newErrors.state = "State is required";
+    if (!formData.city) newErrors.city = "City is required";
+    if (!formData.locality.trim()) newErrors.locality = "Locality is required";
+    if (!formData.propertyType)
+      newErrors.propertyType = "Property Type is required";
+    if (!formData.propertySubType)
+      newErrors.propertySubType = "Property Sub Type is required";
+    if (!formData.projectName.trim())
+      newErrors.projectName = "Project Name is required";
+    if (!formData.builderName.trim()) {
+      newErrors.builderName = "Builder Name is required";
+    } else if (!/^[A-Za-z\s&.-]+$/.test(formData.builderName.trim())) {
+      newErrors.builderName =
+        "Builder Name can only contain alphabets, spaces, &, ., and -";
     }
-
-    if (!size.carpetArea.trim())
-      errorsForSize.carpetArea = `${
-        isPlotOrLand ? "Width Area" : "Carpet Area"
-      } is required`;
-    else if (!/^\d+(\.\d{1,2})?$/.test(size.carpetArea.trim()))
-      errorsForSize.carpetArea = `${
-        isPlotOrLand ? "Width Area" : "Carpet Area"
-      } must be a valid number`;
-
-    if (!size.sqftPrice.trim())
-      errorsForSize.sqftPrice = "Square Foot Price is required";
-    else if (!/^\d+(\.\d{1,2})?$/.test(size.sqftPrice.trim()))
-      errorsForSize.sqftPrice = "Square Foot Price must be a valid number";
-
-    if (Object.keys(errorsForSize).length > 0) {
-      sizeErrors[size.id] = errorsForSize;
-    }
-  });
-
-  if (Object.keys(sizeErrors).length > 0) {
-    newErrors.sizes = sizeErrors;
-  }
-
-  setErrors(newErrors);
-  return Object.keys(newErrors).length === 0;
-};
-
-const handleSubmit = (e: React.FormEvent) => {
-  e.preventDefault();
-  if (validateForm()) {
-    const stateName =
-      stateOptions.find((option) => option.value === formData.state)?.text ||
-      formData.state;
-    const cityName =
-      cityOptions.find((option) => option.value === formData.city)?.text ||
-      formData.city;
-
-    const isPlot = formData.propertySubType === "Plot";
-    const isLand = formData.propertySubType === "Land";
-
-    const formDataToSend = new FormData();
-    formDataToSend.append("project_name", formData.projectName);
-    formDataToSend.append("property_type", formData.propertyType);
-    formDataToSend.append("property_subtype", formData.propertySubType);
-    formDataToSend.append("builder_name", formData.builderName);
-    formDataToSend.append("state", stateName);
-    formDataToSend.append("city", cityName);
-    formDataToSend.append("locality", formData.locality);
-    formDataToSend.append("construction_status", formData.status);
-    formDataToSend.append(
-      "upcoming_project",
-      formData.isUpcoming ? "Yes" : "No"
-    );
-    formDataToSend.append("posted_by", user?.user_type.toString() || "2");
-    formDataToSend.append("user_id", user?.id.toString() || "2");
-    formDataToSend.append(
-      "rera_registered",
-      formData.isReraRegistered ? "Yes" : "No"
-    );
-    if (formData.isReraRegistered) {
-      formDataToSend.append("rera_number", formData.reraNumber);
-    }
-    formDataToSend.append("launch_type", formData.launchType);
-    if (formData.launchType === "Launched") {
-      formDataToSend.append("launched_date", formData.launchDate || "");
-    }
-    if (formData.status === "Under Construction") {
-      formDataToSend.append(
-        "possession_end_date",
-        formData.possessionEndDate || ""
-      );
-    }
-    formDataToSend.append(
-      "payment_mode",
-      JSON.stringify(formData.otpOptions)
-    );
-    formDataToSend.append(
-      "sizes",
-      JSON.stringify(
-        formData.sizes.map((size) => ({
-          area_units: size.areaUnits,
-          ...(isPlot
-            ? {
-                plot_area: size.plotArea,
-                length_area: size.lengthArea,
-                width_area: size.carpetArea,
-              }
-            : isLand
-            ? {
-                length_area: size.buildupArea,
-                width_area: size.carpetArea,
-              }
-            : {
-                build_up_area: size.buildupArea,
-                carpet_area: size.carpetArea,
-              }),
-          sqftprice: size.sqftPrice,
-        }))
-      )
-    );
-    formDataToSend.append(
-      "around_this",
-      JSON.stringify(
-        formData.aroundProperty.map((entry) => ({
-          title: entry.place,
-          distance: entry.distance,
-        }))
-      )
-    );
-    if (formData.brochure) {
-      formDataToSend.append("brochure", formData.brochure);
-    }
-    if (formData.priceSheet) {
-      formDataToSend.append("price_sheet", formData.priceSheet);
-    }
+    if (formData.aroundProperty.length === 0)
+      newErrors.aroundProperty =
+        "At least one place around property is required";
+    if (formData.isReraRegistered && !formData.reraNumber.trim())
+      newErrors.reraNumber = "RERA Number is required";
+    if (formData.otpOptions.length === 0)
+      newErrors.otpOptions = "At least one payment mode is required";
+    if (formData.launchType === "Launched" && !formData.launchDate)
+      newErrors.launchDate = "Launch Date is required";
+    if (formData.status === "Under Construction" && !formData.possessionEndDate)
+      newErrors.possessionEndDate = "Possession End Date is required";
+    const sizeErrors: { [key: string]: { [key: string]: string | undefined } } =
+      {};
     formData.sizes.forEach((size) => {
-      if (size.floorPlan) {
-        formDataToSend.append("floor_plan", size.floorPlan);
+      const errorsForSize: { [key: string]: string | undefined } = {};
+      if (!size.carpetArea.trim())
+        errorsForSize.carpetArea = "Carpet Area is required";
+      if (!size.sqftPrice.trim())
+        errorsForSize.sqftPrice = "Square Foot Price is required";
+      if (Object.keys(errorsForSize).length > 0) {
+        sizeErrors[size.id] = errorsForSize;
       }
     });
-
-    dispatch(insertProperty(formDataToSend))
-      .unwrap()
-      .then(() => {
-        toast.success("Property inserted successfully");
-        setFormData({
-          state: "",
-          city: "",
-          locality: "",
-          propertyType: "",
-          propertySubType: "",
-          projectName: "",
-          builderName: "",
-          sizes: [
-            {
-              id: `${Date.now()}-1`,
-              areaUnits: "",
-              plotArea: "",
-              buildupArea: "",
-              carpetArea: "",
-              lengthArea: "",
-              floorPlan: null,
-              sqftPrice: "",
-            },
-          ],
-          aroundProperty: [],
-          brochure: null,
-          priceSheet: null,
-          isUpcoming: false,
-          status: "Ready to Move",
-          launchType: "Pre Launch",
-          launchDate: "",
-          possessionEndDate: "",
-          isReraRegistered: false,
-          reraNumber: "",
-          otpOptions: [],
-        });
-        setPlaceAroundProperty("");
-        setDistanceFromProperty("");
-        if (brochureInputRef.current) brochureInputRef.current.value = "";
-        if (priceSheetInputRef.current) priceSheetInputRef.current.value = "";
-        Object.keys(fileInputRefs.current).forEach((key) => {
-          if (fileInputRefs.current[key])
-            fileInputRefs.current[key]!.value = "";
-        });
-      })
-      .catch((error) => {
-        toast.error(`Error: ${error.message || "Failed to insert property"}`);
+    if (Object.keys(sizeErrors).length > 0) {
+      newErrors.sizes = sizeErrors;
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (validateForm()) {
+      const stateName =
+        stateOptions.find((option) => option.value === formData.state)?.text ||
+        formData.state;
+      const cityName =
+        cityOptions.find((option) => option.value === formData.city)?.text ||
+        formData.city;
+      const isPlot = formData.propertySubType === "Plot";
+      const isLand = formData.propertySubType === "Land";
+      const formDataToSend = new FormData();
+      formDataToSend.append("project_name", formData.projectName);
+      formDataToSend.append("property_type", formData.propertyType);
+      formDataToSend.append("property_subtype", formData.propertySubType);
+      formDataToSend.append("builder_name", formData.builderName);
+      formDataToSend.append("state", stateName);
+      formDataToSend.append("city", cityName);
+      formDataToSend.append("locality", formData.locality);
+      formDataToSend.append("construction_status", formData.status);
+      formDataToSend.append(
+        "upcoming_project",
+        formData.isUpcoming ? "Yes" : "No"
+      );
+      formDataToSend.append("posted_by", user?.user_type.toString() || "2");
+      formDataToSend.append("user_id", user?.id.toString() || "2");
+      formDataToSend.append(
+        "rera_registered",
+        formData.isReraRegistered ? "Yes" : "No"
+      );
+      if (formData.isReraRegistered) {
+        formDataToSend.append("rera_number", formData.reraNumber);
+      }
+      formDataToSend.append("launch_type", formData.launchType);
+      if (formData.launchType === "Launched") {
+        formDataToSend.append("launched_date", formData.launchDate || "");
+      }
+      if (formData.status === "Under Construction") {
+        formDataToSend.append(
+          "possession_end_date",
+          formData.possessionEndDate || ""
+        );
+      }
+      formDataToSend.append(
+        "payment_mode",
+        JSON.stringify(formData.otpOptions)
+      );
+      formDataToSend.append(
+        "sizes",
+        JSON.stringify(
+          formData.sizes.map((size) => ({
+            plot_area: size.plotArea,
+            plotAreaUnits: size.plotAreaUnits,
+            lengthArea: size.lengthArea,
+            lengthAreaUnits: size.lengthAreaUnits,
+            build_up_area: size.build_up_area,
+            builtupAreaUnits: size.builtupAreaUnits,
+            carpet_area: size.carpetArea,
+            carpetAreaUnits: size.carpetAreaUnits,
+            sqft_price: size.sqftPrice,
+          }))
+        )
+      );
+      formDataToSend.append(
+        "around_this",
+        JSON.stringify(
+          formData.aroundProperty.map((entry) => ({
+            title: entry.place,
+            distance: entry.distance,
+          }))
+        )
+      );
+      if (formData.brochure) {
+        formDataToSend.append("brochure", formData.brochure);
+      }
+      if (formData.priceSheet) {
+        formDataToSend.append("price_sheet", formData.priceSheet);
+      }
+      formData.sizes.forEach((size) => {
+        if (size.floorPlan) {
+          formDataToSend.append("floor_plan", size.floorPlan);
+        }
       });
-  }
-};
-
+      dispatch(insertProperty(formDataToSend))
+        .unwrap()
+        .then(() => {
+          toast.success("Property inserted successfully");
+          setFormData(INITIAL_FORM_STATE);
+          setPlaceAroundProperty("");
+          setDistanceFromProperty("");
+          if (brochureInputRef.current) brochureInputRef.current.value = "";
+          if (priceSheetInputRef.current) priceSheetInputRef.current.value = "";
+          Object.keys(fileInputRefs.current).forEach((key) => {
+            if (fileInputRefs.current[key])
+              fileInputRefs.current[key]!.value = "";
+          });
+        })
+        .catch((error) => {
+          toast.error(`Error: ${error.message || "Failed to insert property"}`);
+        });
+    }
+  };
+  const renderError = (error: string | undefined) =>
+    error && <p className="text-red-500 text-sm mt-1">{error}</p>;
   return (
     <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
       <ComponentCard title="Create Property">
@@ -804,9 +661,7 @@ const handleSubmit = (e: React.FormEvent) => {
               placeholder="Enter builder name"
               className="dark:bg-gray-800"
             />
-            {errors.builderName && (
-              <p className="text-red-500 text-sm mt-1">{errors.builderName}</p>
-            )}
+            {renderError(errors.builderName)}
           </div>
           <div className="min-h-[80px] w-full max-w-md">
             <Label htmlFor="projectName">Project Name</Label>
@@ -818,9 +673,7 @@ const handleSubmit = (e: React.FormEvent) => {
               placeholder="Enter project name"
               className="dark:bg-gray-800"
             />
-            {errors.projectName && (
-              <p className="text-red-500 text-sm mt-1">{errors.projectName}</p>
-            )}
+            {renderError(errors.projectName)}
           </div>
           <div className="min-h-[80px] w-full max-w-md">
             <Dropdown
@@ -856,14 +709,12 @@ const handleSubmit = (e: React.FormEvent) => {
               className="dark:bg-gray-800"
               disabled={!formData.city}
             />
-            {errors.locality && (
-              <p className="text-red-500 text-sm mt-1">{errors.locality}</p>
-            )}
+            {renderError(errors.locality)}
           </div>
           <div className="min-h-[80px]">
             <Label htmlFor="propertyType">Property Type *</Label>
             <div className="flex space-x-4">
-              {propertyTypeOptions.map((option) => (
+              {PROPERTY_TYPE_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
@@ -880,9 +731,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 </button>
               ))}
             </div>
-            {errors.propertyType && (
-              <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>
-            )}
+            {renderError(errors.propertyType)}
           </div>
           {formData.propertyType && (
             <div className="min-h-[80px]">
@@ -905,11 +754,7 @@ const handleSubmit = (e: React.FormEvent) => {
                   </button>
                 ))}
               </div>
-              {errors.propertySubType && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.propertySubType}
-                </p>
-              )}
+              {renderError(errors.propertySubType)}
             </div>
           )}
           <div className="min-h-[80px]">
@@ -944,7 +789,7 @@ const handleSubmit = (e: React.FormEvent) => {
             <Select
               id="launchType"
               label="Launch Type"
-              options={launchTypeOptions}
+              options={LAUNCH_TYPES}
               value={formData.launchType}
               onChange={handleDropdownChange("launchType")}
               placeholder="Select launch type..."
@@ -959,9 +804,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 defaultDate={formData.launchDate || undefined}
                 onChange={handleLaunchDateChange}
               />
-              {errors.launchDate && (
-                <p className="text-red-500 text-sm mt-1">{errors.launchDate}</p>
-              )}
+              {renderError(errors.launchDate)}
             </div>
           )}
           {formData.status === "Under Construction" && (
@@ -973,11 +816,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 defaultDate={formData.possessionEndDate || undefined}
                 onChange={handlePossessionEndDateChange}
               />
-              {errors.possessionEndDate && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.possessionEndDate}
-                </p>
-              )}
+              {renderError(errors.possessionEndDate)}
             </div>
           )}
           <div className="min-h-[80px]">
@@ -1026,15 +865,13 @@ const handleSubmit = (e: React.FormEvent) => {
                 placeholder="Enter RERA number"
                 className="dark:bg-gray-800"
               />
-              {errors.reraNumber && (
-                <p className="text-red-500 text-sm mt-1">{errors.reraNumber}</p>
-              )}
+              {renderError(errors.reraNumber)}
             </div>
           )}
           <div className="min-h-[80px]">
             <Label htmlFor="otpOptions">Payment Modes *</Label>
             <div className="flex flex-wrap gap-4">
-              {otpOptions.map((option) => (
+              {PAYMENT_OPTIONS.map((option) => (
                 <button
                   key={option.value}
                   type="button"
@@ -1049,9 +886,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 </button>
               ))}
             </div>
-            {errors.otpOptions && (
-              <p className="text-red-500 text-sm mt-1">{errors.otpOptions}</p>
-            )}
+            {renderError(errors.otpOptions)}
           </div>
           <div className="min-h-[80px]">
             <Label htmlFor="isUpcoming">Is this an Upcoming Project?</Label>
@@ -1084,242 +919,250 @@ const handleSubmit = (e: React.FormEvent) => {
               </button>
             </div>
           </div>
- <div className="space-y-4">
-  <h3 className="text-lg font-semibold">Sizes</h3>
-  {formData.sizes.map((size, index) => {
-    const isPlot = formData.propertySubType === "Plot";
-    const isLand = formData.propertySubType === "Land";
-    const isPlotOrLand = isPlot || isLand;
-
-    return (
-      <div
-        key={size.id}
-        className="relative grid grid-cols-1 md:grid-cols-4 gap-4 border p-4 rounded-md"
-      >
-        {index > 0 && (
-          <button
-            type="button"
-            onClick={handleDeleteSize(size.id)}
-            className="absolute top-2 right-2 text-red-500 hover:text-red-700"
-            title="Delete Size"
-          >
-            <svg
-              className="w-5 h-5"
-              fill="none"
-              stroke="currentColor"
-              viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
-            >
-              <path
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                strokeWidth="2"
-                d="M6 18L18 6M6 6l12 12"
-              />
-            </svg>
-          </button>
-        )}
-        <div className="min-h-[80px]">
-          <div>
-            <Label htmlFor={`areaUnits-${size.id}`}>Area Units</Label>
-            <select
-              className="w-full border border-gray-300 rounded-md p-3 text-sm"
-              id={`areaUnits-${size.id}`}
-              value={size.areaUnits}
-              onChange={handleSizeChange(size.id, "areaUnits")}
-            >
-              <option value="">Select</option>
-              <option value="sq.ft">Sq.ft</option>
-              <option value="sq.yd">Sq.yd</option>
-              <option value="acres">Acres</option>
-            </select>
-            {errors.sizes?.[size.id]?.areaUnits && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.sizes[size.id].areaUnits}
-              </p>
-            )}
-          </div>
-          {isPlot && (
-            <div className="mb-2">
-              <div className="flex-1">
-                <Label htmlFor={`lengthArea-${size.id}`}>Length Area</Label>
-                <Input
-                  type="number"
-                  id={`lengthArea-${size.id}`}
-                  value={size.lengthArea || ""}
-                  onChange={handleSizeChange(size.id, "lengthArea")}
-                  placeholder="Enter length area"
-                  className="dark:bg-gray-800"
-                />
-                {errors.sizes?.[size.id]?.lengthArea && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.sizes[size.id].lengthArea}
-                  </p>
-                )}
-              </div>
-              <div className="flex-1">
-                <Label>Floor Plan (Optional)</Label>
-                <div className="flex items-center space-x-2">
-                  <input
-                    type="file"
-                    id={`floorPlan-${size.id}`}
-                    accept="image/jpeg,image/png,application/pdf"
-                    onChange={handleFileChange(size.id)}
-                    ref={(el) => (fileInputRefs.current[size.id] = el)}
-                    className="hidden"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => fileInputRefs.current[size.id]?.click()}
-                    className="px-2 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
-                  >
-                    Choose File
-                  </button>
-                  {size.floorPlan && (
+          <div className="space-y-4">
+            <h3 className="text-lg font-semibold">Sizes</h3>
+            {formData.sizes.map((size, index) => {
+              const isPlot = formData.propertySubType === "Plot";
+              const isLand = formData.propertySubType === "Land";
+              const isPlotOrLand = isPlot || isLand;
+              return (
+                <div
+                  key={size.id}
+                  className="relative grid grid-cols-1 md:grid-cols-4 gap-4 border p-4 rounded-md"
+                >
+                  {index > 0 && (
                     <button
                       type="button"
-                      onClick={handleDeleteFile(size.id)}
-                      className="text-red-500 hover:text-red-700"
+                      onClick={handleDeleteSize(size.id)}
+                      className="absolute top-2 right-2 text-red-500 hover:text-red-700"
+                      title="Delete Size"
                     >
-                      Delete
+                      <svg
+                        className="w-5 h-5"
+                        fill="none"
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                        xmlns="http://www.w3.org/2000/svg"
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          strokeWidth="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
                     </button>
                   )}
-                  <span className="text-sm text-gray-500 truncate max-w-[150px]">
-                    {size.floorPlan?.name || "No file chosen"}
-                  </span>
+                  {isPlot && (
+                    <div className="min-h-[80px]">
+                      <div className="mb-2">
+                        <div className="flex-1">
+                          <Label htmlFor={`lengthArea-${size.id}`}>
+                            Length Area
+                          </Label>
+                          <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
+                            <Input
+                              type="number"
+                              id={`lengthArea-${size.id}`}
+                              value={size.lengthArea || ""}
+                              onChange={handleSizeChange(size.id, "lengthArea")}
+                              placeholder="Enter length area"
+                              className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
+                            />
+                            <select
+                              id={`lengthAreaUnits-${size.id}`}
+                              value={size.lengthAreaUnits || ""}
+                              onChange={handleSizeChange(
+                                size.id,
+                                "lengthAreaUnits"
+                              )}
+                              className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
+                            >
+                              <option value="">Select</option>
+                              {AREA_UNIT_OPTIONS.map((unit) => (
+                                <option key={unit.value} value={unit.value}>
+                                  {unit.label}
+                                </option>
+                              ))}
+                            </select>
+                          </div>
+                          {renderError(errors.sizes?.[size.id]?.lengthArea)}
+                          {renderError(
+                            errors.sizes?.[size.id]?.lengthAreaUnits
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  <div className="min-h-[80px]">
+                    {isPlot ? (
+                      <>
+                        <Label htmlFor={`plotArea-${size.id}`}>Plot Area</Label>
+                        <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
+                          <Input
+                            type="number"
+                            id={`plotArea-${size.id}`}
+                            value={size.plotArea || ""}
+                            onChange={handleSizeChange(size.id, "plotArea")}
+                            placeholder="Enter plot area"
+                            className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
+                          />
+                          <select
+                            id={`plotAreaUnits-${size.id}`}
+                            value={size.plotAreaUnits || ""}
+                            onChange={handleSizeChange(
+                              size.id,
+                              "plotAreaUnits"
+                            )}
+                            className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
+                          >
+                            <option value="">Select</option>
+                            {AREA_UNIT_OPTIONS.map((unit) => (
+                              <option key={unit.value} value={unit.value}>
+                                {unit.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        {renderError(errors.sizes?.[size.id]?.plotArea)}
+                        {renderError(errors.sizes?.[size.id]?.plotAreaUnits)}
+                      </>
+                    ) : (
+                      <>
+                        <Label htmlFor={`build_up_area-${size.id}`}>
+                          {isLand ? "Length Area" : "BuildUp Area"}
+                        </Label>
+                        <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
+                          <Input
+                            type="number"
+                            id={`build_up_area-${size.id}`}
+                            value={size.build_up_area || ""}
+                            onChange={handleSizeChange(
+                              size.id,
+                              "build_up_area"
+                            )}
+                            placeholder={`Enter ${
+                              isLand ? "length area" : "built-up area"
+                            }`}
+                            className="w-full px-3 py-2 text-sm borderを行い
+                border-none focus:ring-0 dark:bg-gray-800"
+                          />
+                          <select
+                            id={`builtupAreaUnits-${size.id}`}
+                            value={size.builtupAreaUnits || ""}
+                            onChange={handleSizeChange(
+                              size.id,
+                              "builtupAreaUnits"
+                            )}
+                            className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
+                          >
+                            <option value="">Select</option>
+                            {AREA_UNIT_OPTIONS.map((unit) => (
+                              <option key={unit.value} value={unit.value}>
+                                {unit.label}
+                              </option>
+                            ))}
+                          </select>
+                        </div>
+                        {renderError(errors.sizes?.[size.id]?.build_up_area)}
+                        {renderError(errors.sizes?.[size.id]?.builtupAreaUnits)}
+                      </>
+                    )}
+                  </div>
+                  <div className="min-h-[80px]">
+                    <Label htmlFor={`carpetArea-${size.id}`}>
+                      {isPlotOrLand ? "Width Area" : "Carpet Area"}
+                    </Label>
+                    <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
+                      <Input
+                        type="number"
+                        id={`carpetArea-${size.id}`}
+                        value={size.carpetArea}
+                        onChange={handleSizeChange(size.id, "carpetArea")}
+                        placeholder={`Enter ${
+                          isPlotOrLand ? "width area" : "carpet area"
+                        }`}
+                        className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
+                      />
+                      <select
+                        id={`carpetAreaUnits-${size.id}`}
+                        value={size.carpetAreaUnits}
+                        onChange={handleSizeChange(size.id, "carpetAreaUnits")}
+                        className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
+                      >
+                        <option value="">Select</option>
+                        {AREA_UNIT_OPTIONS.map((unit) => (
+                          <option key={unit.value} value={unit.value}>
+                            {unit.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    {renderError(errors.sizes?.[size.id]?.carpetArea)}
+                    {renderError(errors.sizes?.[size.id]?.carpetAreaUnits)}
+                  </div>
+                  <div className="min-h-[80px]">
+                    <Label htmlFor={`sqftPrice-${size.id}`}>
+                      Square Feet Price
+                    </Label>
+                    <Input
+                      type="number"
+                      id={`sqftPrice-${size.id}`}
+                      value={size.sqftPrice}
+                      onChange={handleSizeChange(size.id, "sqftPrice")}
+                      placeholder="Enter square feet price"
+                      className="dark:bg-gray-800"
+                    />
+                    {renderError(errors.sizes?.[size.id]?.sqftPrice)}
+                  </div>
+                  {!isPlot && (
+                    <div className="mt-2 text-left">
+                      <Label>Floor Plan (Optional)</Label>
+                      <div className="flex items-center space-x-2">
+                        <input
+                          type="file"
+                          id={`floorPlan-${size.id}`}
+                          accept="image/jpeg,image/png,application/pdf"
+                          onChange={handleFileChange(size.id)}
+                          ref={(el) => (fileInputRefs.current[size.id] = el)}
+                          className="hidden"
+                        />
+                        <button
+                          type="button"
+                          onClick={() =>
+                            fileInputRefs.current[size.id]?.click()
+                          }
+                          className="px-2 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
+                        >
+                          Choose File
+                        </button>
+                        {size.floorPlan && (
+                          <button
+                            type="button"
+                            onClick={handleDeleteFile(size.id)}
+                            className="text-red-500 hover:text-red-700"
+                          >
+                            Delete
+                          </button>
+                        )}
+                        <span className="text-sm text-gray-500 truncate max-w-[150px]">
+                          {size.floorPlan?.name || "No file chosen"}
+                        </span>
+                      </div>
+                      {renderError(errors.sizes?.[size.id]?.floorPlan)}
+                    </div>
+                  )}
                 </div>
-                {errors.sizes?.[size.id]?.floorPlan && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.sizes[size.id].floorPlan}
-                  </p>
-                )}
-              </div>
-            </div>
-          )}
-        </div>
-        <div className="min-h-[80px]">
-          {isPlot ? (
-            <>
-              <Label htmlFor={`plotArea-${size.id}`}>Plot Area</Label>
-              <Input
-                type="number"
-                id={`plotArea-${size.id}`}
-                value={size.plotArea || ""}
-                onChange={handleSizeChange(size.id, "plotArea")}
-                placeholder="Enter plot area"
-                className="dark:bg-gray-800"
-              />
-              {errors.sizes?.[size.id]?.plotArea && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.sizes[size.id].plotArea}
-                </p>
-              )}
-            </>
-          ) : (
-            <>
-              <Label htmlFor={`buildupArea-${size.id}`}>
-                {isLand ? "Length Area" : "BuildUp Area"}
-              </Label>
-              <Input
-                type="number"
-                id={`buildupArea-${size.id}`}
-                value={size.buildupArea || ""}
-                onChange={handleSizeChange(size.id, "buildupArea")}
-                placeholder={`Enter ${isLand ? "length area" : "buildup area"}`}
-                className="dark:bg-gray-800"
-              />
-              {errors.sizes?.[size.id]?.buildupArea && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.sizes[size.id].buildupArea}
-                </p>
-              )}
-            </>
-          )}
-        </div>
-        <div className="min-h-[80px]">
-          <Label htmlFor={`carpetArea-${size.id}`}>
-            {isPlotOrLand ? "Width Area" : "Carpet Area"}
-          </Label>
-          <Input
-            type="number"
-            id={`carpetArea-${size.id}`}
-            value={size.carpetArea}
-            onChange={handleSizeChange(size.id, "carpetArea")}
-            placeholder={`Enter ${isPlotOrLand ? "width area" : "carpet area"}`}
-            className="dark:bg-gray-800"
-          />
-          {errors.sizes?.[size.id]?.carpetArea && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.sizes[size.id].carpetArea}
-            </p>
-          )}
-        </div>
-        <div className="min-h-[80px]">
-          <Label htmlFor={`sqftPrice-${size.id}`}>Square Feet Price</Label>
-          <Input
-            type="number"
-            id={`sqftPrice-${size.id}`}
-            value={size.sqftPrice}
-            onChange={handleSizeChange(size.id, "sqftPrice")}
-            placeholder="Enter square feet price"
-            className="dark:bg-gray-800"
-          />
-          {errors.sizes?.[size.id]?.sqftPrice && (
-            <p className="text-red-500 text-sm mt-1">
-              {errors.sizes[size.id].sqftPrice}
-            </p>
-          )}
-          {!isPlot && (
-            <div className="mt-2 text-left">
-              <Label>Floor Plan (Optional)</Label>
-              <div className="flex items-center space-x-2">
-                <input
-                  type="file"
-                  id={`floorPlan-${size.id}`}
-                  accept="image/jpeg,image/png,application/pdf"
-                  onChange={handleFileChange(size.id)}
-                  ref={(el) => (fileInputRefs.current[size.id] = el)}
-                  className="hidden"
-                />
-                <button
-                  type="button"
-                  onClick={() => fileInputRefs.current[size.id]?.click()}
-                  className="px-2 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
-                >
-                  Choose File
-                </button>
-                {size.floorPlan && (
-                  <button
-                    type="button"
-                    onClick={handleDeleteFile(size.id)}
-                    className="text-red-500 hover:text-red-700"
-                  >
-                    Delete
-                  </button>
-                )}
-                <span className="text-sm text-gray-500 truncate max-w-[150px]">
-                  {size.floorPlan?.name || "No file chosen"}
-                </span>
-              </div>
-              {errors.sizes?.[size.id]?.floorPlan && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.sizes[size.id].floorPlan}
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      </div>
-    );
-  })}
-  <button
-    type="button"
-    onClick={handleAddSize}
-    className="px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
-  >
-    Add Size
-  </button>
-</div>
+              );
+            })}
+            <button
+              type="button"
+              onClick={handleAddSize}
+              className="px-4 py-2 text-white bg-[#1D3A76] rounded-md hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500"
+            >
+              Add Size
+            </button>
+          </div>
           <div className="space-y-4">
             <Label htmlFor="aroundProperty" className="mt-4">
               Around This Property *
@@ -1333,26 +1176,24 @@ const handleSubmit = (e: React.FormEvent) => {
                 onChange={(e) => setPlaceAroundProperty(e.target.value)}
                 className="dark:bg-gray-800"
               />
-
-              <div className="flex w-[40%] space-x-2">
+              <div className="flex w-auto border border-gray-300 dark:border-gray-700 rounded-md overflow-hidden">
                 <Input
                   type="number"
                   id="aroundProperty-distance"
                   placeholder="Distance"
                   value={distanceFromProperty}
                   onChange={(e) => setDistanceFromProperty(e.target.value)}
-                  className="dark:bg-gray-800"
+                  className=" px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800 dark:text-white"
                 />
                 <select
                   value={distanceUnit}
                   onChange={(e) => setDistanceUnit(e.target.value)}
-                  className="rounded-md px-2 py-2 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-700"
+                  className="px-3 py-2 text-sm border-l border-gray-300 dark:border-gray-700 bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white"
                 >
-                  <option value="m">m</option>
-                  <option value="km">km</option>
+                  <option value="M">M</option>
+                  <option value="KM">KM</option>
                 </select>
               </div>
-
               <button
                 type="button"
                 onClick={handleAddAroundProperty}
@@ -1361,12 +1202,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 Add
               </button>
             </div>
-
-            {errors.aroundProperty && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.aroundProperty}
-              </p>
-            )}
+            {renderError(errors.aroundProperty)}
             {formData.aroundProperty.length > 0 && (
               <div className="mt-4">
                 <ul className="space-y-2">
@@ -1422,9 +1258,7 @@ const handleSubmit = (e: React.FormEvent) => {
                 {formData.brochure ? formData.brochure.name : "No file chosen"}
               </span>
             </div>
-            {errors.brochure && (
-              <p className="text-red-500 text-sm mt-1">{errors.brochure}</p>
-            )}
+            {renderError(errors.brochure)}
           </div>
           <div className=" mb-2 space-y-1">
             <Label>Upload Price Sheet (Optional)</Label>
@@ -1459,9 +1293,7 @@ const handleSubmit = (e: React.FormEvent) => {
                   : "No file chosen"}
               </span>
             </div>
-            {errors.priceSheet && (
-              <p className="text-red-500 text-sm mt-1">{errors.priceSheet}</p>
-            )}
+            {renderError(errors.priceSheet)}
           </div>
           <div className="flex justify-center">
             <button

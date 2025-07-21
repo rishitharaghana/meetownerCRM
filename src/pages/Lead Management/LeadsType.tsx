@@ -157,7 +157,6 @@ const LeadsType: React.FC = () => {
     (localPage - 1) * itemsPerPage,
     localPage * itemsPerPage
   );
-  console.log("currentLeads: ", currentLeads);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {

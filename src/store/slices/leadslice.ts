@@ -1,9 +1,7 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
-
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
 import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse, BookingDoneResponse, UpdateLeadByEmployeeResponse } from "../../types/LeadModel";
-
 const initialState: LeadState = {
   leads: null,
   cpLeads: null,
@@ -14,7 +12,6 @@ const initialState: LeadState = {
   loading: false,
   error: null,
 };
-
 export const getLeadsByUser = createAsyncThunk<
   Lead[],
   {
@@ -36,15 +33,13 @@ export const getLeadsByUser = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
         ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
         ...(assigned_id && { assigned_id: assigned_id.toString() }),
-        ...(status_id !== undefined && { status_id: status_id.toString() }), // Conditionally include status_id
+        ...(status_id !== undefined && { status_id: status_id.toString() }),
       });
-
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/getLeadsByUser?${queryParams}`,
         {
@@ -53,11 +48,9 @@ export const getLeadsByUser = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No leads found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -96,13 +89,11 @@ export const getLeadsByID = createAsyncThunk<
     { lead_added_user_type, lead_added_user_id, assigned_user_type, assigned_id, status_id },
     { rejectWithValue }
   ) => {
-    console.log("assigned_id: ", assigned_id);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
@@ -111,8 +102,6 @@ export const getLeadsByID = createAsyncThunk<
         ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
         ...(status_id !== undefined && { status_id: status_id.toString() }), 
       });
-
-      console.log("queryParams: ", queryParams);
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/leads/getLeadsChannelPartner?${queryParams}`,
         {
@@ -121,11 +110,9 @@ export const getLeadsByID = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No leads found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -147,7 +134,6 @@ export const getLeadsByID = createAsyncThunk<
     }
   }
 );
-
 export const getLeadUpdatesByLeadId = createAsyncThunk<
   LeadUpdate[],
   {
@@ -164,13 +150,11 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const queryParams = new URLSearchParams({
         lead_id: lead_id.toString(),
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
       });
-
       const response = await ngrokAxiosInstance.get<LeadUpdatesResponse>(
         `/api/v1/leads/getLeadUpdatesByLeadId?${queryParams}`,
         {
@@ -179,11 +163,9 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No lead updates found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -205,15 +187,13 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
     }
   }
 );
-
-
 export const getBookedLeads = createAsyncThunk<
   Lead[],
   {
     lead_added_user_id: number;
     lead_added_user_type: number;
-    assigned_user_type?: number; // Made optional
-    assigned_id?: number; // Made optional
+    assigned_user_type?: number;
+    assigned_id?: number;
   },
   { rejectValue: string }
 >(
@@ -227,16 +207,12 @@ export const getBookedLeads = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const queryParams = new URLSearchParams({
         lead_added_user_id: lead_added_user_id.toString(),
         lead_added_user_type: lead_added_user_type.toString(),
         ...(assigned_user_type !== undefined && { assigned_user_type: assigned_user_type.toString() }),
         ...(assigned_id !== undefined && { assigned_id: assigned_id.toString() }),
       });
-
-      console.log("getBookedLeads query params:", queryParams.toString()); // Debug log
-
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/leads/bookedleads?${queryParams}`,
         {
@@ -245,11 +221,9 @@ export const getBookedLeads = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No booked leads found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -271,7 +245,6 @@ export const getBookedLeads = createAsyncThunk<
     }
   }
 );
-
 export const getLeadStatuses = createAsyncThunk<
   LeadStatus[],
   void,
@@ -284,7 +257,6 @@ export const getLeadStatuses = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const response = await ngrokAxiosInstance.get<LeadStatusResponse>(
         `/api/v1/leads/leadstatus`,
         {
@@ -293,11 +265,9 @@ export const getLeadStatuses = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No lead statuses found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -319,7 +289,6 @@ export const getLeadStatuses = createAsyncThunk<
     }
   }
 );
-
 export const getLeadSources = createAsyncThunk<
   LeadSource[],
   void,
@@ -332,7 +301,6 @@ export const getLeadSources = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const response = await ngrokAxiosInstance.get<LeadSourceResponse>(
         `/api/v1/leads/leadsource`,
         {
@@ -341,11 +309,9 @@ export const getLeadSources = createAsyncThunk<
           },
         }
       );
-
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No lead sources found");
       }
-
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -367,7 +333,6 @@ export const getLeadSources = createAsyncThunk<
     }
   }
 );
-
 export const insertLead = createAsyncThunk<
   InsertLeadResponse,
   {
@@ -409,8 +374,6 @@ export const insertLead = createAsyncThunk<
         lead_added_user_type: leadData.lead_added_user_type,
         lead_added_user_id: leadData.lead_added_user_id,
       };
-
-  
       if (leadData.lead_source_id === 6) {
         if (
           !leadData.assigned_user_type ||
@@ -425,7 +388,6 @@ export const insertLead = createAsyncThunk<
         payload.assigned_name = leadData.assigned_name;
         payload.assigned_emp_number = leadData.assigned_emp_number;
       }
-
       const response = await ngrokAxiosInstance.post<InsertLeadResponse>(
         `/api/v1/insertLead`,
         payload,
@@ -435,11 +397,9 @@ export const insertLead = createAsyncThunk<
           },
         }
       );
-
       if (response.data.status !== "success") {
         return rejectWithValue(response.data.message || "Failed to insert lead");
       }
-
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -461,7 +421,6 @@ export const insertLead = createAsyncThunk<
     }
   }
 );
-
 export const assignLeadToEmployee = createAsyncThunk<
   AssignLeadResponse,
   {
@@ -486,13 +445,10 @@ export const assignLeadToEmployee = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
-     
       const payload = {
         ...assignData,
         status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
       };
-
       const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
         `/api/v1/leads/assignLeadToEmployee`,
         payload,
@@ -502,11 +458,9 @@ export const assignLeadToEmployee = createAsyncThunk<
           },
         }
       );
-
       if (response.data.status !== "success") {
         return rejectWithValue(response.data.message || "Failed to assign lead");
       }
-
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -530,7 +484,6 @@ export const assignLeadToEmployee = createAsyncThunk<
     }
   }
 );
-
 export const markLeadAsBooked = createAsyncThunk<
   BookingDoneResponse,
   {
@@ -568,7 +521,6 @@ export const markLeadAsBooked = createAsyncThunk<
       if (!token) {
         return rejectWithValue('No authentication token found. Please log in.');
       }
-
       const payload = {
         lead_id,
         lead_added_user_type,
@@ -581,7 +533,6 @@ export const markLeadAsBooked = createAsyncThunk<
         sqft,
         budget,
       };
-
       const response = await ngrokAxiosInstance.post<BookingDoneResponse>(
         '/api/v1/leads/bookingdone',
         payload,
@@ -591,11 +542,9 @@ export const markLeadAsBooked = createAsyncThunk<
           },
         }
       );
-
       if (response.data.status !== 'success') {
         return rejectWithValue(response.data.message || 'Failed to mark lead as booked');
       }
-
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -619,7 +568,6 @@ export const markLeadAsBooked = createAsyncThunk<
     }
   }
 );
-
 export const updateLeadByEmployee = createAsyncThunk<
   UpdateLeadByEmployeeResponse,
   {
@@ -643,7 +591,6 @@ export const updateLeadByEmployee = createAsyncThunk<
       if (!token) {
         return rejectWithValue("No authentication token found. Please log in.");
       }
-
       const response = await ngrokAxiosInstance.post<UpdateLeadByEmployeeResponse>(
         `/api/v1/leads/updateLeadByEmployee`,
         updateData,
@@ -653,11 +600,9 @@ export const updateLeadByEmployee = createAsyncThunk<
           },
         }
       );
-
       if (response.data.status !== "success") {
         return rejectWithValue(response.data.message || "Failed to update lead");
       }
-
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -681,8 +626,6 @@ export const updateLeadByEmployee = createAsyncThunk<
     }
   }
 );
-
-
 const leadSlice = createSlice({
   name: "lead",
   initialState,
@@ -757,7 +700,6 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-      
       .addCase(getLeadSources.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -776,7 +718,6 @@ const leadSlice = createSlice({
       })
       .addCase(insertLead.fulfilled, (state) => {
         state.loading = false;
-        
       })
       .addCase(insertLead.rejected, (state, action) => {
         state.loading = false;
@@ -798,7 +739,6 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
        .addCase(markLeadAsBooked.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -808,7 +748,6 @@ const leadSlice = createSlice({
         if (state.leads) {
           state.leads = state.leads.filter((lead) => lead.lead_id !== action.payload.lead_id);
         }
-        
       })
       .addCase(markLeadAsBooked.rejected, (state, action) => {
         state.loading = false;
@@ -827,6 +766,5 @@ const leadSlice = createSlice({
       });
   },
 });
-
 export const { clearLeads } = leadSlice.actions;
 export default leadSlice.reducer;
