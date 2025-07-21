@@ -1035,10 +1035,10 @@ const handleAddAroundProperty = () => {
                 )}
                 <div className="min-h-[80px]">
                   <Label htmlFor={`buildupArea-${size.id}`}>
-                    Buildup Area (sq.ft)
+                    BuildUp Area
                   </Label>
                   <Input
-                    type="text"
+                    type="number"
                     id={`buildupArea-${size.id}`}
                     value={size.buildupArea}
                     onChange={handleSizeChange(size.id, "buildupArea")}

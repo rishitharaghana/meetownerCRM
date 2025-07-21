@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from 'react-redux';
 import Button from '../../components/ui/button/Button';
 import Timeline, { TimelineEvent } from '../../components/ui/timeline/Timeline';
 import { AppDispatch, RootState } from '../../store/store';
-import { getLeadUpdatesByLeadId } from '../../store/slices/leadslice';
+import { getLeadSources, getLeadUpdatesByLeadId } from '../../store/slices/leadslice';
 import { Lead, LeadUpdate } from '../../types/LeadModel';
 import { BUILDER_USER_TYPE } from './CustomComponents';
 import toast from 'react-hot-toast';
@@ -17,6 +17,8 @@ const ViewLeadDetails = () => {
   const { leads, leadUpdates, loading, error } = useSelector((state: RootState) => state.lead);
   const property = location.state?.property as Lead;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
+  const leadSources = useSelector((state: RootState) => state.lead.leadSources);
+
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
@@ -24,6 +26,7 @@ const ViewLeadDetails = () => {
       toast.error('Please log in to view lead details');
       return;
     }
+
 
     if (!property) {
       navigate('/leads');
@@ -59,6 +62,10 @@ const ViewLeadDetails = () => {
       );
     }
   }, [property, navigate, dispatch, isAuthenticated, user]);
+
+  useEffect(() => {
+  dispatch(getLeadSources());
+}, [dispatch]);
 
   const lead = typeof property === 'number' ? leads?.find((l) => l.lead_id === property) : property;
 
@@ -135,9 +142,16 @@ const ViewLeadDetails = () => {
             <p>
               <strong>Budget:</strong> {lead.budget || 'N/A'}
             </p>
-            <p>
-              <strong>Lead Source:</strong> {lead.lead_source_id}
-            </p>
+        <p>
+  <strong>Lead Source:</strong>{" "}
+  {
+    leadSources?.find(
+      (source) => String(source.lead_source_id) === String(lead.lead_source_id)
+    )?.lead_source_name || lead.lead_source_id
+  }
+</p>   
+
+
             <p>
               <strong>Created:</strong> {lead.created_date} {lead.created_time}
             </p>
