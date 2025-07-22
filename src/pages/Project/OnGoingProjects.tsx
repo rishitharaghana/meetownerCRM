@@ -462,8 +462,8 @@ const OnGoingProjects: React.FC = () => {
                   onClick={() => goToPage(page as number)}
                   className={
                     page === currentPage
-                      ? "bg-[#7D23E0] text-white"
-                      : "text-gray-600"
+                      ? ""
+                      : ""
                   }
                 >
                   {page}
