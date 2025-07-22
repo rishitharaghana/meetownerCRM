@@ -19,6 +19,7 @@ import toast from "react-hot-toast";
 import Dropdown from "../../components/form/Dropdown";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
+import RegistrstionLink from "./RegistrationLink";
 
 interface FormData {
   name: string;
@@ -219,8 +220,8 @@ const AddChannelPartner = () => {
       pan_card_number: formData.panCardNumber,
       aadhar_number: formData.aadharNumber,
       photo: formData.photo || undefined,
-      account_number: formData.accountNumber, 
-      ifsc_code: formData.ifscCode, 
+      account_number: formData.accountNumber,
+      ifsc_code: formData.ifscCode,
     };
 
     const formDataToSend = new FormData();
@@ -256,8 +257,8 @@ const AddChannelPartner = () => {
         reraNumber: "",
         address: "",
         photo: null,
-        accountNumber: "", 
-        ifscCode: "", 
+        accountNumber: "",
+        ifscCode: "",
       });
       setErrors({});
     } catch (err) {
@@ -268,11 +269,13 @@ const AddChannelPartner = () => {
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
       <div className="max-w-2xl mx-auto">
-        <div className="text-center mb-4">
-          <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Channel Partner</h1>
-          <p className="text-gray-600">Fill in the details below to add a new partner</p>
+        <div className="flex justify-between items-center mb-8">
+          <div className="text-center mb-4">
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Channel Partner</h1>
+            <p className="text-gray-600">Fill in the details below to add a new partner</p>
+          </div>
+          <RegistrstionLink />
         </div>
-
         <form
           onSubmit={handleSubmit}
           className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6"
@@ -303,7 +306,7 @@ const AddChannelPartner = () => {
 
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Mail size={16} /> Email 
+              <Mail size={16} /> Email
             </label>
             <Input
               type="email"
@@ -462,7 +465,7 @@ const AddChannelPartner = () => {
 
           <div>
             <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Image size={16} /> Photo 
+              <Image size={16} /> Photo
             </label>
             <input
               type="file"
