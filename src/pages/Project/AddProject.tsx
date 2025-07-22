@@ -108,11 +108,10 @@ const INITIAL_FORM_STATE: FormData = {
   sizes: [
     {
       id: `${Date.now()}-1`,
-      areaUnits: "",
+   
       plotArea: "",
       build_up_area: "",
       carpetArea: "",
-      lengthArea: "",
       floorPlan: null,
       sqftPrice: "",
       lengthArea: "",
@@ -953,47 +952,7 @@ export default function AddProject() {
                       </svg>
                     </button>
                   )}
-                  {isPlot && (
-                    <div className="min-h-[80px]">
-                      <div className="mb-2">
-                        <div className="flex-1">
-                          <Label htmlFor={`lengthArea-${size.id}`}>
-                            Length Area
-                          </Label>
-                          <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
-                            <Input
-                              type="number"
-                              id={`lengthArea-${size.id}`}
-                              value={size.lengthArea || ""}
-                              onChange={handleSizeChange(size.id, "lengthArea")}
-                              placeholder="Enter length area"
-                              className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
-                            />
-                            <select
-                              id={`lengthAreaUnits-${size.id}`}
-                              value={size.lengthAreaUnits || ""}
-                              onChange={handleSizeChange(
-                                size.id,
-                                "lengthAreaUnits"
-                              )}
-                              className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
-                            >
-                              <option value="">Select</option>
-                              {AREA_UNIT_OPTIONS.map((unit) => (
-                                <option key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </option>
-                              ))}
-                            </select>
-                          </div>
-                          {renderError(errors.sizes?.[size.id]?.lengthArea)}
-                          {renderError(
-                            errors.sizes?.[size.id]?.lengthAreaUnits
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  )}
+               
                   <div className="min-h-[80px]">
                     {isPlot ? (
                       <>
@@ -1069,6 +1028,47 @@ export default function AddProject() {
                       </>
                     )}
                   </div>
+                     {isPlot && (
+                    <div className="min-h-[80px]">
+                      <div className="mb-2">
+                        <div className="flex-1">
+                          <Label htmlFor={`lengthArea-${size.id}`}>
+                            Length Area
+                          </Label>
+                          <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
+                            <Input
+                              type="num"
+                              id={`lengthArea-${size.id}`}
+                              value={size.lengthArea || ""}
+                              onChange={handleSizeChange(size.id, "lengthArea")}
+                              placeholder="Enter length area"
+                              className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
+                            />
+                            {/* <select
+                              id={`lengthAreaUnits-${size.id}`}
+                              value={size.lengthAreaUnits || ""}
+                              onChange={handleSizeChange(
+                                size.id,
+                                "lengthAreaUnits"
+                              )}
+                              className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
+                            >
+                              <option value="">Select</option>
+                              {AREA_UNIT_OPTIONS.map((unit) => (
+                                <option key={unit.value} value={unit.value}>
+                                  {unit.label}
+                                </option>
+                              ))}
+                            </select> */}
+                          </div>
+                          {renderError(errors.sizes?.[size.id]?.lengthArea)}
+                          {renderError(
+                            errors.sizes?.[size.id]?.lengthAreaUnits
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  )}
                   <div className="min-h-[80px]">
                     <Label htmlFor={`carpetArea-${size.id}`}>
                       {isPlotOrLand ? "Width Area" : "Carpet Area"}
@@ -1084,7 +1084,7 @@ export default function AddProject() {
                         }`}
                         className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
                       />
-                      <select
+                      {/* <select
                         id={`carpetAreaUnits-${size.id}`}
                         value={size.carpetAreaUnits}
                         onChange={handleSizeChange(size.id, "carpetAreaUnits")}
@@ -1096,7 +1096,7 @@ export default function AddProject() {
                             {unit.label}
                           </option>
                         ))}
-                      </select>
+                      </select> */}
                     </div>
                     {renderError(errors.sizes?.[size.id]?.carpetArea)}
                     {renderError(errors.sizes?.[size.id]?.carpetAreaUnits)}
