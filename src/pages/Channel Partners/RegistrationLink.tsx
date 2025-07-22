@@ -3,11 +3,11 @@ import { useSelector } from 'react-redux';
 import { RootState } from '../../store/store';
 
 const SharePartnerLink: React.FC = () => {
-  const { selectedUser } = useSelector((state: RootState) => state.user);
+  const { user } = useSelector((state: RootState) => state.auth);
   const registrationLink = 'https://crm.mntechs.com/partners/addpartners';
   
   const message = encodeURIComponent(
-    `Join as a Channel Partner!\nBuilder Name: ${selectedUser?.name || 'N/A'}\nCompany Name: ${selectedUser?.company_name || 'N/A'}\nRegister now: ${registrationLink}`
+    `Join as a Channel Partner!\nBuilder Name: ${user?.name || 'N/A'}\nCompany Name: ${user?.company_name || 'N/A'}\nRegister now: ${registrationLink}`
   );
   
   const whatsappLink = `https://wa.me/?text=${message}`;
