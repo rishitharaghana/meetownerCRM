@@ -35,6 +35,8 @@ const OnGoingProjects: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
   const [selectedProject, setSelectedProject] = useState<Project | null>(null); // State for selected project
+const defaultImage = " "; 
+
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -314,6 +316,16 @@ const OnGoingProjects: React.FC = () => {
               key={project.property_id}
               className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
+                  <div className="relative w-full h-48 overflow-hidden">
+          <img
+            src={project.property_image || defaultImage} 
+            alt={project.project_name}
+            className="w-full h-full object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).src = defaultImage; 
+            }}
+          />
+        </div>
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>

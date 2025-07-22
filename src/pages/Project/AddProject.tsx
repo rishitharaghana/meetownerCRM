@@ -28,7 +28,7 @@ interface SizeEntry {
   build_up_area?: string;
   builtupAreaUnits?: string;
   carpetArea: string;
-  carpetAreaUnits: string;
+  // carpetAreaUnits: string;
   lengthArea?: string;
   lengthAreaUnits?: string;
   floorPlan: File | null;
@@ -55,6 +55,7 @@ interface FormData {
   aroundProperty: AroundPropertyEntry[];
   brochure: File | null;
   priceSheet: File | null;
+  propertyImage: File | null;
   isUpcoming: boolean;
   status: "Under Construction" | "Ready to Move";
   launchType: "Pre Launch" | "Soft Launch" | "Launched";
@@ -108,7 +109,7 @@ const INITIAL_FORM_STATE: FormData = {
   sizes: [
     {
       id: `${Date.now()}-1`,
-   
+
       plotArea: "",
       build_up_area: "",
       carpetArea: "",
@@ -117,12 +118,13 @@ const INITIAL_FORM_STATE: FormData = {
       lengthArea: "",
       lengthAreaUnits: "",
       builtupAreaUnits: "",
-      carpetAreaUnits: "",
+      // carpetAreaUnits: "",
     },
   ],
   aroundProperty: [],
   brochure: null,
   priceSheet: null,
+  propertyImage: null,
   isUpcoming: false,
   status: "Ready to Move",
   launchType: "Pre Launch",
@@ -147,6 +149,7 @@ export default function AddProject() {
   const brochureInputRef = useRef<HTMLInputElement>(null);
   const priceSheetInputRef = useRef<HTMLInputElement>(null);
   const fileInputRefs = useRef<{ [key: string]: HTMLInputElement | null }>({});
+  const propertyImageInputRef = useRef<HTMLInputElement>(null);
   const { citiesQuery, statesQuery } = usePropertyQueries();
   const citiesResult = citiesQuery(
     formData.state ? parseInt(formData.state) : undefined
@@ -368,6 +371,51 @@ export default function AddProject() {
       },
     }));
   };
+  // const handlePropertyImageButtonClick =() =>{
+  //   if(propertyImageInputRef.current){
+  //     propertyImageInputRef.current.click();
+  //   }
+  // };
+  const handlePropertyImageChange = (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const file = e.target.files?.[0] || null;
+    if (file) {
+      const validFileTypes = ["image/jpeg", "image/png"];
+      const maxSize = 5 * 1024 * 1024; // 5MB
+      if (!validFileTypes.includes(file.type)) {
+        setErrors((prev) => ({
+          ...prev,
+          propertyImage: "Only JPEG and PNG images are allowed",
+        }));
+        return;
+      }
+      if (file.size > maxSize) {
+        setErrors((prev) => ({
+          ...prev,
+          propertyImage: "Image must be less than 5MB",
+        }));
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        propertyImage: file,
+      }));
+      setErrors((prev) => ({ ...prev, propertyImage: undefined }));
+    }
+  };
+
+  const handleDeletePropertyImage = () => {
+    setFormData((prev) => ({
+      ...prev,
+      propertyImage: null,
+    }));
+    setErrors((prev) => ({ ...prev, propertyImage: undefined }));
+    if (propertyImageInputRef.current) {
+      propertyImageInputRef.current.value = "";
+    }
+  };
+
   const handlePriceSheetButtonClick = () => {
     if (priceSheetInputRef.current) {
       priceSheetInputRef.current.click();
@@ -430,7 +478,7 @@ export default function AddProject() {
           sqftPrice: "",
           lengthAreaUnits: "",
           builtupAreaUnits: "",
-          carpetAreaUnits: "",
+          // carpetAreaUnits: "",
         },
       ],
     }));
@@ -600,7 +648,7 @@ export default function AddProject() {
             build_up_area: size.build_up_area,
             builtupAreaUnits: size.builtupAreaUnits,
             carpet_area: size.carpetArea,
-            carpetAreaUnits: size.carpetAreaUnits,
+            // carpetAreaUnits: size.carpetAreaUnits,
             sqft_price: size.sqftPrice,
           }))
         )
@@ -620,6 +668,10 @@ export default function AddProject() {
       if (formData.priceSheet) {
         formDataToSend.append("price_sheet", formData.priceSheet);
       }
+      if (formData.propertyImage) {
+        formDataToSend.append("property_image", formData.propertyImage); // Single image
+      }
+
       formData.sizes.forEach((size) => {
         if (size.floorPlan) {
           formDataToSend.append("floor_plan", size.floorPlan);
@@ -952,7 +1004,7 @@ export default function AddProject() {
                       </svg>
                     </button>
                   )}
-               
+
                   <div className="min-h-[80px]">
                     {isPlot ? (
                       <>
@@ -1003,8 +1055,7 @@ export default function AddProject() {
                             placeholder={`Enter ${
                               isLand ? "length area" : "built-up area"
                             }`}
-                            className="w-full px-3 py-2 text-sm borderを行い
-                border-none focus:ring-0 dark:bg-gray-800"
+                            className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
                           />
                           <select
                             id={`builtupAreaUnits-${size.id}`}
@@ -1028,7 +1079,7 @@ export default function AddProject() {
                       </>
                     )}
                   </div>
-                     {isPlot && (
+                  {isPlot && (
                     <div className="min-h-[80px]">
                       <div className="mb-2">
                         <div className="flex-1">
@@ -1099,7 +1150,7 @@ export default function AddProject() {
                       </select> */}
                     </div>
                     {renderError(errors.sizes?.[size.id]?.carpetArea)}
-                    {renderError(errors.sizes?.[size.id]?.carpetAreaUnits)}
+                    {/* {renderError(errors.sizes?.[size.id]?.carpetAreaUnits)} */}
                   </div>
                   <div className="min-h-[80px]">
                     <Label htmlFor={`sqftPrice-${size.id}`}>
@@ -1294,6 +1345,41 @@ export default function AddProject() {
               </span>
             </div>
             {renderError(errors.priceSheet)}
+          </div>
+          <div className="space-y-1">
+            <Label>Upload Property Image (Optional)</Label>
+            <div className="flex items-center space-x-2">
+              <input
+                type="file"
+                id="propertyImage"
+                ref={propertyImageInputRef}
+                accept="image/jpeg,image/png"
+                onChange={handlePropertyImageChange}
+                className="hidden"
+              />
+              <button
+                type="button"
+                onClick={() => propertyImageInputRef.current?.click()}
+                className="px-4 py-2 text-sm font-semibold text-white bg-[#1D3A76] rounded-md hover:bg-blue-900"
+              >
+                Choose Image
+              </button>
+              {formData.propertyImage && (
+                <div className="flex items-center">
+                  <span className="text-sm text-gray-500 truncate max-w-[150px]">
+                    {formData.propertyImage.name}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleDeletePropertyImage}
+                    className="ml-2 text-red-500 hover:text-red-700"
+                  >
+                    Delete
+                  </button>
+                </div>
+              )}
+            </div>
+            {renderError(errors.propertyImage)}
           </div>
           <div className="flex justify-center">
             <button

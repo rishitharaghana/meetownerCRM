@@ -1,5 +1,4 @@
-
-import  { useEffect } from "react";
+import { useEffect } from "react";
 import { useParams, useLocation, useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
@@ -12,8 +11,12 @@ const ProjectDetailsPage = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { selectedProject, loading, error } = useSelector((state: RootState) => state.projects);
+  const { selectedProject, loading, error } = useSelector(
+    (state: RootState) => state.projects
+  );
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+
+const defaultImage = "https://via.placeholder.com/400x300"; 
 
 
   const { property_id, posted_by, user_id } = (location.state || {}) as {
@@ -22,14 +25,13 @@ const ProjectDetailsPage = () => {
     user_id?: string;
   };
 
-
   useEffect(() => {
     if (isAuthenticated && user && property_id && posted_by && user_id) {
       dispatch(
         fetchProjectById({
           property_id: Number(property_id),
-          admin_user_type: Number(posted_by), 
-          admin_user_id: Number(user_id), 
+          admin_user_type: Number(posted_by),
+          admin_user_id: Number(user_id),
         })
       );
     }
@@ -89,6 +91,18 @@ const ProjectDetailsPage = () => {
 
   return (
     <div className="max-w-4xl mx-auto p-6">
+      {/* Image Section */}
+      <div className="relative w-full h-64 mb-6 overflow-hidden rounded-lg shadow-md">
+        <img
+          src={selectedProject.property_image || defaultImage} // Use project image or fallback
+          alt={selectedProject.project_name}
+          className="w-full h-full object-cover"
+          onError={(e) => {
+            (e.target as HTMLImageElement).src = defaultImage; // Fallback if image fails
+          }}
+        />
+      </div>
+
       <div className="flex items-center justify-between mb-6">
         <h1 className="text-3xl font-bold">{selectedProject.project_name}</h1>
         <Button
@@ -100,9 +114,6 @@ const ProjectDetailsPage = () => {
           Back
         </Button>
       </div>
-
-     
-      
 
       <div className="space-y-4 text-gray-700">
         <p>

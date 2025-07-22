@@ -42,6 +42,7 @@ export interface Project {
   sizes: Size[];
   around_this: AroundThis[];
   payment_modes: PaymentMode[];
+  property_image?: string; 
 }
 
 export interface ProjectsResponse {
@@ -52,6 +53,7 @@ export interface ProjectsResponse {
 export interface InsertPropertyResponse {
   message: string;
   property_id: number;
+  image?: string;
 }
 
 export interface StopLeadsResponse {

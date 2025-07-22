@@ -236,11 +236,24 @@ const UpComingProjects: React.FC = () => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
+          const defaultImage = " "; // Temporary placeholder
+
+
           return (
             <div
               key={project.property_id}
               className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
+              <div className="relative w-full h-48 overflow-hidden">
+                <img
+                  src={project.property_image || defaultImage} 
+                  alt={project.project_name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = defaultImage; 
+                  }}
+                />
+              </div>
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
