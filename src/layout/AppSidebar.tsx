@@ -116,44 +116,49 @@ const AppSidebar: React.FC = () => {
 
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
+ 
   useEffect(() => {
-    let submenuMatched = false;
-    navItems.forEach((nav, index) => {
-      if (nav.subItems) {
-        nav.subItems.forEach((subItem, subIndex) => {
-          if (subItem.path && isActive(subItem.path)) {
-            setOpenSubmenu({ type: "main", index });
-            submenuMatched = true;
-          }
-          if (subItem.nestedItems) {
-            subItem.nestedItems.forEach((nestedItem, nestedIndex) => {
-              if (nestedItem.path && isActive(nestedItem.path)) {
-                setOpenSubmenu({ type: "main", index });
-                setOpenNestedSubmenu({ type: "main", index, subIndex });
-                submenuMatched = true;
-              }
-              if (nestedItem.nestedItems) {
-                nestedItem.nestedItems.forEach((deepNestedItem) => {
-                  if (isActive(deepNestedItem.path)) {
-                    setOpenSubmenu({ type: "main", index });
-                    setOpenNestedSubmenu({ type: "main", index, subIndex });
-                    setOpenDeepNestedSubmenu({ type: "main", index, subIndex, nestedIndex });
-                    submenuMatched = true;
-                  }
-                });
-              }
-            });
-          }
-        });
-      }
-    });
+  let matched = false;
 
-    if (!submenuMatched) {
-      setOpenSubmenu(null);
-      setOpenNestedSubmenu(null);
-      setOpenDeepNestedSubmenu(null);
+  filteredNavItems.forEach((nav, index) => {
+    if (nav.subItems) {
+      nav.subItems.forEach((subItem, subIndex) => {
+        if (subItem.path && isActive(subItem.path)) {
+          setOpenSubmenu({ type: "main", index });
+          matched = true;
+        }
+
+        if (subItem.nestedItems) {
+          subItem.nestedItems.forEach((nestedItem, nestedIndex) => {
+            if (nestedItem.path && isActive(nestedItem.path)) {
+              setOpenSubmenu({ type: "main", index });
+              setOpenNestedSubmenu({ type: "main", index, subIndex });
+              matched = true;
+            }
+
+            if (nestedItem.nestedItems) {
+              nestedItem.nestedItems.forEach((deepNestedItem) => {
+                if (deepNestedItem.path && isActive(deepNestedItem.path)) {
+                  setOpenSubmenu({ type: "main", index });
+                  setOpenNestedSubmenu({ type: "main", index, subIndex });
+                  setOpenDeepNestedSubmenu({ type: "main", index, subIndex, nestedIndex });
+                  matched = true;
+                }
+              });
+            }
+          });
+        }
+      });
     }
-  }, [location.pathname, isActive]);
+  });
+
+  if (!matched) {
+    // Keep main submenu open if one was toggled manually
+    setOpenNestedSubmenu(null);
+    setOpenDeepNestedSubmenu(null);
+  }
+}, [location.pathname]);
+
 
   useLayoutEffect(() => {
     if (openSubmenu) {
