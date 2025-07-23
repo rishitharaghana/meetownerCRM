@@ -116,7 +116,6 @@ const AppSidebar: React.FC = () => {
 
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
- 
   useEffect(() => {
   let matched = false;
 
