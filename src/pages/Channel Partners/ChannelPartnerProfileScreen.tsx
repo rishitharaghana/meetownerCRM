@@ -145,6 +145,7 @@ export default function PartnerProfile() {
               <h3 className="text-sm font-medium text-gray-500">Created Date</h3>
               <p className="text-gray-800 dark:text-white">{selectedUser.created_date || "N/A"}</p>
             </div>
+  
             <div>
               <h3 className="text-sm font-medium text-gray-500">Created Time</h3>
               <p className="text-gray-800 dark:text-white">{selectedUser.created_time || "N/A"}</p>
