@@ -281,6 +281,7 @@ const defaultImage = " "; // Temporary placeholder
             onError={(e) => {
               (e.target as HTMLImageElement).src = defaultImage; // Fallback if image fails
             }}
+            
           />
         </div>
               <div className="p-6">
