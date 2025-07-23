@@ -44,6 +44,8 @@ export interface User {
   representative_name: string;
   pan_card_number: string;
   aadhar_number: string;
+  account_number:string;
+  ifsc_code:string;
   feedback: string | null;
   company_logo:string | null;
 }

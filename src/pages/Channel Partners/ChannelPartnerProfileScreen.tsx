@@ -113,6 +113,15 @@ export default function PartnerProfile() {
               <p className="text-gray-800 dark:text-white">{selectedUser.aadhar_number || "N/A"}</p>
             </div>
             <div>
+              <h3 className="text-sm font-medium text-gray-500">Account Number</h3>
+              <p className="text-gray-800 dark:text-white">{selectedUser.account_number || "N/A"}</p>
+            </div>
+            <div>
+              <h3 className="text-sm font-medium text-gray-500">IFSC Code</h3>
+              <p className="text-gray-800 dark:text-white">{selectedUser.ifsc_code || "N/A"}</p>
+            </div>
+            <div>
+
               <h3 className="text-sm font-medium text-gray-500">RERA Number</h3>
               <p className="text-gray-800 dark:text-white">{selectedUser.rera_number || "N/A"}</p>
             </div>
