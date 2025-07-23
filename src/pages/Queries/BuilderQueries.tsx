@@ -22,7 +22,7 @@ const formatDate = (dateString: string): string => {
   const hours = date.getHours() % 12 || 12;
   const minutes = String(date.getMinutes()).padStart(2, "0");
   const ampm = date.getHours() >= 12 ? "PM" : "AM";
-  return `${day}-${month}-${year} ${hours}:${minutes} ${ampm}`;
+  return `${day}-${month}-${year} `;
 };
 
 export default function BuilderQueries() {
@@ -44,6 +44,7 @@ export default function BuilderQueries() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedQueries = queries?.slice(startIndex, endIndex) || [];
+  console.log(paginatedQueries)
 
   return (
     <div className="relative min-h-screen">
@@ -116,16 +117,22 @@ export default function BuilderQueries() {
                       >
                         Created Date
                       </TableCell>
+                       <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[20%]"
+                      >
+                        Created Time
+                      </TableCell>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                    {paginatedQueries.map((query) => (
+                    {paginatedQueries.map((query,i) => (
                       <TableRow
                         key={query.id}
                         className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                       >
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
-                          {query.id}
+                          {i}
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[20%]">
                           {query.name}
@@ -138,6 +145,9 @@ export default function BuilderQueries() {
                         </TableCell>
                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
                           {formatDate(query.created_date)}
+                        </TableCell>
+                         <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
+                           {query.created_time}
                         </TableCell>
                       </TableRow>
                     ))}
