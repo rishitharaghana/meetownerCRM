@@ -237,7 +237,16 @@ const UpComingProjects: React.FC = () => {
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
           const defaultImage = " "; // Temporary placeholder
-
+          const formatDistance = (value: string): string => {
+            if (!value) return "N/A";
+            const trimmed = value.trim().toLowerCase();
+            const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+            if (regex.test(trimmed)) {
+              const [, number, , , unit] = trimmed.match(regex)!;
+              return `${number} ${unit}`;
+            }
+            return value;
+          };
 
           return (
             <div
@@ -246,11 +255,11 @@ const UpComingProjects: React.FC = () => {
             >
               <div className="relative w-full h-48 overflow-hidden">
                 <img
-                  src={project.property_image || defaultImage} 
+                  src={project.property_image || defaultImage}
                   alt={project.project_name}
                   className="w-full h-full object-cover"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = defaultImage; 
+                    (e.target as HTMLImageElement).src = defaultImage;
                   }}
                 />
               </div>
@@ -299,7 +308,7 @@ const UpComingProjects: React.FC = () => {
                         key={item.title}
                         className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                       >
-                        {item.title} ({item.distance} km)
+                        {item.title} ({formatDistance(item.distance)})
                       </span>
                     ))}
                     {hiddenAmenities.length > 0 && !isExpanded && (
@@ -318,7 +327,7 @@ const UpComingProjects: React.FC = () => {
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                         >
-                          {item.title} ({item.distance} km)
+                          {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
                       <button
@@ -380,11 +389,7 @@ const UpComingProjects: React.FC = () => {
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={
-                    page === currentPage
-                      ? ""
-                      : ""
-                  }
+                  className={page === currentPage ? "" : ""}
                 >
                   {page}
                 </Button>

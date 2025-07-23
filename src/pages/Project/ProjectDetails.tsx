@@ -37,6 +37,7 @@ const defaultImage = "https://via.placeholder.com/400x300";
     }
   }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);
 
+
   if (!isAuthenticated || !user) {
     return (
       <div className="p-6 text-center text-red-600">
@@ -88,7 +89,16 @@ const defaultImage = "https://via.placeholder.com/400x300";
       </div>
     );
   }
-
+  const formatDistance = (value: string): string => {
+    if (!value) return "N/A";
+    const trimmed = value.trim().toLowerCase();
+    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+    if (regex.test(trimmed)) {
+      const [, number, , , unit] = trimmed.match(regex)!;
+      return `${number} ${unit}`;
+    }
+    return value;
+  };
   return (
     <div className="max-w-4xl mx-auto p-6">
       {/* Image Section */}
@@ -148,12 +158,12 @@ const defaultImage = "https://via.placeholder.com/400x300";
           <strong>Nearby Amenities:</strong>
         </p>
         <div className="flex flex-wrap gap-2">
-          {selectedProject.around_this.map((a) => (
+          {selectedProject.around_this.map((item) => (
             <span
-              key={a.title}
+              key={item.title}
               className="text-xs bg-blue-50 text-gray-700 px-2 py-1 rounded-full"
             >
-              {a.title} ({a.distance} km)
+               {item.title} ({formatDistance(item.distance)})
             </span>
           ))}
         </div>
