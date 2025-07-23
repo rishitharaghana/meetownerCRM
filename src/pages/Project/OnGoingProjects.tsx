@@ -232,6 +232,16 @@ const defaultImage = " ";
 
     return pages;
   };
+    const formatDistance = (value: string): string => {
+    if (!value) return "N/A";
+    const trimmed = value.trim().toLowerCase();
+    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+    if (regex.test(trimmed)) {
+      const [, number, , , unit] = trimmed.match(regex)!;
+      return `${number} ${unit}`;
+    }
+    return value;
+  };
 
   // Clear all filters
   const handleClearFilters = useCallback(() => {
@@ -371,7 +381,7 @@ const defaultImage = " ";
                         key={item.title}
                         className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                       >
-                        {item.title} ({item.distance} km)
+                        {item.title} ({formatDistance(item.distance)})
                       </span>
                     ))}
                     {hiddenAmenities.length > 0 && !isExpanded && (
@@ -390,7 +400,7 @@ const defaultImage = " ";
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                         >
-                          {item.title} ({item.distance} km)
+                         {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
                       <button

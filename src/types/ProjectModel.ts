@@ -2,6 +2,7 @@ export interface AroundThis {
   title: string;
   distance: string;
   create_date: string;
+  
 }
 
 export interface Size {
