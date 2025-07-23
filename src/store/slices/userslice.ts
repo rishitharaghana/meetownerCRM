@@ -37,6 +37,7 @@ export interface InsertUserRequest {
 export interface InsertUserResponse {
   message: string;
   user_id: number;
+  user?: User;
 }
 
 const initialState: UserState = {
