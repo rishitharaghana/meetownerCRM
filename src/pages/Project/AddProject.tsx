@@ -1164,6 +1164,7 @@ export default function AddProject() {
                       placeholder="Enter square feet price"
                       className="dark:bg-gray-800"
                     />
+                  {/* hi */}
                     {renderError(errors.sizes?.[size.id]?.sqftPrice)}
                   </div>
                   {!isPlot && (
