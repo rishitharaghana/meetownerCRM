@@ -105,7 +105,8 @@ const LeadForm: React.FC = () => {
       isBuilder &&
       formData.leadSource === "6"
     ) {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3 }));
+     
+     dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3,status:1 }));
     }
   }, [formData.leadSource, isAuthenticated, user, dispatch, isBuilder]);
   const projectOptions =
