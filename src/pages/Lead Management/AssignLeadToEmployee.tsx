@@ -64,7 +64,7 @@ const AssignLeadEmployeePage: React.FC = () => {
 
   useEffect(() => {
     if (user?.id && formData.assigned_user_type) {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: parseInt(formData.assigned_user_type) }));
+      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: parseInt(formData.assigned_user_type) ,status:1}));
     }
     dispatch(getLeadStatuses());
   }, [formData.assigned_user_type, user?.id, dispatch]);
