@@ -118,12 +118,11 @@ export default function PartnerScreen() {
           states
             .find((s) => s.value.toString() === selectedState)
             ?.label.toLowerCase();
-
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
           citiesResult.data
-            .find((c) => c.value.toString() === selectedCity)
+            .find((c) => c.value === selectedCity)
             ?.label.toLowerCase() === user.city?.toLowerCase());
 
       return (
