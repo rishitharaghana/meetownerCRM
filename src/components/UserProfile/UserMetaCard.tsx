@@ -28,7 +28,7 @@ export default function UserMetaCard() {
     return designation ? designation.text : "Unknown Designation";
   };
 
-       const defaultImage = ""
+       const defaultImage = "" ;
 
   return (
     <div className="p-6 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-2xl">

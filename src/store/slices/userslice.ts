@@ -1,4 +1,4 @@
-import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
+import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
@@ -31,13 +31,16 @@ export interface InsertUserRequest {
   photo?:string;
   account_number:string;
   ifsc_code:string;
-  company_logo?:string;
+  company_logo?:string | null;
+  user?: string;
 }
 
 export interface InsertUserResponse {
   message: string;
   user_id: number;
   user?: User;
+  photo?:string;
+  company_logo?: string;
 }
 
 const initialState: UserState = {
@@ -152,11 +155,12 @@ export const getTypesCount = createAsyncThunk<
 
 export const getUsersByType = createAsyncThunk<
   User[],
-  { admin_user_id: number; emp_user_type: number },
+  { admin_user_id: number; emp_user_type: number,status:number },
   { rejectValue: string }
 >(
   "user/getUsersByType",
-  async ({ admin_user_id, emp_user_type }, { rejectWithValue }) => {
+  async ({ admin_user_id, emp_user_type,status }, { rejectWithValue }) => {
+    console.log(status)
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -164,7 +168,7 @@ export const getUsersByType = createAsyncThunk<
       }
 
       const response = await ngrokAxiosInstance.get<UsersResponse>(
-        `/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}`,
+        `/api/v1/getUsersTypesByBuilder?admin_user_id=${admin_user_id}&emp_user_type=${emp_user_type}&status=${status}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -420,8 +424,9 @@ const userSlice = createSlice({
         state.loading = true;
         state.error = null;
       })
-      .addCase(insertUser.fulfilled, (state) => {
-        state.loading = false
+      .addCase(insertUser.fulfilled, (state, action: PayloadAction<InsertUserResponse>) => {
+        state.loading = false;
+        state.selectedUser = action.payload.user || null; 
       })
       .addCase(insertUser.rejected, (state, action) => {
         state.loading = false;
