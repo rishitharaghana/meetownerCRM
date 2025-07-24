@@ -158,7 +158,7 @@ const BasicTables: React.FC = () => {
       {/* Main content */}
       <div className={editMember ? "blur-sm pointer-events-none" : ""}>
         <PageMeta
-          title={`Meet Owner ${categoryLabel} Table`}
+          title={`MN Techs Solutions Pvt Ltd ${categoryLabel} Table`}
          
         />
         <PageBreadcrumb pageTitle={`${categoryLabel} Table`} pagePlacHolder = "Filter projects, Sellers "/>

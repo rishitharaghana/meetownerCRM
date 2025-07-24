@@ -10,8 +10,8 @@ export default function Home() {
   return (
     <>
       <PageMeta
-        title="Meet Owner "
-        description="Meet Owner Dashboard"
+        title="MN Techs Solutions Pvt Ltd "
+        description="MN Techs Solutions Dashboard"
       />
       <div className="gap-4 md:gap-6 space-y-6">
         <EcommerceMetrics />

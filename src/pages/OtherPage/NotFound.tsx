@@ -6,7 +6,7 @@ export default function NotFound() {
   return (
     <>
       <PageMeta
-        title="Meet Owner"
+        title="MN Techs Solutions Pvt Ltd"
         
       />
       <div className="relative flex flex-col items-center justify-center min-h-screen p-6 overflow-hidden z-1">

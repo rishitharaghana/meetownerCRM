@@ -16,13 +16,13 @@ export default function AuthLayout({
               <img
                 width={231}
                 height={70}
-                src="/images/meet_white.png"
+                src="/images/MNTECHLOGO.png"
                 alt="Logo"
                 className="block mb-4"
               />
 
               <p className="text-center text-gray-400 dark:text-white/60">
-               Welcome to Meet Owner, where we believe that finding the perfect property should be a seamless and empowering experience.
+               Welcome to MN Techs Solutions Pvt Ltd, where we believe that finding the perfect property should be a seamless and empowering experience.
               </p>
             </div>
           </div>

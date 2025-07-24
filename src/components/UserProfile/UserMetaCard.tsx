@@ -33,12 +33,21 @@ export default function UserMetaCard() {
   return (
     <div className="p-6 rounded-3xl bg-gradient-to-br from-white via-slate-50 to-slate-100 dark:from-slate-900 dark:via-slate-800 dark:to-slate-900 shadow-xl border border-slate-200 dark:border-slate-700 transition-all duration-500 hover:shadow-2xl">
       <div className="flex flex-col xl:flex-row items-center gap-6">
-                <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
-          <img
-            src={selectedUser?.photo || defaultImage}
-            alt={`${selectedUser?.name || "User"}'s photo`}
-            className="w-full h-full object-cover"
-          />
+          <div className="w-24 h-24 rounded-full overflow-hidden bg-slate-200 dark:bg-slate-700">
+          {selectedUser?.photo ? (
+            <img
+              src={selectedUser.photo}
+              alt={`${selectedUser?.name || "User"}'s photo`}
+              className="w-full h-full object-cover"
+              onError={(e) => (e.currentTarget.src = defaultImage)}
+            />
+          ) : (
+            <img
+              src={defaultImage}
+              alt="Default user"
+              className="w-full h-full object-cover"
+            />
+          )}
         </div>
 
         <div className="flex-1 text-center xl:text-left">
