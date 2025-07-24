@@ -24,6 +24,7 @@ import { getStatusDisplay } from "../../utils/statusdisplay";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
+import PageMeta from "../../components/common/PageMeta";
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
   5: "Telecallers",
@@ -80,7 +81,7 @@ export default function EmployeesScreen() {
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
       dispatch(
-        getUsersByType({ admin_user_id: user.id, emp_user_type: empUserType })
+        getUsersByType({ admin_user_id: user.id, emp_user_type: empUserType,})
       );
     }
     return () => {
@@ -207,6 +208,7 @@ export default function EmployeesScreen() {
   };
   return (
     <div className="relative min-h-screen">
+      <PageMeta title="Employee Management - " />
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}
@@ -263,6 +265,7 @@ export default function EmployeesScreen() {
                   getUsersByType({
                     admin_user_id: user!.id,
                     emp_user_type: empUserType,
+                    status: 1,
                   })
                 )
               }

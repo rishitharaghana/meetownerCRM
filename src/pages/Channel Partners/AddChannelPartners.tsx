@@ -54,7 +54,9 @@ const AddChannelPartner = () => {
   const navigate = useNavigate();
   const { states } = useSelector((state: RootState) => state.property);
   const { loading } = useSelector((state: RootState) => state.user);
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -81,18 +83,20 @@ const AddChannelPartner = () => {
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
   const { citiesQuery, statesQuery } = usePropertyQueries();
-  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
+  const citiesResult = citiesQuery(
+    formData.state ? parseInt(formData.state) : undefined
+  );
 
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      navigate('/login');
-      toast.error('Please log in to access this page');
+      navigate("/login");
+      toast.error("Please log in to access this page");
       return;
     }
 
     if (user.user_type !== 2) {
-      navigate('/');
-      toast.error('Access denied: Only builders can create employees');
+      navigate("/");
+      toast.error("Access denied: Only builders can create employees");
     }
   }, [isAuthenticated, user, navigate]);
 
@@ -104,23 +108,41 @@ const AddChannelPartner = () => {
 
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
     if (statesQuery.isError) {
-      toast.error(`Failed to fetch states: ${statesQuery.error?.message || 'Unknown error'}`);
+      toast.error(
+        `Failed to fetch states: ${
+          statesQuery.error?.message || "Unknown error"
+        }`
+      );
     }
-  }, [citiesResult.isError, citiesResult.error, statesQuery.isError, statesQuery.error]);
+  }, [
+    citiesResult.isError,
+    citiesResult.error,
+    statesQuery.isError,
+    statesQuery.error,
+  ]);
 
   const cityOptions =
-    citiesResult?.data?.map((city: any) => ({ value: city.value, text: city.label })) || [];
+    citiesResult?.data?.map((city: any) => ({
+      value: city.value,
+      text: city.label,
+    })) || [];
 
   const stateOptions =
-    states?.map((state: any) => ({ value: state.value, text: state.label })) || [];
+    states?.map((state: any) => ({ value: state.value, text: state.label })) ||
+    [];
 
-  const handleChange = (field: keyof FormData) => (value: string | File | null) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-  };
+  const handleChange =
+    (field: keyof FormData) => (value: string | File | null) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
+      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    };
 
   const handleDropdownChange = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => ({
@@ -135,7 +157,8 @@ const AddChannelPartner = () => {
     const newErrors: Errors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
-    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile must be 10 digits";
+    else if (!/^\d{10}$/.test(formData.mobile))
+      newErrors.mobile = "Mobile must be 10 digits";
     // Email is optional, so no validation required
     if (!formData.password) newErrors.password = "Password is required";
     if (!formData.city) newErrors.city = "City is required";
@@ -156,7 +179,8 @@ const AddChannelPartner = () => {
     } else if (!/^\d{12}$/.test(formData.aadharNumber)) {
       newErrors.aadharNumber = "Aadhar must be 12 digits";
     }
-    if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
+    if (!formData.companyName.trim())
+      newErrors.companyName = "Company name is required";
     if (!formData.representativeName.trim())
       newErrors.representativeName = "Representative name is required";
     if (!formData.companyAddress.trim())
@@ -166,18 +190,27 @@ const AddChannelPartner = () => {
     } else if (!/^\d{10}$/.test(formData.companyNumber)) {
       newErrors.companyNumber = "Company number must be 10 digits";
     }
-    if (!formData.gstNumber.trim()) newErrors.gstNumber = "GST number is required";
-    else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
+    if (!formData.gstNumber.trim())
+      newErrors.gstNumber = "GST number is required";
+    else if (
+      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
+        formData.gstNumber
+      )
+    ) {
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
     }
-    if (!formData.reraNumber.trim()) newErrors.reraNumber = "RERA number is required";
+    if (!formData.reraNumber.trim())
+      newErrors.reraNumber = "RERA number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     // Account Number validation (optional)
     if (formData.accountNumber && formData.accountNumber.length > 20) {
       newErrors.accountNumber = "Account number must not exceed 20 characters";
     }
     // IFSC Code validation (optional)
-    if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) {
+    if (
+      formData.ifscCode &&
+      !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)
+    ) {
       newErrors.ifscCode = "Invalid IFSC code (e.g., SBIN0001234)";
     }
 
@@ -193,9 +226,11 @@ const AddChannelPartner = () => {
     const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); // Ensure number
 
     const cityName =
-      cityOptions.find((option) => option.value === formData.city)?.text || formData.city;
+      cityOptions.find((option) => option.value === formData.city)?.text ||
+      formData.city;
     const stateName =
-      stateOptions.find((option) => option.value === formData.state)?.text || formData.state;
+      stateOptions.find((option) => option.value === formData.state)?.text ||
+      formData.state;
 
     const payload: InsertUserRequest = {
       user_type: 3,
@@ -238,7 +273,9 @@ const AddChannelPartner = () => {
 
     try {
       const result = await dispatch(insertUser(formDataToSend)).unwrap();
-      toast.success(`Channel Partner added successfully with ID: ${result.user_id}`);
+      toast.success(
+        `Channel Partner added successfully with ID: ${result.user_id}`
+      );
       setFormData({
         name: "",
         mobile: "",
@@ -269,12 +306,16 @@ const AddChannelPartner = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
-            <PageMeta title=" Add Channel Partners - Channel Partners" />
+      <PageMeta title=" Add Channel Partners - Channel Partners" />
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Channel Partner</h1>
-            <p className="text-gray-600">Fill in the details below to add a new partner</p>
+            <h1 className="text-2xl font-bold text-gray-800 mb-1">
+              Add Channel Partner
+            </h1>
+            <p className="text-gray-600">
+              Fill in the details below to add a new partner
+            </p>
           </div>
           <RegistrstionLink />
         </div>
@@ -292,7 +333,9 @@ const AddChannelPartner = () => {
               onChange={(e) => handleChange("name")(e.target.value)}
               placeholder="Enter name"
             />
-            {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
+            {errors.name && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>
+            )}
           </div>
 
           <div>
@@ -303,7 +346,9 @@ const AddChannelPartner = () => {
               placeholder="Enter mobile"
               onChange={handleChange("mobile")}
             />
-            {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
+            {errors.mobile && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>
+            )}
           </div>
 
           <div>
@@ -316,7 +361,9 @@ const AddChannelPartner = () => {
               onChange={(e) => handleChange("email")(e.target.value)}
               placeholder="email@example.com"
             />
-            {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
+            {errors.email && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>
+            )}
           </div>
 
           <div>
@@ -329,24 +376,34 @@ const AddChannelPartner = () => {
               placeholder="Enter company name"
             />
             {errors.companyName && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.companyName}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Representative Name</label>
+            <label className="text-sm font-medium text-gray-700">
+              Representative Name
+            </label>
             <Input
               value={formData.representativeName}
-              onChange={(e) => handleChange("representativeName")(e.target.value)}
+              onChange={(e) =>
+                handleChange("representativeName")(e.target.value)
+              }
               placeholder="Enter representative name"
             />
             {errors.representativeName && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.representativeName}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.representativeName}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Company Address</label>
+            <label className="text-sm font-medium text-gray-700">
+              Company Address
+            </label>
             <textarea
               value={formData.companyAddress}
               onChange={(e) => handleChange("companyAddress")(e.target.value)}
@@ -355,12 +412,16 @@ const AddChannelPartner = () => {
               placeholder="Enter company address"
             />
             {errors.companyAddress && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.companyAddress}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Company Phone</label>
+            <label className="text-sm font-medium text-gray-700">
+              Company Phone
+            </label>
             <PhoneInput
               countries={[{ code: "IN", label: "+91" }]}
               value={formData.companyNumber}
@@ -368,12 +429,16 @@ const AddChannelPartner = () => {
               onChange={handleChange("companyNumber")}
             />
             {errors.companyNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.companyNumber}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">GST Number</label>
+            <label className="text-sm font-medium text-gray-700">
+              GST Number
+            </label>
             <Input
               value={formData.gstNumber}
               onChange={(e) => handleChange("gstNumber")(e.target.value)}
@@ -385,14 +450,18 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">RERA Number</label>
+            <label className="text-sm font-medium text-gray-700">
+              RERA Number
+            </label>
             <Input
               value={formData.reraNumber}
               onChange={(e) => handleChange("reraNumber")(e.target.value)}
               placeholder="Enter RERA number"
             />
             {errors.reraNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.reraNumber}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.reraNumber}
+              </p>
             )}
           </div>
 
@@ -405,63 +474,85 @@ const AddChannelPartner = () => {
               className="w-full p-3 border rounded-md dark:bg-gray-800"
               placeholder="Enter address"
             />
-            {errors.address && <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>}
+            {errors.address && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Locality</label>
+            <label className="text-sm font-medium text-gray-700">
+              Locality
+            </label>
             <Input
               value={formData.locality}
               onChange={(e) => handleChange("locality")(e.target.value)}
               placeholder="Enter locality"
               className="w-full p-3 border rounded-md dark:bg-gray-800"
             />
-            {errors.locality && <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>}
+            {errors.locality && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
+            <label className="text-sm font-medium text-gray-700">
+              PAN Card Number
+            </label>
             <Input
               value={formData.panCardNumber}
               onChange={(e) => handleChange("panCardNumber")(e.target.value)}
               placeholder="Enter PAN card number (e.g., ABCDE1234F)"
             />
             {errors.panCardNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.panCardNumber}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Account Number</label>
+            <label className="text-sm font-medium text-gray-700">
+              Account Number
+            </label>
             <Input
               value={formData.accountNumber}
               onChange={(e) => handleChange("accountNumber")(e.target.value)}
               placeholder="Enter account number"
             />
             {errors.accountNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.accountNumber}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.accountNumber}
+              </p>
             )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">IFSC Code </label>
+            <label className="text-sm font-medium text-gray-700">
+              IFSC Code{" "}
+            </label>
             <Input
               value={formData.ifscCode}
               onChange={(e) => handleChange("ifscCode")(e.target.value)}
               placeholder="Enter IFSC code (e.g., SBIN0001234)"
             />
-            {errors.ifscCode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.ifscCode}</p>}
+            {errors.ifscCode && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.ifscCode}</p>
+            )}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
+            <label className="text-sm font-medium text-gray-700">
+              Aadhar Number
+            </label>
             <Input
               value={formData.aadharNumber}
               onChange={(e) => handleChange("aadharNumber")(e.target.value)}
               placeholder="Enter 12-digit Aadhar number"
             />
             {errors.aadharNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>
+              <p className="text-red-600 text-sm mt-1">
+                ⚠️ {errors.aadharNumber}
+              </p>
             )}
           </div>
 
@@ -472,10 +563,14 @@ const AddChannelPartner = () => {
             <input
               type="file"
               accept="image/*"
-              onChange={(e) => handleChange("photo")(e.target.files?.[0] || null)}
+              onChange={(e) =>
+                handleChange("photo")(e.target.files?.[0] || null)
+              }
               className="w-full p-3 border rounded-md dark:bg-gray-800"
             />
-            {errors.photo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>}
+            {errors.photo && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
+            )}
           </div>
 
           <div className="relative">
@@ -495,7 +590,9 @@ const AddChannelPartner = () => {
             >
               {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
             </button>
-            {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
+            {errors.password && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>
+            )}
           </div>
 
           <div className="min-h-[80px] w-full max-w-md">
@@ -532,7 +629,9 @@ const AddChannelPartner = () => {
               onChange={(e) => handleChange("pincode")(e.target.value)}
               placeholder="Enter pincode"
             />
-            {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
+            {errors.pincode && (
+              <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>
+            )}
           </div>
 
           <div className="pt-4">

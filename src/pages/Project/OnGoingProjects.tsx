@@ -20,6 +20,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
+import PageMeta from "../../components/common/PageMeta";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -267,6 +268,7 @@ const defaultImage = " ";
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      <PageMeta title="Project Management - OnGoing Projects" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef

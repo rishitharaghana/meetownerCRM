@@ -16,6 +16,7 @@ import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
+import PageMeta from "../../components/common/PageMeta";
 const BUILDER_USER_TYPE = 2;
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
@@ -196,6 +197,7 @@ const AllProjects: React.FC = () => {
     return <div className="p-6 text-center text-red-500">Error: {error}</div>;
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      <PageMeta title="Project Management - All Projects" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
@@ -253,16 +255,16 @@ const AllProjects: React.FC = () => {
               key={project.property_id}
               className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
-        <div className="relative w-full h-48 overflow-hidden">
-    <img
-      src={project.property_image || defaultImage} 
-      alt={project.project_name}
-      className="w-full h-full object-cover"
-      onError={(e) => {
-        (e.target as HTMLImageElement).src = defaultImage; 
-      }}
-    />
-  </div>
+              <div className="relative w-full h-48 overflow-hidden">
+                <img
+                  src={project.property_image || defaultImage}
+                  alt={project.project_name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = defaultImage;
+                  }}
+                />
+              </div>
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -389,11 +391,7 @@ const AllProjects: React.FC = () => {
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={
-                    page === currentPage
-                      ? ""
-                      : ""
-                  }
+                  className={page === currentPage ? "" : ""}
                 >
                   {page}
                 </Button>
