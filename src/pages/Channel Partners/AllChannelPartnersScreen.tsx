@@ -24,6 +24,7 @@ import {
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
+import PageMeta from "../../components/common/PageMeta";
 
 const statusFilterOptions = [
   { value: "0", label: "Pending" },
@@ -269,6 +270,7 @@ export default function PartnerScreen() {
 
   return (
     <div className="relative min-h-screen">
+      <PageMeta title=" All Channel Partners - Channel Partners" />
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}
@@ -290,6 +292,7 @@ export default function PartnerScreen() {
         className="mb-4"
       />
       <div className="mb-4 flex gap-2">
+
         <PageBreadcrumbList
           pageTitle={`${categoryLabel} Table`}
           pagePlacHolder="Filter partners by name, mobile, email, city, GST, or RERA"

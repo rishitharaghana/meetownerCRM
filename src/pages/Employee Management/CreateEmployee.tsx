@@ -20,6 +20,7 @@ import toast from "react-hot-toast";
 import { insertUser } from "../../store/slices/userslice";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
+import PageMeta from "../../components/common/PageMeta";
 
 interface FormData {
   name: string;
@@ -244,6 +245,8 @@ const CreateEmployee = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
+            <PageMeta title=" Employee Management - Add Employee" />
+
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-2">

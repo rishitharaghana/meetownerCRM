@@ -20,6 +20,7 @@ import Dropdown from "../../components/form/Dropdown";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import RegistrstionLink from "./RegistrationLink";
+import PageMeta from "../../components/common/PageMeta";
 
 interface FormData {
   name: string;
@@ -268,6 +269,7 @@ const AddChannelPartner = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
+            <PageMeta title=" Add Channel Partners - Channel Partners" />
       <div className="max-w-2xl mx-auto">
         <div className="flex justify-between items-center mb-8">
           <div className="text-center mb-4">
