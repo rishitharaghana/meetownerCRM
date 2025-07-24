@@ -80,7 +80,7 @@ const FilterBar: React.FC<FilterBarProps> = ({
     })) || [];
   const cityOptions =
     citiesResult?.data?.map((city: any) => ({
-      value: city.label,
+      value: city.value,
       text: city.label,
     })) || [];
   useEffect(() => {
