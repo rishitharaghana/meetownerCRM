@@ -307,7 +307,7 @@ const LeadsType: React.FC = () => {
 
   return (
     <div className="relative min-h-screen">
-      <PageMeta title={`Lead Management - ${getPageTitle()}`} />
+      <PageMeta title={` ${getPageTitle()} - Lead Management `} />
       
       <FilterBar
         showUserTypeFilter={true}

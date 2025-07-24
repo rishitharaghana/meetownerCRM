@@ -245,7 +245,7 @@ const CreateEmployee = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
-            <PageMeta title=" Employee Management - Add Employee" />
+            <PageMeta title="  Add Employee - Employee Management " />
 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">

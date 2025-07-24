@@ -239,7 +239,7 @@ const AllLeadDetails: React.FC = () => {
   };
   return (
     <div className="relative min-h-screen">
-      <PageMeta title="Lead Management - All Leads" />
+      <PageMeta title=" All Leads - Lead Management " />
       <FilterBar
         showUserTypeFilter={false}
         showStatusFilter={true}

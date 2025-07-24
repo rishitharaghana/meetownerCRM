@@ -8,6 +8,7 @@ import { fetchOngoingProjects } from "../../store/slices/projectSlice";
 import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 import { getLeadSources, insertLead } from "../../store/slices/leadslice";
 import { LeadSource } from "../../types/LeadModel";
+import PageMeta from "../../components/common/PageMeta";
 interface FormData {
   name: string;
   mobile: string;
@@ -276,6 +277,8 @@ const LeadForm: React.FC = () => {
   };
   return (
     <div className="min-h-screen bg-gradient-to-br from-realty-50 via-white to-realty-100 py-8 px-4">
+      <PageMeta title="Add New Leads - Lead Management" />
+
       <div className="max-w-2xl mx-auto">
         {}
         {submitSuccess && (

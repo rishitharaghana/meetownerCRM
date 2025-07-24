@@ -208,7 +208,7 @@ export default function EmployeesScreen() {
   };
   return (
     <div className="relative min-h-screen">
-      <PageMeta title="Employee Management - " />
+<PageMeta title={`${categoryLabel} - Employee Management `} />
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}

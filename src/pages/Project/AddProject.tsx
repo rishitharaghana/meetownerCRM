@@ -701,7 +701,7 @@ export default function AddProject() {
     error && <p className="text-red-500 text-sm mt-1">{error}</p>;
   return (
     <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-     <PageMeta title="Project Management - Add Projects" />
+     <PageMeta title="Add Projects - Project Management " />
       <ComponentCard title="Create Property">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="min-h-[80px] w-full max-w-md">
