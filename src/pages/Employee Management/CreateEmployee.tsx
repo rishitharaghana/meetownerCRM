@@ -188,60 +188,112 @@ const CreateEmployee = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
+  e.preventDefault();
+  if (!validateForm()) {
+    toast.error("Please fill correct details");
+    return;
+  }
+  const createdBy = localStorage.getItem("name") || "Admin";
+  const createdUserId = parseInt(localStorage.getItem("userId") || "1");
+  const formDataToSend = new FormData();
+  formDataToSend.append("name", formData.name);
+  formDataToSend.append("mobile", formData.mobile);
+  formDataToSend.append("email", formData.email);
+  formDataToSend.append("password", formData.password);
+  formDataToSend.append(
+    "city",
+    cityOptions.find((c) => c.value === formData.city)?.text || formData.city
+  );
+  formDataToSend.append(
+    "state",
+    stateOptions.find((s) => s.value === formData.state)?.text ||
+      formData.state
+  );
+  formDataToSend.append("pincode", formData.pincode);
+  formDataToSend.append("location", formData.location);
+  formDataToSend.append("address", formData.address);
+  if (formData.photo) formDataToSend.append("photo", formData.photo);
+  formDataToSend.append("status", "1");
+  formDataToSend.append("user_type", formData.designation);
+  formDataToSend.append("created_by", createdBy);
+  formDataToSend.append("created_user_id", createdUserId.toString());
+  formDataToSend.append("created_user_type", "2");
+  try {
+    const result = await dispatch(insertUser(formDataToSend)).unwrap();
+    toast.success(`Employee created successfully! User ID: ${result.user_id}`);
+    setFormData({
+      name: "",
+      mobile: "",
+      email: "",
+      designation: "",
+      password: "",
+      city: "",
+      state: "",
+      pincode: "",
+      location: "",
+      address: "",
+      photo: null,
+    });
+    setErrors({});
+  } catch (error) {
+    toast.error("Failed to create employee. Please try again.");
+  }
+};
 
-    const createdBy = localStorage.getItem("name") || "Admin";
-    const createdUserId = parseInt(localStorage.getItem("userId") || "1");
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
 
-    const formDataToSend = new FormData();
-    formDataToSend.append("name", formData.name);
-    formDataToSend.append("mobile", formData.mobile);
-    formDataToSend.append("email", formData.email);
-    formDataToSend.append("password", formData.password);
-    formDataToSend.append(
-      "city",
-      cityOptions.find((c) => c.value === formData.city)?.text || formData.city
-    );
-    formDataToSend.append(
-      "state",
-      stateOptions.find((s) => s.value === formData.state)?.text ||
-        formData.state
-    );
-    formDataToSend.append("pincode", formData.pincode);
-    formDataToSend.append("location", formData.location);
-    formDataToSend.append("address", formData.address);
-    if (formData.photo) formDataToSend.append("photo", formData.photo);
-    formDataToSend.append("status", "1");
-    formDataToSend.append("user_type", formData.designation);
-    formDataToSend.append("created_by", createdBy);
-    formDataToSend.append("created_user_id", createdUserId.toString());
-    formDataToSend.append("created_user_type", "2");
+  //   const createdBy = localStorage.getItem("name") || "Admin";
+  //   const createdUserId = parseInt(localStorage.getItem("userId") || "1");
 
-    try {
-      await dispatch(insertUser(formDataToSend)).unwrap();
+  //   const formDataToSend = new FormData();
+  //   formDataToSend.append("name", formData.name);
+  //   formDataToSend.append("mobile", formData.mobile);
+  //   formDataToSend.append("email", formData.email);
+  //   formDataToSend.append("password", formData.password);
+  //   formDataToSend.append(
+  //     "city",
+  //     cityOptions.find((c) => c.value === formData.city)?.text || formData.city
+  //   );
+  //   formDataToSend.append(
+  //     "state",
+  //     stateOptions.find((s) => s.value === formData.state)?.text ||
+  //       formData.state
+  //   );
+  //   formDataToSend.append("pincode", formData.pincode);
+  //   formDataToSend.append("location", formData.location);
+  //   formDataToSend.append("address", formData.address);
+  //   if (formData.photo) formDataToSend.append("photo", formData.photo);
+  //   formDataToSend.append("status", "1");
+  //   formDataToSend.append("user_type", formData.designation);
+  //   formDataToSend.append("created_by", createdBy);
+  //   formDataToSend.append("created_user_id", createdUserId.toString());
+  //   formDataToSend.append("created_user_type", "2");
 
-      setFormData({
-        name: "",
-        mobile: "",
-        email: "",
-        designation: "",
-        password: "",
-        city: "",
-        state: "",
-        pincode: "",
-        location: "",
-        address: "",
-        photo: null,
-      });
-      setErrors({});
-    } catch (error) {
-      console.error("User Insertion failed:", error);
-    }
+  //   try {
+  //     await dispatch(insertUser(formDataToSend)).unwrap();
+
+  //     setFormData({
+  //       name: "",
+  //       mobile: "",
+  //       email: "",
+  //       designation: "",
+  //       password: "",
+  //       city: "",
+  //       state: "",
+  //       pincode: "",
+  //       location: "",
+  //       address: "",
+  //       photo: null,
+  //     });
+  //     setErrors({});
+  //   } catch (error) {
+  //     console.error("User Insertion failed:", error);
+  //   }
     
-  };
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">

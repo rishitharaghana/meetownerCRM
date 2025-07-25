@@ -251,92 +251,175 @@ const AddChannelPartner = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
-
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!validateForm()) return;
-
-    const createdBy = localStorage.getItem("name") || "Admin";
-    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
-
-    const cityName =
-      cityOptions.find((option) => option.value === formData.city)?.text ||
-      formData.city;
-    const stateName =
-      stateOptions.find((option) => option.value === formData.state)?.text ||
-      formData.state;
-
-    const payload: InsertUserRequest = {
-      user_type: 3,
-      name: formData.name,
-      mobile: formData.mobile,
-      email: formData.email,
-      password: formData.password,
-      status: 0,
-      state: stateName,
-      city: cityName,
-      location: formData.locality,
-      address: formData.address,
-      pincode: formData.pincode,
-      gst_number: formData.gstNumber,
-      rera_number: formData.reraNumber,
-      created_by: createdBy,
-      created_user_id: createdUserId,
-      created_user_type: 2,
-      company_name: formData.companyName,
-      company_number: formData.companyNumber,
-      company_address: formData.companyAddress,
-      representative_name: formData.representativeName,
-      pan_card_number: formData.panCardNumber,
-      aadhar_number: formData.aadharNumber,
-      photo: formData.photo || undefined,
-      account_number: formData.accountNumber,
-      ifsc_code: formData.ifscCode,
-    };
-
-    const formDataToSend = new FormData();
-    Object.entries(payload).forEach(([key, value]) => {
-      if (value !== undefined && value !== null) {
-        if (key === "photo" && value instanceof File) {
-          formDataToSend.append(key, value);
-        } else {
-          formDataToSend.append(key, String(value));
-        }
-      }
-    });
-
-    try {
-      const result = await dispatch(insertUser(formDataToSend)).unwrap();
-      toast.success(
-        `Channel Partner added successfully with ID: ${result.user_id}`
-      );
-      setFormData({
-        name: "",
-        mobile: "",
-        email: "",
-        password: "",
-        city: "",
-        state: "",
-        locality: "",
-        pincode: "",
-        panCardNumber: "",
-        aadharNumber: "",
-        companyName: "",
-        representativeName: "",
-        companyAddress: "",
-        companyNumber: "",
-        gstNumber: "",
-        reraNumber: "",
-        address: "",
-        photo: null,
-        accountNumber: "",
-        ifscCode: "",
-      });
-      setErrors({});
-    } catch (err) {
-      // Error is handled in the user slice and displayed via toast
-    }
+  e.preventDefault();
+  if (!validateForm()) {
+    toast.error("Please fill correct details");
+    return;
+  }
+  const createdBy = localStorage.getItem("name") || "Admin";
+  const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
+  const cityName =
+    cityOptions.find((option) => option.value === formData.city)?.text ||
+    formData.city;
+  const stateName =
+    stateOptions.find((option) => option.value === formData.state)?.text ||
+    formData.state;
+  const payload: InsertUserRequest = {
+    user_type: 3,
+    name: formData.name,
+    mobile: formData.mobile,
+    email: formData.email,
+    password: formData.password,
+    status: 0,
+    state: stateName,
+    city: cityName,
+    location: formData.locality,
+    address: formData.address,
+    pincode: formData.pincode,
+    gst_number: formData.gstNumber,
+    rera_number: formData.reraNumber,
+    created_by: createdBy,
+    created_user_id: createdUserId,
+    created_user_type: 2,
+    company_name: formData.companyName,
+    company_number: formData.companyNumber,
+    company_address: formData.companyAddress,
+    representative_name: formData.representativeName,
+    pan_card_number: formData.panCardNumber,
+    aadhar_number: formData.aadharNumber,
+    photo: formData.photo || undefined,
+    account_number: formData.accountNumber,
+    ifsc_code: formData.ifscCode,
   };
+  const formDataToSend = new FormData();
+  Object.entries(payload).forEach(([key, value]) => {
+    if (value !== undefined && value !== null) {
+      if (key === "photo" && value instanceof File) {
+        formDataToSend.append(key, value);
+      } else {
+        formDataToSend.append(key, String(value));
+      }
+    }
+  });
+  try {
+    const result = await dispatch(insertUser(formDataToSend)).unwrap();
+    toast.success(
+      `Channel Partner added successfully with ID: ${result.user_id}`
+    );
+    setFormData({
+      name: "",
+      mobile: "",
+      email: "",
+      password: "",
+      city: "",
+      state: "",
+      locality: "",
+      pincode: "",
+      panCardNumber: "",
+      aadharNumber: "",
+      companyName: "",
+      representativeName: "",
+      companyAddress: "",
+      companyNumber: "",
+      gstNumber: "",
+      reraNumber: "",
+      address: "",
+      photo: null,
+      accountNumber: "",
+      ifscCode: "",
+    });
+    setErrors({});
+  } catch (err) {
+    // Error is handled in the user slice and displayed via toast
+  }
+};
+
+  // const handleSubmit = async (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (!validateForm()) return;
+
+  //   const createdBy = localStorage.getItem("name") || "Admin";
+  //   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
+
+  //   const cityName =
+  //     cityOptions.find((option) => option.value === formData.city)?.text ||
+  //     formData.city;
+  //   const stateName =
+  //     stateOptions.find((option) => option.value === formData.state)?.text ||
+  //     formData.state;
+
+  //   const payload: InsertUserRequest = {
+  //     user_type: 3,
+  //     name: formData.name,
+  //     mobile: formData.mobile,
+  //     email: formData.email,
+  //     password: formData.password,
+  //     status: 0,
+  //     state: stateName,
+  //     city: cityName,
+  //     location: formData.locality,
+  //     address: formData.address,
+  //     pincode: formData.pincode,
+  //     gst_number: formData.gstNumber,
+  //     rera_number: formData.reraNumber,
+  //     created_by: createdBy,
+  //     created_user_id: createdUserId,
+  //     created_user_type: 2,
+  //     company_name: formData.companyName,
+  //     company_number: formData.companyNumber,
+  //     company_address: formData.companyAddress,
+  //     representative_name: formData.representativeName,
+  //     pan_card_number: formData.panCardNumber,
+  //     aadhar_number: formData.aadharNumber,
+  //     photo: formData.photo || undefined,
+  //     account_number: formData.accountNumber,
+  //     ifsc_code: formData.ifscCode,
+  //   };
+
+  //   const formDataToSend = new FormData();
+  //   Object.entries(payload).forEach(([key, value]) => {
+  //     if (value !== undefined && value !== null) {
+  //       if (key === "photo" && value instanceof File) {
+  //         formDataToSend.append(key, value);
+  //       } else {
+  //         formDataToSend.append(key, String(value));
+  //       }
+  //     }
+  //   });
+
+  //   try {
+  //     const result = await dispatch(insertUser(formDataToSend)).unwrap();
+  //     toast.success(
+  //       `Channel Partner added successfully with ID: ${result.user_id}`
+  //     );
+  //     setFormData({
+  //       name: "",
+  //       mobile: "",
+  //       email: "",
+  //       password: "",
+  //       city: "",
+  //       state: "",
+  //       locality: "",
+  //       pincode: "",
+  //       panCardNumber: "",
+  //       aadharNumber: "",
+  //       companyName: "",
+  //       representativeName: "",
+  //       companyAddress: "",
+  //       companyNumber: "",
+  //       gstNumber: "",
+  //       reraNumber: "",
+  //       address: "",
+  //       photo: null,
+  //       accountNumber: "",
+  //       ifscCode: "",
+  //     });
+  //     setErrors({});
+  //   } catch (err) {
+  //     // Error is handled in the user slice and displayed via toast
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
