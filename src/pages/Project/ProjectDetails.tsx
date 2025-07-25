@@ -17,8 +17,8 @@ const ProjectDetailsPage = () => {
     (state: RootState) => state.auth
   );
 
-  const defaultImage = " ";
-  const defaultFloorPlan = " ";
+  const defaultImage = " "; 
+  const defaultFloorPlan = " "; 
 
   const { property_id, posted_by, user_id } = (location.state || {}) as {
     property_id?: number;
@@ -40,15 +40,10 @@ const ProjectDetailsPage = () => {
     }
   }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);
 
-  const formatDistance = (value: string): string => {
+  const formatValue = (value: string | undefined, unit?: string): string => {
     if (!value) return "N/A";
-    const trimmed = value.trim().toLowerCase();
-    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
-    if (regex.test(trimmed)) {
-      const [, number, , , unit] = trimmed.match(regex)!;
-      return `${number} ${unit.toUpperCase()}`;
-    }
-    return value;
+    const trimmed = value.trim();
+    return unit ? `${trimmed} ${unit}` : trimmed;
   };
 
   if (!isAuthenticated || !user) {
@@ -59,7 +54,7 @@ const ProjectDetailsPage = () => {
           variant="primary"
           size="sm"
           onClick={() => navigate("/projects")}
-          className="mt-4 bg-blue-600 hover:bg-blue-900 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
+          className="mt-4 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           Back to Projects
         </Button>
@@ -82,7 +77,7 @@ const ProjectDetailsPage = () => {
         <Button
           variant="primary"
           size="sm"
-          onClick={() => navigate("/projects/details/:id")}
+          onClick={() => navigate("/projects")}
           className="mt-4 bg-blue-600 hover:bg-blue-700 text-white dark:bg-blue-500 dark:hover:bg-blue-600"
         >
           Back to Projects
@@ -107,6 +102,9 @@ const ProjectDetailsPage = () => {
     );
   }
 
+  const isPlot = selectedProject.property_subtype === "Plot";
+  const isLand = selectedProject.property_subtype === "Land";
+
   return (
     <div className="max-w-6xl mx-auto p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-xl">
       {/* Main Image Section */}
@@ -128,7 +126,7 @@ const ProjectDetailsPage = () => {
         </h1>
         <Button
           variant="primary"
-          size="md"
+          size="sm"
           onClick={() => navigate(-1)}
           className="bg-blue-900 hover:bg-blue-800 text-white dark:bg-blue-500 dark:hover:bg-blue-600 px-6 py-2 rounded-lg"
         >
@@ -138,25 +136,21 @@ const ProjectDetailsPage = () => {
 
       {/* Project Details */}
       <div className="space-y-10 text-gray-700 dark:text-gray-200">
-        {/* Details Grid */}
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-2">
           <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
             Project Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-            
               { label: "Builder", value: selectedProject.builder_name },
-                {
+              {
                 label: "Location",
                 value: `${selectedProject.locality}, ${selectedProject.city}, ${selectedProject.state}`,
               },
-              
               {
                 label: "Type",
                 value: `${selectedProject.property_type} (${selectedProject.property_subtype})`,
               },
-             
               {
                 label: "Possession Date",
                 value: selectedProject.possession_end_date
@@ -165,7 +159,7 @@ const ProjectDetailsPage = () => {
                     ).toLocaleDateString()
                   : "Ready to Move",
               },
-               { label: "Status", value: selectedProject.construction_status },
+              { label: "Status", value: selectedProject.construction_status },
               {
                 label: "RERA Registered",
                 value:
@@ -191,33 +185,58 @@ const ProjectDetailsPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             Sizes
           </h2>
-          {selectedProject.sizes.map((size, idx) => (
-            <div
-              key={idx}
-              className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-5"
-            >
-              <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
-                Unit {idx + 1}
-              </p>
-              <p className="text-gray-800 dark:text-white text-base">
-                {size.plot_area &&
-                  size.plotAreaUnits &&
-                  `Plot Area: ${size.plot_area} ${size.plotAreaUnits}, `}
-                {size.build_up_area &&
-                  size.builtupAreaUnits &&
-                  `Build-up: ${size.build_up_area} ${size.builtupAreaUnits}, `}
-                Carpet: {size.carpet_area} sq.ft, Price: ₹{size.sqft_price}
-                /sq.ft
-              </p>
-            </div>
-          ))}
+          {selectedProject.sizes && selectedProject.sizes.length > 0 ? (
+            selectedProject.sizes.map((size, idx) => (
+              <div
+                key={idx}
+                className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-5"
+              >
+                <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">
+                  Unit {idx + 1}
+                </p>
+                <p className="text-gray-800 dark:text-white text-base">
+                  {isPlot && size.plot_area && size.plotAreaUnits && (
+                    <>
+                      Plot Area: {formatValue(size.plot_area, size.plotAreaUnits)}
+                      ,{" "}
+                    </>
+                  )}
+                  {isPlot && size.lengthArea && size.lengthAreaUnits && (
+                    <>
+                      Length Area:{" "}
+                      {formatValue(size.lengthArea, size.lengthAreaUnits)},{" "}
+                    </>
+                  )}
+                  {!isPlot && !isLand && size.build_up_area && (
+                    <>
+                      Build-up Area:{" "}
+                      {formatValue(size.build_up_area, size.builtupAreaUnits)},{" "}
+                    </>
+                  )}
+                  {isLand && size.build_up_area && (
+                    <>
+                      Length Area:{" "}
+                      {formatValue(size.build_up_area, size.builtupAreaUnits)},{" "}
+                    </>
+                  )}
+                  {isPlot || isLand
+                    ? `Width Area: ${formatValue(size.carpet_area, "sq.ft")}`
+                    : `Carpet Area: ${formatValue(size.carpet_area, "sq.ft")}`}
+                  , Price: ₹{formatValue(size.sqft_price)}/sq.ft
+                </p>
+              </div>
+            ))
+          ) : (
+            <p className="text-gray-500 dark:text-gray-400">
+              No sizes available for this project.
+            </p>
+          )}
         </div>
 
-        {/* Floor Plans Section */}
-        {/* Main Floor Plan Image Section Styled Like Card */}
+          {/* Floor Plans Section */}
         <div className="w-full mb-10">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-4">
-              <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
+            <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
               Floor Plan
             </p>
             <img
@@ -233,7 +252,6 @@ const ProjectDetailsPage = () => {
                 (e.target as HTMLImageElement).src = defaultFloorPlan;
               }}
             />
-          
           </div>
         </div>
 
@@ -243,14 +261,20 @@ const ProjectDetailsPage = () => {
             Nearby Amenities
           </h2>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-wrap gap-3">
-            {selectedProject.around_this.map((item, i) => (
-              <span
-                key={i}
-                className="bg-blue-100 dark:bg-blue-900 text-gray-700 dark:text-gray-200 px-2 py-2 text-xs rounded-xl"
-              >
-                {item.title} ({formatDistance(item.distance)})
-              </span>
-            ))}
+            {selectedProject.around_this && selectedProject.around_this.length > 0 ? (
+              selectedProject.around_this.map((item, i) => (
+                <span
+                  key={i}
+                  className="bg-blue-100 dark:bg-blue-900 text-gray-700 dark:text-gray-200 px-2 py-2 text-xs rounded-xl"
+                >
+                  {item.title} ({formatValue(item.distance)})
+                </span>
+              ))
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">
+                No nearby amenities available.
+              </p>
+            )}
           </div>
         </div>
 
@@ -259,8 +283,8 @@ const ProjectDetailsPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             Documents
           </h2>
-          <div className=" rounded-xl p-6 flex gap-4">
-            {selectedProject.brochure && (
+          <div className="rounded-xl p-6 flex gap-4">
+            {selectedProject.brochure ? (
               <Button
                 onClick={() => window.open(selectedProject.brochure, "_blank")}
                 size="sm"
@@ -268,17 +292,19 @@ const ProjectDetailsPage = () => {
               >
                 View Brochure
               </Button>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No brochure available.</p>
             )}
-            {selectedProject.price_sheet && (
+            {selectedProject.price_sheet ? (
               <Button
-                onClick={() =>
-                  window.open(selectedProject.price_sheet, "_blank")
-                }
+                onClick={() => window.open(selectedProject.price_sheet, "_blank")}
                 size="sm"
                 className="text-white dark:text-blue-400 hover:text-white dark:hover:text-blue-300"
               >
                 View Price Sheet
               </Button>
+            ) : (
+              <p className="text-gray-500 dark:text-gray-400">No price sheet available.</p>
             )}
           </div>
         </div>
