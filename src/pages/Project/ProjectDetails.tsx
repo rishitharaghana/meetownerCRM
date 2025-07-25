@@ -123,7 +123,7 @@ const ProjectDetailsPage = () => {
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-3xl font-extrabold text-gray-800 dark:text-white">
+        <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white">
           {selectedProject.project_name}
         </h1>
         <Button
@@ -145,16 +145,18 @@ const ProjectDetailsPage = () => {
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[
-              {
+            
+              { label: "Builder", value: selectedProject.builder_name },
+                {
                 label: "Location",
                 value: `${selectedProject.locality}, ${selectedProject.city}, ${selectedProject.state}`,
               },
-              { label: "Builder", value: selectedProject.builder_name },
+              
               {
                 label: "Type",
                 value: `${selectedProject.property_type} (${selectedProject.property_subtype})`,
               },
-              { label: "Status", value: selectedProject.construction_status },
+             
               {
                 label: "Possession Date",
                 value: selectedProject.possession_end_date
@@ -163,6 +165,7 @@ const ProjectDetailsPage = () => {
                     ).toLocaleDateString()
                   : "Ready to Move",
               },
+               { label: "Status", value: selectedProject.construction_status },
               {
                 label: "RERA Registered",
                 value:
@@ -214,6 +217,9 @@ const ProjectDetailsPage = () => {
         {/* Main Floor Plan Image Section Styled Like Card */}
         <div className="w-full mb-10">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-4">
+              <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
+              Floor Plan
+            </p>
             <img
               src={
                 selectedProject.sizes.find(
@@ -227,9 +233,7 @@ const ProjectDetailsPage = () => {
                 (e.target as HTMLImageElement).src = defaultFloorPlan;
               }}
             />
-            <p className="mt-3 text-center text-sm text-gray-700 dark:text-gray-300 font-medium">
-              Main Floor Plan
-            </p>
+          
           </div>
         </div>
 
@@ -255,7 +259,7 @@ const ProjectDetailsPage = () => {
           <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
             Documents
           </h2>
-          <div className=" rounded-xl  p-6 flex gap-6">
+          <div className=" rounded-xl p-6 flex gap-4">
             {selectedProject.brochure && (
               <Button
                 onClick={() => window.open(selectedProject.brochure, "_blank")}
