@@ -41,8 +41,8 @@ interface FormData {
   reraNumber: string;
   address: string;
   photo?: File | null;
-  accountNumber: string; // New field
-  ifscCode: string; // New field
+  accountNumber: string;
+  ifscCode: string;
 }
 
 interface Errors {
@@ -77,8 +77,8 @@ const AddChannelPartner = () => {
     reraNumber: "",
     address: "",
     photo: null,
-    accountNumber: "", // Initialize new field
-    ifscCode: "", // Initialize new field
+    accountNumber: "",
+    ifscCode: "",
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -138,10 +138,35 @@ const AddChannelPartner = () => {
     states?.map((state: any) => ({ value: state.value, text: state.label })) ||
     [];
 
+  const validateReraNumber = (reraNumber: string, state: string): string | undefined => {
+    if (!reraNumber.trim()) {
+      return "RERA number is required";
+    }
+    const reraRegex = /^[A-Za-z0-9-]{1,30}$/;
+    if (!reraRegex.test(reraNumber)) {
+      return "RERA number must be alphanumeric with optional hyphens and up to 30 characters";
+    }
+    // Example state-specific validation for Maharashtra
+    if (state === "27") { // Assuming '27' is Maharashtra's state code
+      const maharashtraReraRegex = /^P\d{3}\d{8}$/;
+      if (!maharashtraReraRegex.test(reraNumber)) {
+        return "Invalid RERA number format for Maharashtra (e.g., P51700012345)";
+      }
+    }
+    return undefined;
+  };
+
   const handleChange =
     (field: keyof FormData) => (value: string | File | null) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
-      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+      if (field === "reraNumber") {
+        setErrors((prev) => ({
+          ...prev,
+          reraNumber: validateReraNumber(value as string, formData.state),
+        }));
+      } else if (errors[field]) {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
     };
 
   const handleDropdownChange = (field: keyof FormData) => (value: string) => {
@@ -150,7 +175,16 @@ const AddChannelPartner = () => {
       [field]: value,
       ...(field === "state" && { city: "" }),
     }));
-    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+    if (field === "state") {
+      // Re-validate RERA number when state changes
+      setErrors((prev) => ({
+        ...prev,
+        reraNumber: validateReraNumber(formData.reraNumber, value),
+        [field]: undefined,
+      }));
+    } else if (errors[field]) {
+      setErrors((prev) => ({ ...prev, [field]: undefined }));
+    }
   };
 
   const validateForm = () => {
@@ -199,8 +233,8 @@ const AddChannelPartner = () => {
     ) {
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
     }
-    if (!formData.reraNumber.trim())
-      newErrors.reraNumber = "RERA number is required";
+    const reraError = validateReraNumber(formData.reraNumber, formData.state);
+    if (reraError) newErrors.reraNumber = reraError;
     if (!formData.address.trim()) newErrors.address = "Address is required";
     // Account Number validation (optional)
     if (formData.accountNumber && formData.accountNumber.length > 20) {
@@ -222,8 +256,8 @@ const AddChannelPartner = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const createdBy = localStorage.getItem("name") || "Admin"; // Ensure string
-    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10); // Ensure number
+    const createdBy = localStorage.getItem("name") || "Admin";
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
 
     const cityName =
       cityOptions.find((option) => option.value === formData.city)?.text ||
@@ -456,7 +490,7 @@ const AddChannelPartner = () => {
             <Input
               value={formData.reraNumber}
               onChange={(e) => handleChange("reraNumber")(e.target.value)}
-              placeholder="Enter RERA number"
+              placeholder="Enter RERA number (e.g., P51700012345)"
             />
             {errors.reraNumber && (
               <p className="text-red-600 text-sm mt-1">
@@ -466,7 +500,9 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Address</label>
+            <label className="text-sm font-medium text-gray-700">
+              Address
+            </label>
             <textarea
               value={formData.address}
               onChange={(e) => handleChange("address")(e.target.value)}
@@ -528,7 +564,7 @@ const AddChannelPartner = () => {
 
           <div>
             <label className="text-sm font-medium text-gray-700">
-              IFSC Code{" "}
+              IFSC Code
             </label>
             <Input
               value={formData.ifscCode}
