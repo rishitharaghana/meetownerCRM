@@ -4,12 +4,14 @@ import { Building, Target, Users, User } from "lucide-react";
 import Input from "../../components/form/input/InputField";
 import Select from "../../components/form/Select";
 import { AppDispatch, RootState } from "../../store/store";
-import { fetchOngoingProjects } from "../../store/slices/projectSlice";
+import { fetchOngoingProjects, fetchUpcomingProjects } from "../../store/slices/projectSlice";
 import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 import { getLeadSources, insertLead } from "../../store/slices/leadslice";
 import { LeadSource } from "../../types/LeadModel";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
+import UpComingProjects from "../Project/UpComingProjects";
+
 interface FormData {
   name: string;
   mobile: string;
@@ -49,9 +51,10 @@ const LeadForm: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-  const { ongoingProjects, loading: projectsLoading } = useSelector(
+  const { ongoingProjects, upcomingProjects, loading: projectsLoading } = useSelector(
     (state: RootState) => state.projects
   );
+ 
   const { users, loading: usersLoading } = useSelector(
     (state: RootState) => state.user
   );
@@ -92,6 +95,7 @@ const LeadForm: React.FC = () => {
           fetchOngoingProjects({
             admin_user_type: user.created_user_type,
             admin_user_id: user.created_user_id,
+            
           })
         );
       }
@@ -100,6 +104,31 @@ const LeadForm: React.FC = () => {
       dispatch(clearUsers());
     };
   }, [isAuthenticated, user, dispatch, isBuilder]);
+ 
+  useEffect(()=> {
+    if(isBuilder){
+      dispatch(
+        fetchUpcomingProjects({
+          admin_user_type: user.user_type,
+          admin_user_id: user.id,
+        })
+      );
+      dispatch(getLeadSources());
+    } else {
+      dispatch(
+        fetchUpcomingProjects({
+          admin_user_type: user.created_user_type,
+          admin_user_id:user.created_user_id,
+      
+        })
+      )
+    }
+     return() =>{
+      dispatch(clearUsers());
+  } 
+ 
+  },[isAuthenticated, user, dispatch, isBuilder]);
+
   useEffect(() => {
     if (
       isAuthenticated &&
@@ -112,10 +141,11 @@ const LeadForm: React.FC = () => {
     }
   }, [formData.leadSource, isAuthenticated, user, dispatch, isBuilder]);
   const projectOptions =
-    ongoingProjects?.map((project: Project) => ({
-      value: project.property_id.toString(),
-      label: `${project.project_name} - ${project.property_type}`,
-    })) || [];
+  [...ongoingProjects, ...upcomingProjects]?.map((project: Project) => ({
+    value: project.property_id.toString(),
+    label: `${project.project_name} - ${project.property_type}`,
+  })) || [];
+
   const channelPartnerOptions =
     users?.map((partner: ChannelPartner) => ({
       value: partner.id.toString(),
