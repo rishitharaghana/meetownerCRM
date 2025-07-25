@@ -646,108 +646,214 @@ export default function AddProject() {
     return Object.keys(newErrors).length === 0;
   };
 
+  // const handleSubmit = (e: React.FormEvent) => {
+  //   e.preventDefault();
+  //   if (validateForm()) {
+  //     const stateName =
+  //       stateOptions.find((option) => option.value === formData.state)?.text ||
+  //       formData.state;
+  //     const cityName =
+  //       cityOptions.find((option) => option.value === formData.city)?.text ||
+  //       formData.city;
+  //     const formDataToSend = new FormData();
+  //     formDataToSend.append("project_name", formData.projectName);
+  //     formDataToSend.append("property_type", formData.propertyType);
+  //     formDataToSend.append("property_subtype", formData.propertySubType);
+  //     formDataToSend.append("builder_name", formData.builderName);
+  //     formDataToSend.append("state", stateName);
+  //     formDataToSend.append("city", cityName);
+  //     formDataToSend.append("locality", formData.locality);
+  //     formDataToSend.append("construction_status", formData.status);
+  //     formDataToSend.append(
+  //       "upcoming_project",
+  //       formData.isUpcoming ? "Yes" : "No"
+  //     );
+  //     formDataToSend.append("posted_by", user?.user_type.toString() || "2");
+  //     formDataToSend.append("user_id", user?.id.toString() || "2");
+  //     formDataToSend.append(
+  //       "rera_registered",
+  //       formData.isReraRegistered ? "Yes" : "No"
+  //     );
+  //     if (formData.isReraRegistered) {
+  //       formDataToSend.append("rera_number", formData.reraNumber);
+  //     }
+  //     formDataToSend.append("launch_type", formData.launchType);
+  //     if (formData.launchType === "Launched") {
+  //       formDataToSend.append("launched_date", formData.launchDate || "");
+  //     }
+  //     if (formData.status === "Under Construction") {
+  //       formDataToSend.append(
+  //         "possession_end_date",
+  //         formData.possessionEndDate || ""
+  //       );
+  //     }
+  //     formDataToSend.append(
+  //       "payment_mode",
+  //       JSON.stringify(formData.otpOptions)
+  //     );
+  //     formDataToSend.append(
+  //       "sizes",
+  //       JSON.stringify(
+  //         formData.sizes.map((size) => ({
+  //           plot_area: size.plotArea,
+  //           plotAreaUnits: size.plotAreaUnits,
+  //           lengthArea: size.lengthArea,
+  //           lengthAreaUnits: size.lengthAreaUnits,
+  //           build_up_area: size.build_up_area,
+  //           builtupAreaUnits: size.builtupAreaUnits,
+  //           carpet_area: size.carpetArea,
+  //           sqft_price: size.sqftPrice,
+  //         }))
+  //       )
+  //     );
+  //     formDataToSend.append(
+  //       "around_this",
+  //       JSON.stringify(
+  //         formData.aroundProperty.map((entry) => ({
+  //           title: entry.place,
+  //           distance: entry.distance,
+  //         }))
+  //       )
+  //     );
+  //     if (formData.brochure) {
+  //       formDataToSend.append("brochure", formData.brochure);
+  //     }
+  //     if (formData.priceSheet) {
+  //       formDataToSend.append("price_sheet", formData.priceSheet);
+  //     }
+  //     if (formData.propertyImage) {
+  //       formDataToSend.append("property_image", formData.propertyImage);
+  //     }
+  //     formData.sizes.forEach((size) => {
+  //       if (size.floorPlan) {
+  //         formDataToSend.append("floor_plan", size.floorPlan);
+  //       }
+  //     });
+  //     dispatch(insertProperty(formDataToSend))
+  //       .unwrap()
+  //       .then(() => {
+  //         toast.success("Property inserted successfully");
+  //         setFormData(INITIAL_FORM_STATE);
+  //         setPlaceAroundProperty("");
+  //         setDistanceFromProperty("");
+  //         if (brochureInputRef.current) brochureInputRef.current.value = "";
+  //         if (priceSheetInputRef.current) priceSheetInputRef.current.value = "";
+  //         Object.keys(fileInputRefs.current).forEach((key) => {
+  //           if (fileInputRefs.current[key])
+  //             fileInputRefs.current[key]!.value = "";
+  //         });
+  //       })
+  //       .catch((error) => {
+  //         toast.error(`Error: ${error.message || "Failed to insert property"}`);
+  //       });
+  //   }
+  // };
+
+
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (validateForm()) {
-      const stateName =
-        stateOptions.find((option) => option.value === formData.state)?.text ||
-        formData.state;
-      const cityName =
-        cityOptions.find((option) => option.value === formData.city)?.text ||
-        formData.city;
-      const formDataToSend = new FormData();
-      formDataToSend.append("project_name", formData.projectName);
-      formDataToSend.append("property_type", formData.propertyType);
-      formDataToSend.append("property_subtype", formData.propertySubType);
-      formDataToSend.append("builder_name", formData.builderName);
-      formDataToSend.append("state", stateName);
-      formDataToSend.append("city", cityName);
-      formDataToSend.append("locality", formData.locality);
-      formDataToSend.append("construction_status", formData.status);
-      formDataToSend.append(
-        "upcoming_project",
-        formData.isUpcoming ? "Yes" : "No"
-      );
-      formDataToSend.append("posted_by", user?.user_type.toString() || "2");
-      formDataToSend.append("user_id", user?.id.toString() || "2");
-      formDataToSend.append(
-        "rera_registered",
-        formData.isReraRegistered ? "Yes" : "No"
-      );
-      if (formData.isReraRegistered) {
-        formDataToSend.append("rera_number", formData.reraNumber);
-      }
-      formDataToSend.append("launch_type", formData.launchType);
-      if (formData.launchType === "Launched") {
-        formDataToSend.append("launched_date", formData.launchDate || "");
-      }
-      if (formData.status === "Under Construction") {
-        formDataToSend.append(
-          "possession_end_date",
-          formData.possessionEndDate || ""
-        );
-      }
-      formDataToSend.append(
-        "payment_mode",
-        JSON.stringify(formData.otpOptions)
-      );
-      formDataToSend.append(
-        "sizes",
-        JSON.stringify(
-          formData.sizes.map((size) => ({
-            plot_area: size.plotArea,
-            plotAreaUnits: size.plotAreaUnits,
-            lengthArea: size.lengthArea,
-            lengthAreaUnits: size.lengthAreaUnits,
-            build_up_area: size.build_up_area,
-            builtupAreaUnits: size.builtupAreaUnits,
-            carpet_area: size.carpetArea,
-            sqft_price: size.sqftPrice,
-          }))
-        )
-      );
-      formDataToSend.append(
-        "around_this",
-        JSON.stringify(
-          formData.aroundProperty.map((entry) => ({
-            title: entry.place,
-            distance: entry.distance,
-          }))
-        )
-      );
-      if (formData.brochure) {
-        formDataToSend.append("brochure", formData.brochure);
-      }
-      if (formData.priceSheet) {
-        formDataToSend.append("price_sheet", formData.priceSheet);
-      }
-      if (formData.propertyImage) {
-        formDataToSend.append("property_image", formData.propertyImage);
-      }
-      formData.sizes.forEach((size) => {
-        if (size.floorPlan) {
-          formDataToSend.append("floor_plan", size.floorPlan);
-        }
-      });
-      dispatch(insertProperty(formDataToSend))
-        .unwrap()
-        .then(() => {
-          toast.success("Property inserted successfully");
-          setFormData(INITIAL_FORM_STATE);
-          setPlaceAroundProperty("");
-          setDistanceFromProperty("");
-          if (brochureInputRef.current) brochureInputRef.current.value = "";
-          if (priceSheetInputRef.current) priceSheetInputRef.current.value = "";
-          Object.keys(fileInputRefs.current).forEach((key) => {
-            if (fileInputRefs.current[key])
-              fileInputRefs.current[key]!.value = "";
-          });
-        })
-        .catch((error) => {
-          toast.error(`Error: ${error.message || "Failed to insert property"}`);
-        });
+  e.preventDefault();
+  if (!validateForm()) {
+    toast.error("Please fill correct details");
+    return;
+  }
+  const stateName =
+    stateOptions.find((option) => option.value === formData.state)?.text ||
+    formData.state;
+  const cityName =
+    cityOptions.find((option) => option.value === formData.city)?.text ||
+    formData.city;
+  const formDataToSend = new FormData();
+  formDataToSend.append("project_name", formData.projectName);
+  formDataToSend.append("property_type", formData.propertyType);
+  formDataToSend.append("property_subtype", formData.propertySubType);
+  formDataToSend.append("builder_name", formData.builderName);
+  formDataToSend.append("state", stateName);
+  formDataToSend.append("city", cityName);
+  formDataToSend.append("locality", formData.locality);
+  formDataToSend.append("construction_status", formData.status);
+  formDataToSend.append(
+    "upcoming_project",
+    formData.isUpcoming ? "Yes" : "No"
+  );
+  formDataToSend.append("posted_by", user?.user_type.toString() || "2");
+  formDataToSend.append("user_id", user?.id.toString() || "2");
+  formDataToSend.append(
+    "rera_registered",
+    formData.isReraRegistered ? "Yes" : "No"
+  );
+  if (formData.isReraRegistered) {
+    formDataToSend.append("rera_number", formData.reraNumber);
+  }
+  formDataToSend.append("launch_type", formData.launchType);
+  if (formData.launchType === "Launched") {
+    formDataToSend.append("launched_date", formData.launchDate || "");
+  }
+  if (formData.status === "Under Construction") {
+    formDataToSend.append(
+      "possession_end_date",
+      formData.possessionEndDate || ""
+    );
+  }
+  formDataToSend.append(
+    "payment_mode",
+    JSON.stringify(formData.otpOptions)
+  );
+  formDataToSend.append(
+    "sizes",
+    JSON.stringify(
+      formData.sizes.map((size) => ({
+        plot_area: size.plotArea,
+        plotAreaUnits: size.plotAreaUnits,
+        lengthArea: size.lengthArea,
+        lengthAreaUnits: size.lengthAreaUnits,
+        build_up_area: size.build_up_area,
+        builtupAreaUnits: size.builtupAreaUnits,
+        carpet_area: size.carpetArea,
+        sqft_price: size.sqftPrice,
+      }))
+    )
+  );
+  formDataToSend.append(
+    "around_this",
+    JSON.stringify(
+      formData.aroundProperty.map((entry) => ({
+        title: entry.place,
+        distance: entry.distance,
+      }))
+    )
+  );
+  if (formData.brochure) {
+    formDataToSend.append("brochure", formData.brochure);
+  }
+  if (formData.priceSheet) {
+    formDataToSend.append("price_sheet", formData.priceSheet);
+  }
+  if (formData.propertyImage) {
+    formDataToSend.append("property_image", formData.propertyImage);
+  }
+  formData.sizes.forEach((size) => {
+    if (size.floorPlan) {
+      formDataToSend.append("floor_plan", size.floorPlan);
     }
-  };
+  });
+  dispatch(insertProperty(formDataToSend))
+    .unwrap()
+    .then(() => {
+      toast.success("Property inserted successfully");
+      setFormData(INITIAL_FORM_STATE);
+      setPlaceAroundProperty("");
+      setDistanceFromProperty("");
+      if (brochureInputRef.current) brochureInputRef.current.value = "";
+      if (priceSheetInputRef.current) priceSheetInputRef.current.value = "";
+      Object.keys(fileInputRefs.current).forEach((key) => {
+        if (fileInputRefs.current[key])
+          fileInputRefs.current[key]!.value = "";
+      });
+    })
+    .catch((error) => {
+      toast.error(`Error: ${error.message || "Failed to insert property"}`);
+    });
+};
 
   const renderError = (error: string | undefined) =>
     error && <p className="text-red-500 text-sm mt-1">{error}</p>;
