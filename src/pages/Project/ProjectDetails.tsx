@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchProjectById } from "../../store/slices/projectSlice";
-import defaultImage from '/images/DefaultImage.jpeg'
+// import defaultImage from '/images/DefaultImage.jpeg'
 
 const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -19,7 +19,7 @@ const ProjectDetailsPage = () => {
   );
 
   const defaultFloorPlan = " ";
-
+const defaultImage ="";
   const { property_id, posted_by, user_id } = (location.state || {}) as {
     property_id?: number;
     posted_by?: string;
