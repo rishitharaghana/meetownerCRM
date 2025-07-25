@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchProjectById } from "../../store/slices/projectSlice";
+import defaultImage from '/images/DefaultImage.jpeg'
 
 const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -17,8 +18,7 @@ const ProjectDetailsPage = () => {
     (state: RootState) => state.auth
   );
 
-  const defaultImage = " "; 
-  const defaultFloorPlan = " "; 
+  const defaultFloorPlan = " ";
 
   const { property_id, posted_by, user_id } = (location.state || {}) as {
     property_id?: number;
@@ -35,7 +35,7 @@ const ProjectDetailsPage = () => {
           admin_user_id: Number(user_id),
         })
       ).then((response) => {
-        console.log("Project data:", response.payload); // Debug fetched data
+        console.log("Project data:", response.payload);
       });
     }
   }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);
@@ -172,7 +172,7 @@ const ProjectDetailsPage = () => {
                 <p className="text-gray-500 dark:text-gray-400 text-sm font-semibold">
                   {item.label}
                 </p>
-                <p className="text-gray-800 dark:text-white text-lg font-bold">
+                <p className="text-gray-800 dark:text-white text-md font-medium">
                   {item.value}
                 </p>
               </div>
@@ -197,8 +197,8 @@ const ProjectDetailsPage = () => {
                 <p className="text-gray-800 dark:text-white text-base">
                   {isPlot && size.plot_area && size.plotAreaUnits && (
                     <>
-                      Plot Area: {formatValue(size.plot_area, size.plotAreaUnits)}
-                      ,{" "}
+                      Plot Area:{" "}
+                      {formatValue(size.plot_area, size.plotAreaUnits)},{" "}
                     </>
                   )}
                   {isPlot && size.lengthArea && size.lengthAreaUnits && (
@@ -233,7 +233,7 @@ const ProjectDetailsPage = () => {
           )}
         </div>
 
-          {/* Floor Plans Section */}
+        {/* Floor Plans Section */}
         <div className="w-full mb-10">
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-4">
             <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
@@ -261,7 +261,8 @@ const ProjectDetailsPage = () => {
             Nearby Amenities
           </h2>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-wrap gap-3">
-            {selectedProject.around_this && selectedProject.around_this.length > 0 ? (
+            {selectedProject.around_this &&
+            selectedProject.around_this.length > 0 ? (
               selectedProject.around_this.map((item, i) => (
                 <span
                   key={i}
@@ -293,18 +294,24 @@ const ProjectDetailsPage = () => {
                 View Brochure
               </Button>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No brochure available.</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                No brochure available.
+              </p>
             )}
             {selectedProject.price_sheet ? (
               <Button
-                onClick={() => window.open(selectedProject.price_sheet, "_blank")}
+                onClick={() =>
+                  window.open(selectedProject.price_sheet, "_blank")
+                }
                 size="sm"
                 className="text-white dark:text-blue-400 hover:text-white dark:hover:text-blue-300"
               >
                 View Price Sheet
               </Button>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">No price sheet available.</p>
+              <p className="text-gray-500 dark:text-gray-400">
+                No price sheet available.
+              </p>
             )}
           </div>
         </div>
