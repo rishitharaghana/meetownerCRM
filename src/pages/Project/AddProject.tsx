@@ -14,14 +14,17 @@ import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { useMemo } from "react";
 import PageMeta from "../../components/common/PageMeta";
+
 interface SelectOption {
   value: string;
   label: string;
 }
+
 interface Option {
   value: string;
   text: string;
 }
+
 interface SizeEntry {
   id: string;
   plotArea?: string;
@@ -29,21 +32,17 @@ interface SizeEntry {
   build_up_area?: string;
   builtupAreaUnits?: string;
   carpetArea: string;
-  // carpetAreaUnits: string;
   lengthArea?: string;
   lengthAreaUnits?: string;
   floorPlan: File | null;
   sqftPrice: string;
 }
-const AREA_UNIT_OPTIONS: SelectOption[] = [
-  { value: "sq.ft", label: "Sq.ft" },
-  { value: "sq.yd", label: "Sq.yd" },
-  { value: "acres", label: "Acres" },
-];
+
 interface AroundPropertyEntry {
   place: string;
   distance: string;
 }
+
 interface FormData {
   state: string;
   city: string;
@@ -66,13 +65,22 @@ interface FormData {
   reraNumber: string;
   otpOptions: string[];
 }
+
 interface Errors {
   [key: string]: string | undefined | { [key: string]: string | undefined };
 }
+
+const AREA_UNIT_OPTIONS: SelectOption[] = [
+  { value: "sq.ft", label: "Sq.ft" },
+  { value: "sq.yd", label: "Sq.yd" },
+  { value: "acres", label: "Acres" },
+];
+
 const PROPERTY_TYPE_OPTIONS: SelectOption[] = [
   { value: "Residential", label: "Residential" },
   { value: "Commercial", label: "Commercial" },
 ];
+
 const RESIDENTIAL_SUBTYPES: SelectOption[] = [
   { value: "Apartment", label: "Apartment" },
   { value: "Independent House", label: "Independent House" },
@@ -80,6 +88,7 @@ const RESIDENTIAL_SUBTYPES: SelectOption[] = [
   { value: "Plot", label: "Plot" },
   { value: "Land", label: "Land" },
 ];
+
 const COMMERCIAL_SUBTYPES: SelectOption[] = [
   { value: "Office", label: "Office" },
   { value: "Retail Shop", label: "Retail Shop" },
@@ -88,17 +97,20 @@ const COMMERCIAL_SUBTYPES: SelectOption[] = [
   { value: "Plot", label: "Plot" },
   { value: "Others", label: "Others" },
 ];
+
 const LAUNCH_TYPES: SelectOption[] = [
   { value: "Pre Launch", label: "Pre Launch" },
   { value: "Soft Launch", label: "Soft Launch" },
   { value: "Launched", label: "Launched" },
 ];
+
 const PAYMENT_OPTIONS: SelectOption[] = [
   { value: "Regular", label: "Regular" },
   { value: "OTP", label: "OTP" },
   { value: "Offers", label: "Offers" },
   { value: "EMI", label: "EMI" },
 ];
+
 const INITIAL_FORM_STATE: FormData = {
   state: "",
   city: "",
@@ -110,7 +122,6 @@ const INITIAL_FORM_STATE: FormData = {
   sizes: [
     {
       id: `${Date.now()}-1`,
-
       plotArea: "",
       build_up_area: "",
       carpetArea: "",
@@ -119,7 +130,6 @@ const INITIAL_FORM_STATE: FormData = {
       lengthArea: "",
       lengthAreaUnits: "",
       builtupAreaUnits: "",
-      // carpetAreaUnits: "",
     },
   ],
   aroundProperty: [],
@@ -135,6 +145,7 @@ const INITIAL_FORM_STATE: FormData = {
   reraNumber: "",
   otpOptions: [],
 };
+
 export default function AddProject() {
   const dispatch = useDispatch<AppDispatch>();
   const { states } = useSelector((state: RootState) => state.property);
@@ -186,6 +197,7 @@ export default function AddProject() {
       })) || [],
     [states]
   );
+
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate("/login");
@@ -197,11 +209,13 @@ export default function AddProject() {
       toast.error("Access denied: Only builders can create projects");
     }
   }, [isAuthenticated, user, navigate]);
+
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
+
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -223,6 +237,7 @@ export default function AddProject() {
     statesQuery.isError,
     statesQuery.error,
   ]);
+
   const handleDropdownChange = useCallback(
     (field: keyof FormData) => (value: string) => {
       setFormData((prev) => ({
@@ -237,13 +252,22 @@ export default function AddProject() {
     },
     []
   );
+
   const handleInputChange = useCallback(
     (field: keyof FormData) => (e: React.ChangeEvent<HTMLInputElement>) => {
       setFormData((prev) => ({ ...prev, [field]: e.target.value }));
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+      if (field === "reraNumber" && formData.isReraRegistered) {
+        setErrors((prev) => ({
+          ...prev,
+          reraNumber: validateReraNumber(e.target.value, formData.state),
+        }));
+      } else {
+        setErrors((prev) => ({ ...prev, [field]: undefined }));
+      }
     },
-    []
+    [formData.isReraRegistered, formData.state]
   );
+
   const handleSelectChange = useCallback(
     (field: "propertyType" | "propertySubType") => (value: string) => {
       setFormData((prev) => ({
@@ -255,6 +279,7 @@ export default function AddProject() {
     },
     []
   );
+
   const handleSizeChange = useCallback(
     (id: string, field: keyof SizeEntry) =>
       (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -274,6 +299,7 @@ export default function AddProject() {
       },
     []
   );
+
   const handleFileChange = useCallback(
     (id: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
@@ -323,11 +349,13 @@ export default function AddProject() {
     },
     []
   );
+
   const handleBrochureButtonClick = () => {
     if (brochureInputRef.current) {
       brochureInputRef.current.click();
     }
   };
+
   const handleBrochureChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
@@ -350,6 +378,7 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, brochure: file }));
     setErrors((prev) => ({ ...prev, brochure: undefined }));
   };
+
   const handleDeleteBrochure = () => {
     setFormData((prev) => ({ ...prev, brochure: null }));
     setErrors((prev) => ({ ...prev, brochure: undefined }));
@@ -357,6 +386,7 @@ export default function AddProject() {
       brochureInputRef.current.value = "";
     }
   };
+
   const handleDeleteFile = (id: string) => () => {
     setFormData((prev) => ({
       ...prev,
@@ -372,11 +402,7 @@ export default function AddProject() {
       },
     }));
   };
-  // const handlePropertyImageButtonClick =() =>{
-  //   if(propertyImageInputRef.current){
-  //     propertyImageInputRef.current.click();
-  //   }
-  // };
+
   const handlePropertyImageChange = (
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
@@ -422,6 +448,7 @@ export default function AddProject() {
       priceSheetInputRef.current.click();
     }
   };
+
   const handlePriceSheetChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0] || null;
     if (file) {
@@ -444,6 +471,7 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, priceSheet: file }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
   };
+
   const handleDeletePriceSheet = () => {
     setFormData((prev) => ({ ...prev, priceSheet: null }));
     setErrors((prev) => ({ ...prev, priceSheet: undefined }));
@@ -451,6 +479,7 @@ export default function AddProject() {
       priceSheetInputRef.current.value = "";
     }
   };
+
   const handleDeleteSize = (id: string) => () => {
     setFormData((prev) => ({
       ...prev,
@@ -463,6 +492,7 @@ export default function AddProject() {
       ),
     }));
   };
+
   const handleAddSize = () => {
     setFormData((prev) => ({
       ...prev,
@@ -470,20 +500,19 @@ export default function AddProject() {
         ...prev.sizes,
         {
           id: `${Date.now()}-${prev.sizes.length + 1}`,
-          areaUnits: "",
           plotArea: "",
           build_up_area: "",
           carpetArea: "",
-          lengthArea: "",
           floorPlan: null,
           sqftPrice: "",
+          lengthArea: "",
           lengthAreaUnits: "",
           builtupAreaUnits: "",
-          // carpetAreaUnits: "",
         },
       ],
     }));
   };
+
   const handleAddAroundProperty = () => {
     const trimmedPlace = placeAroundProperty.trim();
     const trimmedDistance = distanceFromProperty.trim();
@@ -510,12 +539,14 @@ export default function AddProject() {
       }));
     }
   };
+
   const handleDeleteAroundProperty = (index: number) => () => {
     setFormData((prev) => ({
       ...prev,
       aroundProperty: prev.aroundProperty.filter((_, i) => i !== index),
     }));
   };
+
   const handleLaunchDateChange = (selectedDates: Date[]) => {
     const selectedDate = selectedDates[0];
     const formattedDate = selectedDate
@@ -526,6 +557,7 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, launchDate: formattedDate }));
     setErrors((prev) => ({ ...prev, launchDate: undefined }));
   };
+
   const handlePossessionEndDateChange = (selectedDates: Date[]) => {
     const selectedDate = selectedDates[0];
     const formattedDate = selectedDate
@@ -536,6 +568,7 @@ export default function AddProject() {
     setFormData((prev) => ({ ...prev, possessionEndDate: formattedDate }));
     setErrors((prev) => ({ ...prev, possessionEndDate: undefined }));
   };
+
   const handleOtpOptionsChange = (option: string) => {
     setFormData((prev) => ({
       ...prev,
@@ -545,6 +578,25 @@ export default function AddProject() {
     }));
     setErrors((prev) => ({ ...prev, otpOptions: undefined }));
   };
+
+  const validateReraNumber = (reraNumber: string, state: string): string | undefined => {
+    if (!reraNumber.trim()) {
+      return "RERA Number is required when RERA is registered";
+    }
+    const reraRegex = /^[A-Za-z0-9-]{1,30}$/;
+    if (!reraRegex.test(reraNumber)) {
+      return "RERA Number must be alphanumeric with optional hyphens and up to 30 characters";
+    }
+    // Example state-specific validation for Maharashtra
+    if (state === "27") { // Assuming '27' is Maharashtra's state code
+      const maharashtraReraRegex = /^P\d{3}\d{8}$/;
+      if (!maharashtraReraRegex.test(reraNumber)) {
+        return "Invalid RERA Number format for Maharashtra (e.g., P51700012345)";
+      }
+    }
+    return undefined;
+  };
+
   const validateForm = () => {
     const newErrors: Errors = {};
     if (!formData.state) newErrors.state = "State is required";
@@ -565,8 +617,10 @@ export default function AddProject() {
     if (formData.aroundProperty.length === 0)
       newErrors.aroundProperty =
         "At least one place around property is required";
-    if (formData.isReraRegistered && !formData.reraNumber.trim())
-      newErrors.reraNumber = "RERA Number is required";
+    if (formData.isReraRegistered) {
+      const reraError = validateReraNumber(formData.reraNumber, formData.state);
+      if (reraError) newErrors.reraNumber = reraError;
+    }
     if (formData.otpOptions.length === 0)
       newErrors.otpOptions = "At least one payment mode is required";
     if (formData.launchType === "Launched" && !formData.launchDate)
@@ -591,6 +645,7 @@ export default function AddProject() {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (validateForm()) {
@@ -600,8 +655,6 @@ export default function AddProject() {
       const cityName =
         cityOptions.find((option) => option.value === formData.city)?.text ||
         formData.city;
-      const isPlot = formData.propertySubType === "Plot";
-      const isLand = formData.propertySubType === "Land";
       const formDataToSend = new FormData();
       formDataToSend.append("project_name", formData.projectName);
       formDataToSend.append("property_type", formData.propertyType);
@@ -649,7 +702,6 @@ export default function AddProject() {
             build_up_area: size.build_up_area,
             builtupAreaUnits: size.builtupAreaUnits,
             carpet_area: size.carpetArea,
-            // carpetAreaUnits: size.carpetAreaUnits,
             sqft_price: size.sqftPrice,
           }))
         )
@@ -670,9 +722,8 @@ export default function AddProject() {
         formDataToSend.append("price_sheet", formData.priceSheet);
       }
       if (formData.propertyImage) {
-        formDataToSend.append("property_image", formData.propertyImage); // Single image
+        formDataToSend.append("property_image", formData.propertyImage);
       }
-
       formData.sizes.forEach((size) => {
         if (size.floorPlan) {
           formDataToSend.append("floor_plan", size.floorPlan);
@@ -697,11 +748,13 @@ export default function AddProject() {
         });
     }
   };
+
   const renderError = (error: string | undefined) =>
     error && <p className="text-red-500 text-sm mt-1">{error}</p>;
+
   return (
     <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
-     <PageMeta title="Add Projects - Project Management " />
+      <PageMeta title="Add Projects - Project Management " />
       <ComponentCard title="Create Property">
         <form onSubmit={handleSubmit} className="space-y-6">
           <div className="min-h-[80px] w-full max-w-md">
@@ -915,7 +968,7 @@ export default function AddProject() {
                 id="reraNumber"
                 value={formData.reraNumber}
                 onChange={handleInputChange("reraNumber")}
-                placeholder="Enter RERA number"
+                placeholder="Enter RERA number (e.g., P51700012345)"
                 className="dark:bg-gray-800"
               />
               {renderError(errors.reraNumber)}
@@ -1006,7 +1059,6 @@ export default function AddProject() {
                       </svg>
                     </button>
                   )}
-
                   <div className="min-h-[80px]">
                     {isPlot ? (
                       <>
@@ -1090,34 +1142,15 @@ export default function AddProject() {
                           </Label>
                           <div className="flex w-full max-w-md border border-gray-300 rounded-md overflow-hidden">
                             <Input
-                              type="num"
+                              type="number"
                               id={`lengthArea-${size.id}`}
                               value={size.lengthArea || ""}
                               onChange={handleSizeChange(size.id, "lengthArea")}
                               placeholder="Enter length area"
                               className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
                             />
-                            {/* <select
-                              id={`lengthAreaUnits-${size.id}`}
-                              value={size.lengthAreaUnits || ""}
-                              onChange={handleSizeChange(
-                                size.id,
-                                "lengthAreaUnits"
-                              )}
-                              className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
-                            >
-                              <option value="">Select</option>
-                              {AREA_UNIT_OPTIONS.map((unit) => (
-                                <option key={unit.value} value={unit.value}>
-                                  {unit.label}
-                                </option>
-                              ))}
-                            </select> */}
                           </div>
                           {renderError(errors.sizes?.[size.id]?.lengthArea)}
-                          {renderError(
-                            errors.sizes?.[size.id]?.lengthAreaUnits
-                          )}
                         </div>
                       </div>
                     </div>
@@ -1137,22 +1170,8 @@ export default function AddProject() {
                         }`}
                         className="w-full px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800"
                       />
-                      {/* <select
-                        id={`carpetAreaUnits-${size.id}`}
-                        value={size.carpetAreaUnits}
-                        onChange={handleSizeChange(size.id, "carpetAreaUnits")}
-                        className="px-3 py-2 text-sm border-l border-gray-300 bg-white dark:bg-gray-800 dark:text-white"
-                      >
-                        <option value="">Select</option>
-                        {AREA_UNIT_OPTIONS.map((unit) => (
-                          <option key={unit.value} value={unit.value}>
-                            {unit.label}
-                          </option>
-                        ))}
-                      </select> */}
                     </div>
                     {renderError(errors.sizes?.[size.id]?.carpetArea)}
-                    {/* {renderError(errors.sizes?.[size.id]?.carpetAreaUnits)} */}
                   </div>
                   <div className="min-h-[80px]">
                     <Label htmlFor={`sqftPrice-${size.id}`}>
@@ -1166,7 +1185,6 @@ export default function AddProject() {
                       placeholder="Enter square feet price"
                       className="dark:bg-gray-800"
                     />
-                  {/* hi */}
                     {renderError(errors.sizes?.[size.id]?.sqftPrice)}
                   </div>
                   {!isPlot && (
@@ -1237,7 +1255,7 @@ export default function AddProject() {
                   placeholder="Distance"
                   value={distanceFromProperty}
                   onChange={(e) => setDistanceFromProperty(e.target.value)}
-                  className=" px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800 dark:text-white"
+                  className="px-3 py-2 text-sm border-none focus:ring-0 dark:bg-gray-800 dark:text-white"
                 />
                 <select
                   value={distanceUnit}
@@ -1314,7 +1332,7 @@ export default function AddProject() {
             </div>
             {renderError(errors.brochure)}
           </div>
-          <div className=" space-y-1">
+          <div className="mb-2 space-y-1">
             <Label>Upload Price Sheet (Optional)</Label>
             <div className="flex items-center space-x-2">
               <input
@@ -1367,11 +1385,6 @@ export default function AddProject() {
               >
                 Choose Image
               </button>
-               <span className="text-sm text-gray-500">
-                {formData.propertyImage
-                  ? formData.propertyImage.name
-                  : "No Image chosen"}
-              </span>
               {formData.propertyImage && (
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 truncate max-w-[150px]">
