@@ -1314,7 +1314,7 @@ export default function AddProject() {
             </div>
             {renderError(errors.brochure)}
           </div>
-          <div className=" mb-2 space-y-1">
+          <div className=" space-y-1">
             <Label>Upload Price Sheet (Optional)</Label>
             <div className="flex items-center space-x-2">
               <input
@@ -1367,6 +1367,11 @@ export default function AddProject() {
               >
                 Choose Image
               </button>
+               <span className="text-sm text-gray-500">
+                {formData.propertyImage
+                  ? formData.propertyImage.name
+                  : "No Image chosen"}
+              </span>
               {formData.propertyImage && (
                 <div className="flex items-center">
                   <span className="text-sm text-gray-500 truncate max-w-[150px]">
