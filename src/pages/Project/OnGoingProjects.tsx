@@ -27,17 +27,14 @@ const BUILDER_USER_TYPE = 2;
 const OnGoingProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false); // State for modal
-  const [selectedProject, setSelectedProject] = useState<Project | null>(null); // State for selected project
-const defaultImage = " "; 
-
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+  const defaultImage = " ";
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -110,7 +107,7 @@ const defaultImage = " ";
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
 
-  // Client-side filtering for search, city, and dates
+  // Client-side filtering for search, state, city, and dates
   const filteredProjects = useMemo(() => {
     return ongoingProjects.filter((project: Project) => {
       const matchesSearch =
@@ -119,11 +116,18 @@ const defaultImage = " ";
         project.city?.toLowerCase().includes(search.toLowerCase()) ||
         project.state?.toLowerCase().includes(search.toLowerCase());
 
+      const matchesState =
+        !selectedState ||
+        (states &&
+          states
+            .find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase() === project.state?.toLowerCase());
+
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
           citiesResult.data
-            .find((c) => c.label.toString() === selectedCity)
+            .find((c) => c.value === selectedCity)
             ?.label.toLowerCase() === project.city?.toLowerCase());
 
       let matchesDate = true;
@@ -142,14 +146,16 @@ const defaultImage = " ";
         }
       }
 
-      return matchesSearch && matchesCity && matchesDate;
+      return matchesSearch && matchesState && matchesCity && matchesDate;
     });
   }, [
     ongoingProjects,
     search,
+    selectedState,
     selectedCity,
     createdDate,
     createdEndDate,
+    states,
     citiesResult.data,
   ]);
 
@@ -233,7 +239,8 @@ const defaultImage = " ";
 
     return pages;
   };
-    const formatDistance = (value: string): string => {
+
+  const formatDistance = (value: string): string => {
     if (!value) return "N/A";
     const trimmed = value.trim().toLowerCase();
     const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
@@ -255,6 +262,19 @@ const defaultImage = " ";
     if (searchRef.current) searchRef.current.value = "";
   }, []);
 
+  // Update state change handler to reset city
+  const handleStateChange = useCallback((value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setCurrentPage(1);
+  }, []);
+
+  // Update city change handler
+  const handleCityChange = useCallback((value: string | null) => {
+    setSelectedCity(value);
+    setCurrentPage(1);
+  }, []);
+
   if (!isAuthenticated || !user) {
     return (
       <div className="p-6 text-center">
@@ -270,7 +290,7 @@ const defaultImage = " ";
     <div className="p-6 min-h-screen bg-gray-50">
       <PageMeta title=" OnGoing Projects - Project Management " />
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap- personally">
           <InputWithRef
             ref={searchRef}
             placeholder="Search Projects"
@@ -287,8 +307,8 @@ const defaultImage = " ";
             showCityFilter={true}
             onCreatedDateChange={setCreatedDate}
             onCreatedEndDateChange={setCreatedEndDate}
-            onStateChange={setSelectedState}
-            onCityChange={setSelectedCity}
+            onStateChange={handleStateChange}
+            onCityChange={handleCityChange}
             onClearFilters={handleClearFilters}
             createdDate={createdDate}
             createdEndDate={createdEndDate}
@@ -306,12 +326,10 @@ const defaultImage = " ";
         createdDate ||
         createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
+          Filters: Search: {search || "None"} | State: {selectedState ? states?.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"}{" "}
           | City:{" "}
           {selectedCity
-            ? citiesResult.data?.find(
-                (c) => c.label.toString() === selectedCity
-              )?.label || "All"
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
             : "All"}{" "}
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
@@ -328,16 +346,16 @@ const defaultImage = " ";
               key={project.property_id}
               className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
             >
-                  <div className="relative w-full h-48 overflow-hidden">
-          <img
-            src={project.property_image || defaultImage} 
-            alt={project.project_name}
-            className="w-full h-full object-cover"
-            onError={(e) => {
-              (e.target as HTMLImageElement).src = defaultImage; 
-            }}
-          />
-        </div>
+              <div className="relative w-full h-48 overflow-hidden">
+                <img
+                  src={project.property_image || defaultImage}
+                  alt={project.project_name}
+                  className="w-full h-full object-cover"
+                  onError={(e) => {
+                    (e.target as HTMLImageElement).src = defaultImage;
+                  }}
+                />
+              </div>
               <div className="p-6">
                 <div className="flex justify-between items-start mb-4">
                   <div>
@@ -402,7 +420,7 @@ const defaultImage = " ";
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                         >
-                         {item.title} ({formatDistance(item.distance)})
+                          {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
                       <button
@@ -419,8 +437,8 @@ const defaultImage = " ";
                     <Button
                       variant="primary"
                       size="sm"
-                      onClick={() => handleStopLeadsClick(project)} // Trigger modal
-                      disabled={project.stop_leads === "Yes"} // Disable if already stopped
+                      onClick={() => handleStopLeadsClick(project)}
+                      disabled={project.stop_leads === "Yes"}
                     >
                       Stop Leads
                     </Button>
@@ -451,7 +469,7 @@ const defaultImage = " ";
       <ConfirmDeleteUserModal
         isOpen={isModalOpen}
         userName={selectedProject?.project_name || ""}
-        description="Are you sure  stop the leads for "
+        description="Are you sure stop the leads for "
         onConfirm={handleConfirmStopLeads}
         onCancel={handleCancelStopLeads}
       />

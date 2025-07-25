@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useParams } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
-
 import PageMeta from "../../components/common/PageMeta";
 import {
   Table,
@@ -19,6 +18,8 @@ import { BUILDER_USER_TYPE, sidebarSubItems } from "./CustomComponents";
 import UpdateLeadModal from "./UpdateLeadModel";
 import FilterBar from "../../components/common/FilterBar";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added for city queries
+import { setCityDetails } from "../../store/slices/propertyDetails"; // Added for city dispatch
 
 const userTypeMap: { [key: number]: string } = {
   3: "Channel Partner",
@@ -34,15 +35,11 @@ const LeadsType: React.FC = () => {
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
-  
-  
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-
-  
   const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
 
   const navigate = useNavigate();
@@ -50,11 +47,29 @@ const LeadsType: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
+  const { states } = useSelector((state: RootState) => state.property); // Added for state data
+  const { citiesQuery } = usePropertyQueries(); // Added for city queries
 
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
-
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
+
+  // Fetch cities based on selected state
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+
+  // Dispatch cities to Redux store
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  // Handle errors for city fetching
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+    }
+  }, [citiesResult.isError, citiesResult.error]);
 
   const sidebarItem = sidebarSubItems.find(
     (item) =>
@@ -102,7 +117,7 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        
+        // Error handling already managed by toast in error state
       });
     } else if (isAuthenticated && user) {
       console.warn("Invalid user data:", {
@@ -142,14 +157,41 @@ const LeadsType: React.FC = () => {
           ? true
           : item.updated_date?.split("T")[0] === updatedDate;
 
+        const matchesState = !selectedState
+          ? true
+          : item.state?.toLowerCase() ===
+              states
+                ?.find((s) => s.value.toString() === selectedState)
+                ?.label.toLowerCase();
+
         const matchesCity = !selectedCity
           ? true
-          : item.city?.toString() === selectedCity;
+          : citiesResult.data &&
+              citiesResult.data
+                .find((c) => c.value === selectedCity)
+                ?.label.toLowerCase() === item.city?.toLowerCase();
 
-        return matchesSearch && matchesUserType && matchesCreatedDate && matchesUpdatedDate && matchesCity;
+        return (
+          matchesSearch &&
+          matchesUserType &&
+          matchesCreatedDate &&
+          matchesUpdatedDate &&
+          matchesState &&
+          matchesCity
+        );
       }) || []
     );
-  }, [leads, searchQuery, selectedUserType, createdDate, updatedDate, selectedState, selectedCity]);
+  }, [
+    leads,
+    searchQuery,
+    selectedUserType,
+    createdDate,
+    updatedDate,
+    selectedState,
+    selectedCity,
+    states,
+    citiesResult.data, // Added dependencies
+  ]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
@@ -160,7 +202,7 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      
+      // Existing logic
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -229,7 +271,6 @@ const LeadsType: React.FC = () => {
     setIsUpdateModalOpen(true);
   };
 
-  
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
     setLocalPage(1);
@@ -247,7 +288,7 @@ const LeadsType: React.FC = () => {
 
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
-    setSelectedCity(null); 
+    setSelectedCity(null);
     setLocalPage(1);
   };
 
@@ -266,12 +307,10 @@ const LeadsType: React.FC = () => {
     setLocalPage(1);
   };
 
-  
   const handleCheckboxChange = (leadId: number) => {
-    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId)); 
+    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId));
   };
 
-  
   const handleBulkAssign = () => {
     if (selectedLeadIdSingle === null) {
       toast.error("Please select a lead.");
@@ -308,7 +347,6 @@ const LeadsType: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       <PageMeta title={` ${getPageTitle()} - Lead Management `} />
-      
       <FilterBar
         showUserTypeFilter={true}
         showCreatedDateFilter={true}
@@ -329,8 +367,6 @@ const LeadsType: React.FC = () => {
         selectedCity={selectedCity}
         className="mb-4"
       />
-
-      
       <div className="mb-4 flex gap-2">
         <PageBreadcrumbList
           pageTitle={getPageTitle()}
@@ -386,7 +422,6 @@ const LeadsType: React.FC = () => {
           </>
         )}
       </div>
-
       <div className="space-y-6">
         {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}

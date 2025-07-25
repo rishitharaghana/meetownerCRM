@@ -17,13 +17,13 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
+
 const BUILDER_USER_TYPE = 2;
+
 const AllProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -37,16 +37,19 @@ const AllProjects: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
+  const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
   const citiesResult = citiesQuery(
     selectedState ? parseInt(selectedState) : undefined
   );
+
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
+
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -56,6 +59,7 @@ const AllProjects: React.FC = () => {
       );
     }
   }, [citiesResult.isError, citiesResult.error]);
+
   const projectParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -70,6 +74,7 @@ const AllProjects: React.FC = () => {
     }
     return Object.keys(baseParams).length > 0 ? baseParams : null;
   }, [isAuthenticated, user]);
+
   useEffect(() => {
     if (projectParams) {
       dispatch(fetchAllProjects(projectParams))
@@ -88,6 +93,7 @@ const AllProjects: React.FC = () => {
       });
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
+
   const filteredProjects = useMemo(() => {
     return allProjects
       .filter(
@@ -100,12 +106,24 @@ const AllProjects: React.FC = () => {
           project.locality?.toLowerCase().includes(search.toLowerCase()) ||
           project.city?.toLowerCase().includes(search.toLowerCase()) ||
           project.state?.toLowerCase().includes(search.toLowerCase());
+
+        // State filtering
+        const matchesState =
+          !selectedState ||
+          (states &&
+            states
+              .find((s) => s.value.toString() === selectedState)
+              ?.label.toLowerCase() === project.state?.toLowerCase());
+
+        // City filtering - Updated to ensure accurate matching
         const matchesCity =
           !selectedCity ||
           (citiesResult.data &&
+            project.city &&
             citiesResult.data
-              .find((c) => c.label.toString() === selectedCity)
+              .find((c) => c.value === selectedCity) // Match value directly
               ?.label.toLowerCase() === project.city?.toLowerCase());
+
         let matchesDate = true;
         if (createdDate || createdEndDate) {
           if (!project.created_date) {
@@ -121,19 +139,33 @@ const AllProjects: React.FC = () => {
             }
           }
         }
-        return matchesSearch && matchesCity && matchesDate;
+
+        // Optional: Log mismatches for debugging (remove in production)
+        // if (selectedCity && project.city && !matchesCity) {
+        //   console.log({
+        //     selectedCity,
+        //     projectCity: project.city,
+        //     cityLabel: citiesResult.data?.find((c) => c.value === selectedCity)?.label,
+        //   });
+        // }
+
+        return matchesSearch && matchesState && matchesCity && matchesDate;
       });
   }, [
     allProjects,
     search,
+    selectedState,
     selectedCity,
     createdDate,
     createdEndDate,
     citiesResult.data,
+    states,
   ]);
+
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
   const formatDistance = (value: string): string => {
     if (!value) return "N/A";
     const trimmed = value.trim().toLowerCase();
@@ -144,16 +176,19 @@ const AllProjects: React.FC = () => {
     }
     return value;
   };
+
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
   const goToNextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
+
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
     const totalVisiblePages = 5;
@@ -178,6 +213,7 @@ const AllProjects: React.FC = () => {
     }
     return pages;
   };
+
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setCreatedDate(null);
@@ -187,14 +223,17 @@ const AllProjects: React.FC = () => {
     setCurrentPage(1);
     if (searchRef.current) searchRef.current.value = "";
   }, []);
+
   if (!isAuthenticated || !user) {
     return (
       <div className="p-6 text-center">Please log in to view projects.</div>
     );
   }
+
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error)
     return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+
   return (
     <div className="p-6 min-h-screen bg-gray-50">
       <PageMeta title=" All Projects - Project Management " />
@@ -227,21 +266,17 @@ const AllProjects: React.FC = () => {
           />
         </div>
       </div>
-      {}
       {(search ||
         selectedState ||
         selectedCity ||
         createdDate ||
         createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
-          | City:{" "}
-          {selectedCity
-            ? citiesResult.data?.find(
-                (c) => c.value.toString() === selectedCity
-              )?.label || "All"
-            : "All"}{" "}
-          | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+          Filters: Search: {search || "None"} | State: {selectedState
+            ? states?.find((s) => s.value.toString() === selectedState)?.label || "All"
+            : "All"} | City: {selectedCity
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
+            : "All"} | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -411,4 +446,5 @@ const AllProjects: React.FC = () => {
     </div>
   );
 };
+
 export default AllProjects;

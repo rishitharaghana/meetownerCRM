@@ -40,6 +40,7 @@ const StoppedProjectsLeads: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
+  const { states } = useSelector((state: RootState) => state.property); // Fetch states from Redux
 
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
@@ -102,7 +103,7 @@ const StoppedProjectsLeads: React.FC = () => {
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
 
-  // Client-side filtering for search, city, and dates
+  // Client-side filtering for search, state, city, and dates
   const filteredProjects = useMemo(() => {
     return stoppedProjects.filter((project: Project) => {
       const matchesSearch =
@@ -111,11 +112,20 @@ const StoppedProjectsLeads: React.FC = () => {
         project.city?.toLowerCase().includes(search.toLowerCase()) ||
         project.state?.toLowerCase().includes(search.toLowerCase());
 
+      // State filter: Compare project.state with the label of selectedState
+      const matchesState =
+        !selectedState ||
+        project.state?.toLowerCase() ===
+          states
+            .find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase();
+
+      // City filter: Compare project.city with the label of selectedCity
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
           citiesResult.data
-            .find((c) => c.label.toString() === selectedCity)
+            .find((c) => c.value === selectedCity)
             ?.label.toLowerCase() === project.city?.toLowerCase());
 
       let matchesDate = true;
@@ -134,15 +144,17 @@ const StoppedProjectsLeads: React.FC = () => {
         }
       }
 
-      return matchesSearch && matchesCity && matchesDate;
+      return matchesSearch && matchesState && matchesCity && matchesDate;
     });
   }, [
     stoppedProjects,
     search,
+    selectedState,
     selectedCity,
     createdDate,
     createdEndDate,
     citiesResult.data,
+    states, // Add states to dependencies
   ]);
 
   const toggleExpand = (id: number) => {
@@ -223,7 +235,7 @@ const StoppedProjectsLeads: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
-      <PageMeta title=" Stopped Project - Project Management" />
+      <PageMeta title="Stopped Project - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
@@ -261,12 +273,15 @@ const StoppedProjectsLeads: React.FC = () => {
         createdDate ||
         createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
+          Filters: Search: {search || "None"} | State:{" "}
+          {selectedState
+            ? states.find((s) => s.value.toString() === selectedState)?.label ||
+              "All"
+            : "All"}{" "}
           | City:{" "}
           {selectedCity
-            ? citiesResult.data?.find(
-                (c) => c.label.toString() === selectedCity
-              )?.label || "All"
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label ||
+              "All"
             : "All"}{" "}
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>

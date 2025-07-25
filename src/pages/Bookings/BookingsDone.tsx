@@ -1,6 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
+import toast from "react-hot-toast";
 
 import PageMeta from "../../components/common/PageMeta";
 import {
@@ -16,8 +17,9 @@ import { RootState, AppDispatch } from "../../store/store";
 import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
 import { leadSourceOptions } from "../../components/common/reusedList";
 import { BUILDER_USER_TYPE } from "../Lead Management/CustomComponents";
-import toast from "react-hot-toast";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added import
+import { setCityDetails } from "../../store/slices/propertyDetails"; // Added import
 
 const BookingsDone: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
@@ -40,9 +42,34 @@ const BookingsDone: React.FC = () => {
   const { bookedLeads, loading, error } = useSelector(
     (state: RootState) => state.lead
   );
+  const { states } = useSelector((state: RootState) => state.property); // Added to access states
+  const { citiesQuery } = usePropertyQueries(); // Added to fetch cities
 
   const itemsPerPage = 10;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
+
+  // Fetch cities based on selected state
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
+
+  // Dispatch cities to Redux store
+  useEffect(() => {
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  // Handle errors for city fetching
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
+    }
+  }, [citiesResult.isError, citiesResult.error]);
 
   const leadsParams = useMemo(() => {
     if (
@@ -124,9 +151,17 @@ const BookingsDone: React.FC = () => {
         const matchesUpdatedDate =
           !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
         const matchesState =
-          !selectedState || item.state?.toString() === selectedState;
+          !selectedState ||
+          item.state?.toLowerCase() ===
+            states
+              .find((s) => s.value.toString() === selectedState)
+              ?.label.toLowerCase();
         const matchesCity =
-          !selectedCity || item.city?.toString() === selectedCity;
+          !selectedCity ||
+          (citiesResult.data &&
+            citiesResult.data
+              .find((c) => c.value === selectedCity)
+              ?.label.toLowerCase() === item.city?.toLowerCase());
 
         return (
           matchesTextFilter &&
@@ -144,6 +179,8 @@ const BookingsDone: React.FC = () => {
     updatedDate,
     selectedState,
     selectedCity,
+    states,
+    citiesResult.data,
   ]);
 
   const totalCount = filteredLeads.length;
