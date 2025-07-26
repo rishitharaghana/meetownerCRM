@@ -17,17 +17,18 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
+
 const BUILDER_USER_TYPE = 2;
+
 const UpComingProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
   const dispatch = useDispatch<AppDispatch>();
@@ -37,16 +38,20 @@ const UpComingProjects: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
+  const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
+
   const citiesResult = citiesQuery(
     selectedState ? parseInt(selectedState) : undefined
   );
+
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
+
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
@@ -56,6 +61,7 @@ const UpComingProjects: React.FC = () => {
       );
     }
   }, [citiesResult.isError, citiesResult.error]);
+
   const projectParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -70,6 +76,7 @@ const UpComingProjects: React.FC = () => {
     }
     return Object.keys(baseParams).length > 0 ? baseParams : null;
   }, [isAuthenticated, user]);
+
   useEffect(() => {
     if (projectParams) {
       dispatch(fetchUpcomingProjects(projectParams))
@@ -90,6 +97,7 @@ const UpComingProjects: React.FC = () => {
       });
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
+
   const filteredProjects = useMemo(() => {
     return upcomingProjects.filter((project: Project) => {
       const matchesSearch =
@@ -97,12 +105,23 @@ const UpComingProjects: React.FC = () => {
         project.locality?.toLowerCase().includes(search.toLowerCase()) ||
         project.city?.toLowerCase().includes(search.toLowerCase()) ||
         project.state?.toLowerCase().includes(search.toLowerCase());
+
+      const matchesState =
+        !selectedState ||
+        (states &&
+          project.state &&
+          states
+            .find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase() === project.state?.toLowerCase());
+
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
+          project.city &&
           citiesResult.data
-            .find((c) => c.label.toString() === selectedCity)
+            .find((c) => c.value === selectedCity)
             ?.label.toLowerCase() === project.city?.toLowerCase());
+
       let matchesDate = true;
       if (createdDate || createdEndDate) {
         if (!project.created_date) {
@@ -118,29 +137,57 @@ const UpComingProjects: React.FC = () => {
           }
         }
       }
-      return matchesSearch && matchesCity && matchesDate;
+
+      return matchesSearch && matchesState && matchesCity && matchesDate;
     });
   }, [
     upcomingProjects,
     search,
+    selectedState,
     selectedCity,
     createdDate,
     createdEndDate,
+    states,
     citiesResult.data,
   ]);
+
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
+
+  const handleClearFilters = useCallback(() => {
+    setSearch("");
+    setCreatedDate(null);
+    setCreatedEndDate(null);
+    setSelectedState(null);
+    setSelectedCity(null);
+    setCurrentPage(1);
+    if (searchRef.current) searchRef.current.value = "";
+  }, []);
+
+  const handleStateChange = useCallback((value: string | null) => {
+    setSelectedState(value);
+    setSelectedCity(null); // Reset city when state changes
+    setCurrentPage(1);
+  }, []);
+
+  const handleCityChange = useCallback((value: string | null) => {
+    setSelectedCity(value);
+    setCurrentPage(1);
+  }, []);
+
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedProjects = filteredProjects.slice(startIndex, endIndex);
+
   const goToPage = (page: number) => setCurrentPage(page);
   const goToPreviousPage = () =>
     currentPage > 1 && setCurrentPage(currentPage - 1);
   const goToNextPage = () =>
     currentPage < totalPages && setCurrentPage(currentPage + 1);
+
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
     const totalVisiblePages = 5;
@@ -165,28 +212,32 @@ const UpComingProjects: React.FC = () => {
     }
     return pages;
   };
-  const handleClearFilters = useCallback(() => {
-    setSearch("");
-    setCreatedDate(null);
-    setCreatedEndDate(null);
-    setSelectedState(null);
-    setSelectedCity(null);
-    setCurrentPage(1);
-    if (searchRef.current) searchRef.current.value = "";
-  }, []);
+
+  const formatDistance = (value: string): string => {
+    if (!value) return "N/A";
+    const trimmed = value.trim().toLowerCase();
+    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+    if (regex.test(trimmed)) {
+      const [, number, , , unit] = trimmed.match(regex)!;
+      return `${number} ${unit}`;
+    }
+    return value;
+  };
+
   if (!isAuthenticated || !user) {
     return (
       <div className="p-6 text-center">
-        Please log in to view ongoing projects.
+        Please log in to view upcoming projects.
       </div>
     );
   }
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error)
     return <div className="p-6 text-center text-red-500">Error: {error}</div>;
+
   return (
     <div className="p-6 min-h-screen bg-gray-50">
-      <PageMeta title="UpComing Projects - Project Management " />
+      <PageMeta title="UpComing Projects - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
@@ -205,8 +256,8 @@ const UpComingProjects: React.FC = () => {
             showCityFilter={true}
             onCreatedDateChange={setCreatedDate}
             onCreatedEndDateChange={setCreatedEndDate}
-            onStateChange={setSelectedState}
-            onCityChange={setSelectedCity}
+            onStateChange={handleStateChange}
+            onCityChange={handleCityChange}
             onClearFilters={handleClearFilters}
             createdDate={createdDate}
             createdEndDate={createdEndDate}
@@ -216,19 +267,16 @@ const UpComingProjects: React.FC = () => {
           />
         </div>
       </div>
-      {}
       {(search ||
         selectedState ||
         selectedCity ||
         createdDate ||
         createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState || "All"}{" "}
+          Filters: Search: {search || "None"} | State: {selectedState ? states?.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"}{" "}
           | City:{" "}
           {selectedCity
-            ? citiesResult.data?.find(
-                (c) => c.label.toString() === selectedCity
-              )?.label || "All"
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
             : "All"}{" "}
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
@@ -238,17 +286,7 @@ const UpComingProjects: React.FC = () => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-          const defaultImage = " "; // Temporary placeholder
-          const formatDistance = (value: string): string => {
-            if (!value) return "N/A";
-            const trimmed = value.trim().toLowerCase();
-            const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
-            if (regex.test(trimmed)) {
-              const [, number, , , unit] = trimmed.match(regex)!;
-              return `${number} ${unit}`;
-            }
-            return value;
-          };
+          const defaultImage = " "; // Replace with actual default image URL
 
           return (
             <div
@@ -411,4 +449,5 @@ const UpComingProjects: React.FC = () => {
     </div>
   );
 };
+
 export default UpComingProjects;
