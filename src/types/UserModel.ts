@@ -7,7 +7,7 @@ export interface AuthState {
   loading: boolean;
   error: string | null;
   userCounts: UserCount[] | null;
-
+mobileExists: boolean;
 }
 
 export interface LoginRequest {

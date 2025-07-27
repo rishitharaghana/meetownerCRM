@@ -39,6 +39,7 @@ import BuilderQueries from "./pages/Queries/BuilderQueries";
 import BuilderDetailsScreen from "./pages/Builders/BuilderDetails";
 import AllCpLeadDetails from "./pages/Lead Management/CpLeads";
 import EmpLeads from "./pages/Lead Management/EmpLeads";
+import ForgotPassword from "./pages/AuthPages/ForgotPassword";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector(
@@ -119,6 +120,8 @@ export default function App() {
               />
             </Route>
           </Route>
+          <Route  path ='/forgot-password'
+          element={<ForgotPassword/>}/>
           <Route
             path="/signin"
             element={

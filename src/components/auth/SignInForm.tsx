@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
-import { useNavigate } from "react-router";
+import { Link, useNavigate } from "react-router";
 import { EyeCloseIcon, EyeIcon } from "../../icons";
 import Label from "../form/Label";
 import Input from "../form/input/InputField";
@@ -173,6 +173,14 @@ export default function SignInForm() {
                   {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </div>
+               <div className="mt-2 text-right">
+                  <Link
+                    to="/forgot-password"
+                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                  >
+                    Forgot Password?
+                  </Link>
+                </div>
             </div>
           </form>
 

@@ -57,6 +57,93 @@ export const loginUser = createAsyncThunk(
   }
 );
 
+export const checkMobileExists = createAsyncThunk(
+  "auth/checkMobileExists",
+  async (mobile: string, { rejectWithValue }) => {
+    try {
+      const promise = ngrokAxiosInstance.post<{ exists: boolean }>("api/v1/check-mobile", { mobile });
+
+      toast.promise(promise, {
+        loading: "Verifying mobile number...",
+        success: "Mobile number verified!",
+        error: "Mobile verification failed",
+      });
+
+      const response = await promise;
+      return response.data.exists;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Mobile check error:", axiosError);
+
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        const errorMessage = axiosError.response.data?.error || axiosError.response.data?.message;
+
+        switch (status) {
+          case 404:
+            return rejectWithValue(errorMessage || "Mobile number not found");
+          case 500:
+            return rejectWithValue(errorMessage || "Server error. Please try again later.");
+          default:
+            return rejectWithValue(errorMessage || "An unexpected error occurred");
+        }
+      }
+
+      if (axiosError.code === "ECONNABORTED" || axiosError.message === "Network Error") {
+        return rejectWithValue("Network error. Please check your connection and try again.");
+      }
+
+      return rejectWithValue("Mobile verification failed. Please try again.");
+    }
+  }
+);
+
+// Async thunk to reset password
+export const resetPassword = createAsyncThunk(
+  "auth/resetPassword",
+  async ({ mobile, newPassword }: { mobile: string; newPassword: string }, { rejectWithValue }) => {
+    try {
+      const promise = ngrokAxiosInstance.post<{ message: string }>(
+        "api/v1/reset-password",
+        { mobile, newPassword }
+      );
+
+      toast.promise(promise, {
+        loading: "Resetting password...",
+        success: "Password reset successful!",
+        error: "Password reset failed",
+      });
+
+      const response = await promise;
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Password reset error:", axiosError);
+
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        const errorMessage = axiosError.response.data?.error || axiosError.response.data?.message;
+
+        switch (status) {
+          case 404:
+            return rejectWithValue(errorMessage || "Mobile number not found");
+          case 500:
+            return rejectWithValue(errorMessage || "Server error. Please try again later.");
+          default:
+            return rejectWithValue(errorMessage || "An unexpected error occurred");
+        }
+      }
+
+      if (axiosError.code === "ECONNABORTED" || axiosError.message === "Network Error") {
+        return rejectWithValue("Network error. Please check your connection and try again.");
+      }
+
+      return rejectWithValue("Password reset failed. Please try again.");
+    }
+  }
+);
+
+
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -66,6 +153,7 @@ const authSlice = createSlice({
     loading: false,
     error: null,
     userCounts: null,
+    mobileExists: false,
   } as AuthState,
   reducers: {
     logout: (state) => {
@@ -73,6 +161,7 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
+       state.mobileExists = false;
       localStorage.removeItem("token");
       localStorage.removeItem("name");
       localStorage.removeItem("userType");
@@ -110,6 +199,7 @@ const authSlice = createSlice({
         state.user = action.payload.user;
         state.token = action.payload.token;
 
+        
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("name", action.payload.user.name);
         localStorage.setItem("userType", action.payload.user.user_type.toString());
@@ -135,6 +225,30 @@ const authSlice = createSlice({
         localStorage.setItem("created_user_type", action.payload.user.created_user_type?.toString() || "");
       })
       .addCase(loginUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+       .addCase(checkMobileExists.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(checkMobileExists.fulfilled, (state, action) => {
+        state.loading = false;
+        state.mobileExists = action.payload;
+      })
+      .addCase(checkMobileExists.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+       .addCase(resetPassword.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(resetPassword.fulfilled, (state) => {
+        state.loading = false;
+        state.mobileExists = false; // Reset after successful password reset
+      })
+      .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       });
