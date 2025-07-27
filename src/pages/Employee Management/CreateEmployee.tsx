@@ -173,17 +173,19 @@ const CreateEmployee = () => {
       newErrors.designation = "Designation only contains Alphabets and Spaces";
     }
 
-  if (!formData.password) {
-  newErrors.password = "Password is required";
-} else if (formData.password.length > 12) {
-  newErrors.password = "Password should not exceed 12 characters";
-} else if (
-  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)
-) {
-  newErrors.password =
-    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
-}
-  if (!formData.city) newErrors.city = "Select a city";
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length > 12) {
+      newErrors.password = "Password should not exceed 12 characters";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        formData.password
+      )
+    ) {
+      newErrors.password =
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+    }
+    if (!formData.city) newErrors.city = "Select a city";
     if (!formData.state) newErrors.state = "Select a state";
     if (!formData.pincode.trim()) {
       newErrors.pincode = "Pincode is required";
@@ -198,57 +200,59 @@ const CreateEmployee = () => {
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) {
-    toast.error("Please fill correct details");
-    return;
-  }
-  const createdBy = localStorage.getItem("name") || "Admin";
-  const createdUserId = parseInt(localStorage.getItem("userId") || "1");
-  const formDataToSend = new FormData();
-  formDataToSend.append("name", formData.name);
-  formDataToSend.append("mobile", formData.mobile);
-  formDataToSend.append("email", formData.email);
-  formDataToSend.append("password", formData.password);
-  formDataToSend.append(
-    "city",
-    cityOptions.find((c) => c.value === formData.city)?.text || formData.city
-  );
-  formDataToSend.append(
-    "state",
-    stateOptions.find((s) => s.value === formData.state)?.text ||
-      formData.state
-  );
-  formDataToSend.append("pincode", formData.pincode);
-  formDataToSend.append("location", formData.location);
-  formDataToSend.append("address", formData.address);
-  if (formData.photo) formDataToSend.append("photo", formData.photo);
-  formDataToSend.append("status", "1");
-  formDataToSend.append("user_type", formData.designation);
-  formDataToSend.append("created_by", createdBy);
-  formDataToSend.append("created_user_id", createdUserId.toString());
-  formDataToSend.append("created_user_type", "2");
-  try {
-    const result = await dispatch(insertUser(formDataToSend)).unwrap();
-    toast.success(`Employee created successfully! User ID: ${result.user_id}`);
-    setFormData({
-      name: "",
-      mobile: "",
-      email: "",
-      designation: "",
-      password: "",
-      city: "",
-      state: "",
-      pincode: "",
-      location: "",
-      address: "",
-      photo: null,
-    });
-    setErrors({});
-  } catch (error) {
-    toast.error("Failed to create employee. Please try again.");
-  }
-};
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error("Please fill correct details");
+      return;
+    }
+    const createdBy = localStorage.getItem("name") || "Admin";
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1");
+    const formDataToSend = new FormData();
+    formDataToSend.append("name", formData.name);
+    formDataToSend.append("mobile", formData.mobile);
+    formDataToSend.append("email", formData.email);
+    formDataToSend.append("password", formData.password);
+    formDataToSend.append(
+      "city",
+      cityOptions.find((c) => c.value === formData.city)?.text || formData.city
+    );
+    formDataToSend.append(
+      "state",
+      stateOptions.find((s) => s.value === formData.state)?.text ||
+        formData.state
+    );
+    formDataToSend.append("pincode", formData.pincode);
+    formDataToSend.append("location", formData.location);
+    formDataToSend.append("address", formData.address);
+    if (formData.photo) formDataToSend.append("photo", formData.photo);
+    formDataToSend.append("status", "1");
+    formDataToSend.append("user_type", formData.designation);
+    formDataToSend.append("created_by", createdBy);
+    formDataToSend.append("created_user_id", createdUserId.toString());
+    formDataToSend.append("created_user_type", "2");
+    try {
+      const result = await dispatch(insertUser(formDataToSend)).unwrap();
+      toast.success(
+        `Employee created successfully! User ID: ${result.user_id}`
+      );
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        designation: "",
+        password: "",
+        city: "",
+        state: "",
+        pincode: "",
+        location: "",
+        address: "",
+        photo: null,
+      });
+      setErrors({});
+    } catch (error) {
+      toast.error("Failed to create employee. Please try again.");
+    }
+  };
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -301,12 +305,12 @@ const CreateEmployee = () => {
   //   } catch (error) {
   //     console.error("User Insertion failed:", error);
   //   }
-    
+
   // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
-            <PageMeta title="  Add Employee - Employee Management " />
+      <PageMeta title="  Add Employee - Employee Management " />
 
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-8">

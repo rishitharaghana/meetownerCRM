@@ -138,7 +138,10 @@ const AddChannelPartner = () => {
     states?.map((state: any) => ({ value: state.value, text: state.label })) ||
     [];
 
-  const validateReraNumber = (reraNumber: string, state: string): string | undefined => {
+  const validateReraNumber = (
+    reraNumber: string,
+    state: string
+  ): string | undefined => {
     if (!reraNumber.trim()) {
       return "RERA number is required";
     }
@@ -147,7 +150,8 @@ const AddChannelPartner = () => {
       return "RERA number must be alphanumeric with optional hyphens and up to 30 characters";
     }
     // Example state-specific validation for Maharashtra
-    if (state === "27") { // Assuming '27' is Maharashtra's state code
+    if (state === "27") {
+      // Assuming '27' is Maharashtra's state code
       const maharashtraReraRegex = /^P\d{3}\d{8}$/;
       if (!maharashtraReraRegex.test(reraNumber)) {
         return "Invalid RERA number format for Maharashtra (e.g., P51700012345)";
@@ -194,17 +198,19 @@ const AddChannelPartner = () => {
     else if (!/^\d{10}$/.test(formData.mobile))
       newErrors.mobile = "Mobile must be 10 digits";
     // Email is optional, so no validation required
-   if (!formData.password) {
-  newErrors.password = "Password is required";
-} else if (formData.password.length > 12) {
-  newErrors.password = "Password should not exceed 12 characters";
-} else if (
-  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)
-) {
-  newErrors.password =
-    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
-}
- if (!formData.city) newErrors.city = "City is required";
+    if (!formData.password) {
+      newErrors.password = "Password is required";
+    } else if (formData.password.length > 12) {
+      newErrors.password = "Password should not exceed 12 characters";
+    } else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+        formData.password
+      )
+    ) {
+      newErrors.password =
+        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+    }
+    if (!formData.city) newErrors.city = "City is required";
     if (!formData.state) newErrors.state = "State is required";
     if (!formData.locality.trim()) newErrors.locality = "Locality is required";
     if (!formData.pincode.trim()) {
@@ -261,88 +267,88 @@ const AddChannelPartner = () => {
     return Object.keys(newErrors).length === 0;
   };
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) {
-    toast.error("Please fill correct details");
-    return;
-  }
-  const createdBy = localStorage.getItem("name") || "Admin";
-  const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
-  const cityName =
-    cityOptions.find((option) => option.value === formData.city)?.text ||
-    formData.city;
-  const stateName =
-    stateOptions.find((option) => option.value === formData.state)?.text ||
-    formData.state;
-  const payload: InsertUserRequest = {
-    user_type: 3,
-    name: formData.name,
-    mobile: formData.mobile,
-    email: formData.email,
-    password: formData.password,
-    status: 0,
-    state: stateName,
-    city: cityName,
-    location: formData.locality,
-    address: formData.address,
-    pincode: formData.pincode,
-    gst_number: formData.gstNumber,
-    rera_number: formData.reraNumber,
-    created_by: createdBy,
-    created_user_id: createdUserId,
-    created_user_type: 2,
-    company_name: formData.companyName,
-    company_number: formData.companyNumber,
-    company_address: formData.companyAddress,
-    representative_name: formData.representativeName,
-    pan_card_number: formData.panCardNumber,
-    aadhar_number: formData.aadharNumber,
-    photo: formData.photo || undefined,
-    account_number: formData.accountNumber,
-    ifsc_code: formData.ifscCode,
-  };
-  const formDataToSend = new FormData();
-  Object.entries(payload).forEach(([key, value]) => {
-    if (value !== undefined && value !== null) {
-      if (key === "photo" && value instanceof File) {
-        formDataToSend.append(key, value);
-      } else {
-        formDataToSend.append(key, String(value));
-      }
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error("Please fill correct details");
+      return;
     }
-  });
-  try {
-    const result = await dispatch(insertUser(formDataToSend)).unwrap();
-    toast.success(
-      `Channel Partner added successfully with ID: ${result.user_id}`
-    );
-    setFormData({
-      name: "",
-      mobile: "",
-      email: "",
-      password: "",
-      city: "",
-      state: "",
-      locality: "",
-      pincode: "",
-      panCardNumber: "",
-      aadharNumber: "",
-      companyName: "",
-      representativeName: "",
-      companyAddress: "",
-      companyNumber: "",
-      gstNumber: "",
-      reraNumber: "",
-      address: "",
-      photo: null,
-      accountNumber: "",
-      ifscCode: "",
+    const createdBy = localStorage.getItem("name") || "Admin";
+    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
+    const cityName =
+      cityOptions.find((option) => option.value === formData.city)?.text ||
+      formData.city;
+    const stateName =
+      stateOptions.find((option) => option.value === formData.state)?.text ||
+      formData.state;
+    const payload: InsertUserRequest = {
+      user_type: 3,
+      name: formData.name,
+      mobile: formData.mobile,
+      email: formData.email,
+      password: formData.password,
+      status: 0,
+      state: stateName,
+      city: cityName,
+      location: formData.locality,
+      address: formData.address,
+      pincode: formData.pincode,
+      gst_number: formData.gstNumber,
+      rera_number: formData.reraNumber,
+      created_by: createdBy,
+      created_user_id: createdUserId,
+      created_user_type: 2,
+      company_name: formData.companyName,
+      company_number: formData.companyNumber,
+      company_address: formData.companyAddress,
+      representative_name: formData.representativeName,
+      pan_card_number: formData.panCardNumber,
+      aadhar_number: formData.aadharNumber,
+      photo: formData.photo || undefined,
+      account_number: formData.accountNumber,
+      ifsc_code: formData.ifscCode,
+    };
+    const formDataToSend = new FormData();
+    Object.entries(payload).forEach(([key, value]) => {
+      if (value !== undefined && value !== null) {
+        if (key === "photo" && value instanceof File) {
+          formDataToSend.append(key, value);
+        } else {
+          formDataToSend.append(key, String(value));
+        }
+      }
     });
-    setErrors({});
-  } catch (err) {
-    // Error is handled in the user slice and displayed via toast
-  }
-};
+    try {
+      const result = await dispatch(insertUser(formDataToSend)).unwrap();
+      toast.success(
+        `Channel Partner added successfully with ID: ${result.user_id}`
+      );
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        password: "",
+        city: "",
+        state: "",
+        locality: "",
+        pincode: "",
+        panCardNumber: "",
+        aadharNumber: "",
+        companyName: "",
+        representativeName: "",
+        companyAddress: "",
+        companyNumber: "",
+        gstNumber: "",
+        reraNumber: "",
+        address: "",
+        photo: null,
+        accountNumber: "",
+        ifscCode: "",
+      });
+      setErrors({});
+    } catch (err) {
+      // Error is handled in the user slice and displayed via toast
+    }
+  };
 
   // const handleSubmit = async (e: React.FormEvent) => {
   //   e.preventDefault();
@@ -592,9 +598,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Address
-            </label>
+            <label className="text-sm font-medium text-gray-700">Address</label>
             <textarea
               value={formData.address}
               onChange={(e) => handleChange("address")(e.target.value)}
