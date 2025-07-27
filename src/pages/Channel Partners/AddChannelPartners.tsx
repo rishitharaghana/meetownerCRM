@@ -194,8 +194,17 @@ const AddChannelPartner = () => {
     else if (!/^\d{10}$/.test(formData.mobile))
       newErrors.mobile = "Mobile must be 10 digits";
     // Email is optional, so no validation required
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.city) newErrors.city = "City is required";
+   if (!formData.password) {
+  newErrors.password = "Password is required";
+} else if (formData.password.length > 12) {
+  newErrors.password = "Password should not exceed 12 characters";
+} else if (
+  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)
+) {
+  newErrors.password =
+    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+}
+ if (!formData.city) newErrors.city = "City is required";
     if (!formData.state) newErrors.state = "State is required";
     if (!formData.locality.trim()) newErrors.locality = "Locality is required";
     if (!formData.pincode.trim()) {
@@ -597,7 +606,6 @@ const AddChannelPartner = () => {
               <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
             )}
           </div>
-
           <div>
             <label className="text-sm font-medium text-gray-700">
               Locality

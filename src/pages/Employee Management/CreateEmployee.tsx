@@ -173,8 +173,17 @@ const CreateEmployee = () => {
       newErrors.designation = "Designation only contains Alphabets and Spaces";
     }
 
-    if (!formData.password) newErrors.password = "Password is required";
-    if (!formData.city) newErrors.city = "Select a city";
+  if (!formData.password) {
+  newErrors.password = "Password is required";
+} else if (formData.password.length > 12) {
+  newErrors.password = "Password should not exceed 12 characters";
+} else if (
+  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)
+) {
+  newErrors.password =
+    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+}
+  if (!formData.city) newErrors.city = "Select a city";
     if (!formData.state) newErrors.state = "Select a state";
     if (!formData.pincode.trim()) {
       newErrors.pincode = "Pincode is required";

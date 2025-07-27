@@ -133,8 +133,18 @@ const AddBuilder = () => {
     if (!formData.mobile.trim()) newErrors.mobile = 'Mobile is required';
     else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = 'Mobile must be 10 digits';
     // Email is optional
-    if (!formData.password) newErrors.password = 'Password is required';
-    if (!formData.city) newErrors.city = 'City is required';
+   if (!formData.password) {
+  newErrors.password = "Password is required";
+} else if (formData.password.length > 12) {
+  newErrors.password = "Password should not exceed 12 characters";
+} else if (
+  !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(formData.password)
+) {
+  newErrors.password =
+    "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
+}
+
+if (!formData.city) newErrors.city = 'City is required';
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.locality.trim()) newErrors.locality = 'Locality is required';
     if (!formData.pincode.trim()) {
