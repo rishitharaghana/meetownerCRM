@@ -33,7 +33,6 @@ interface FormData {
   panCardNumber: string;
   aadharNumber: string;
   companyName: string;
-  representativeName: string;
   companyAddress: string;
   companyNumber: string;
   companyLogo: File | null;
@@ -69,7 +68,6 @@ const AddBuilder = () => {
     panCardNumber: "",
     aadharNumber: "",
     companyName: "",
-    representativeName: "",
     companyAddress: "",
     companyNumber: "",
     companyLogo: null,
@@ -191,8 +189,7 @@ const AddBuilder = () => {
       newErrors.companyName = "Company name is required";
     if (!formData.companyAddress.trim())
       newErrors.companyAddress = "Company address is required";
-    if (!formData.representativeName.trim())
-      newErrors.representativeName = "Representative name is required";
+  
     if (!formData.companyNumber.trim()) {
       newErrors.companyNumber = "Company number is required";
     } else if (!/^\d{10}$/.test(formData.companyNumber)) {
@@ -261,7 +258,6 @@ const AddBuilder = () => {
       created_user_id: user?.id || 1,
       created_user_type: user?.user_type || 1,
       company_name: formData.companyName,
-      representative_name: formData.representativeName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
       pan_card_number: formData.panCardNumber,
@@ -299,7 +295,6 @@ const AddBuilder = () => {
         panCardNumber: "",
         aadharNumber: "",
         companyName: "",
-        representativeName: "",
         companyAddress: "",
         companyNumber: "",
         companyLogo: null,
@@ -387,23 +382,7 @@ const AddBuilder = () => {
             )}
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Representative Name
-            </label>
-            <Input
-              value={formData.representativeName}
-              onChange={(e) =>
-                handleChange("representativeName")(e.target.value)
-              }
-              placeholder="Enter representative name"
-            />
-            {errors.representativeName && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.representativeName}
-              </p>
-            )}
-          </div>
+          
 
           <div>
             <label className="text-sm font-medium text-gray-700">
