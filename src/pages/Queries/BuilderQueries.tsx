@@ -13,6 +13,7 @@ import { RootState, AppDispatch } from "../../store/store";
 import { useDispatch, useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { getBuilderQueries } from "../../store/slices/builderslice";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
@@ -48,6 +49,14 @@ export default function BuilderQueries() {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Builders", link: "/builders" },
+            { label: "Builder Queries" },
+          ]}
+        />
+      </div>
       <PageBreadcrumbList
         pageTitle="Builder Queries Table"
         pagePlacHolder="Filter queries by name, number, or message"

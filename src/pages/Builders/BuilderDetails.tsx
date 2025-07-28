@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from "react-router";
 import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import { getStatusDisplay } from "../../utils/statusdisplay";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 export default function BuilderDetailsScreen() {
   const navigate = useNavigate();
@@ -34,6 +35,14 @@ export default function BuilderDetailsScreen() {
 
   return (
     <div className="relative min-h-screen p-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Builders", link: "/builders" },
+            { label: "Builder Details" },
+          ]}
+        />
+      </div>
       <ComponentCard title={`Partner Details - ${userDetails.name}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div>
