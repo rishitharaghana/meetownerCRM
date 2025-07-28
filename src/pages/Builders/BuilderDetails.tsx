@@ -62,7 +62,7 @@ export default function BuilderDetailsScreen() {
             <p><strong>Company Address:</strong> {userDetails.company_address || "N/A"}</p>
             <p><strong>GST Number:</strong> {userDetails.gst_number || "N/A"}</p>
             <p><strong>RERA Number:</strong> {userDetails.rera_number || "N/A"}</p>
-            <p><strong>Representative Name:</strong> {userDetails.representative_name || "N/A"}</p>
+            {/* <p><strong>Representative Name:</strong> {userDetails.representative_name || "N/A"}</p> */}
             <p><strong>PAN Card Number:</strong> {userDetails.pan_card_number || "N/A"}</p>
             <p><strong>Aadhar Number:</strong> {userDetails.aadhar_number || "N/A"}</p>
           </div>
@@ -85,11 +85,11 @@ export default function BuilderDetailsScreen() {
             <p>{userDetails.feedback}</p>
           </div>
         )}
-        <div className="mt-6">
+        {/* <div className="mt-6">
           <h3 className="text-lg font-semibold mb-2">Bank Details</h3>
           <p><strong>Account Number:</strong> {userDetails.account_number || "N/A"}</p>
           <p><strong>IFSC Code:</strong> {userDetails.ifsc_code || "N/A"}</p>
-        </div>
+        </div> */}
         <div className="mt-6">
           <Button
             variant="primary"
