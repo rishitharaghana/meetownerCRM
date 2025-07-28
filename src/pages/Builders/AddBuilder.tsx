@@ -20,6 +20,7 @@ import Dropdown from "../../components/form/Dropdown";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { insertUser, InsertUserRequest } from "../../store/slices/userslice";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface FormData {
   name: string;
@@ -311,6 +312,14 @@ const AddBuilder = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Builders", link: "/builders" },
+            { label: "Add Builder" },
+          ]}
+        />
+      </div>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Builder</h1>

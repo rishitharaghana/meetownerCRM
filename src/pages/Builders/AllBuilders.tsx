@@ -19,6 +19,7 @@ import { clearUsers, getUsersByType } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 export default function AllBuildersScreen() {
   const navigate = useNavigate();
@@ -190,6 +191,14 @@ export default function AllBuildersScreen() {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Builders", link: "/builders" },
+            { label: "All Builders" },
+          ]}
+        />
+      </div>
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}

@@ -1,4 +1,3 @@
-// src/components/Support.tsx
 import React, { useState } from 'react';
 import { useSelector, useDispatch } from 'react-redux';
 import { toast } from 'react-hot-toast';
@@ -10,6 +9,7 @@ import { useNavigate } from 'react-router';
 import { AppDispatch, RootState } from '../../store/store';
 import { InsertBuilderQueryRequest } from '../../types/BuilderModel';
 import { createBuilderQuery } from '../../store/slices/builderslice';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 
 const faqs = [
   { question: "How do I reset my password?", answer: "Go to the login page and click 'Forgot Password' to reset it via email." },
@@ -25,10 +25,10 @@ const Support: React.FC = () => {
     name: '',
     number: '',
     message: '',
-    admin_user_id: user?.created_user_id ?? 0, 
-    admin_user_type: user?.created_user_type ?? 1, 
-    added_user_id: user?.id ?? 0, 
-    added_user_type: user?.user_type ?? 2, 
+    admin_user_id: user?.created_user_id ?? 0,
+    admin_user_type: user?.created_user_type ?? 1,
+    added_user_id: user?.id ?? 0,
+    added_user_type: user?.user_type ?? 2,
   });
   const [currentDate] = useState(
     new Date().toLocaleString('en-IN', { timeZone: 'Asia/Kolkata', dateStyle: 'full', timeStyle: 'short' })
@@ -36,8 +36,23 @@ const Support: React.FC = () => {
   const [expandedFAQ, setExpandedFAQ] = useState<number | null>(null);
   const navigate = useNavigate();
 
+  // Calculate word count
+  const getWordCount = (text: string): number => {
+    return text.trim() ? text.trim().split(/\s+/).length : 0;
+  };
+
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
+
+    // Enforce 30-word limit for message field
+    if (name === 'message') {
+      const wordCount = getWordCount(value);
+      if (wordCount > 30) {
+        toast.error('Message cannot exceed 30 words');
+        return;
+      }
+    }
+
     setFormData((prev) => ({
       ...prev,
       [name]: value,
@@ -62,34 +77,46 @@ const Support: React.FC = () => {
       return;
     }
 
-    
     const submitData: InsertBuilderQueryRequest = {
       ...formData,
-    admin_user_id: user?.created_user_id ?? 0, 
-    admin_user_type: user?.created_user_type ?? 1, 
+      admin_user_id: user?.created_user_id ?? 0,
+      admin_user_type: user?.created_user_type ?? 1,
     };
 
     try {
       await dispatch(createBuilderQuery(submitData)).unwrap();
+      toast.success('Query submitted successfully');
       setFormData({
         name: '',
         number: '',
         message: '',
-         admin_user_id: user?.created_user_id ?? 0, 
-    admin_user_type: user?.created_user_type ?? 1, 
-    added_user_id: user?.id ?? 0, 
-    added_user_type: user?.user_type ?? 2, 
+        admin_user_id: user?.created_user_id ?? 0,
+        admin_user_type: user?.created_user_type ?? 1,
+        added_user_id: user?.id ?? 0,
+        added_user_type: user?.user_type ?? 2,
       });
     } catch (error) {
-      
+      toast.error('Failed to submit query');
     }
   };
 
-  // Determine if the form is valid for enabling the submit button
-  const isFormValid = formData.name && formData.number && /^\d{10}$/.test(formData.number) && formData.message;
+  // Validate form, including word count
+  const isFormValid =
+    formData.name &&
+    formData.number &&
+    /^\d{10}$/.test(formData.number) &&
+    formData.message &&
+    getWordCount(formData.message) <= 30;
 
   return (
     <div className="min-h-screen p-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Support" },
+          ]}
+        />
+      </div>
       <ComponentCard title="Get Support">
         <div className="space-y-6">
           <div>
@@ -137,15 +164,18 @@ const Support: React.FC = () => {
                   value={formData.message}
                   onChange={handleChange}
                   className="w-full p-2 border rounded-md dark:bg-dark-900"
-                  placeholder="Describe your issue"
+                  placeholder="Describe your issue (max 30 words)"
                   rows={4}
                 />
+                <p className="text-sm text-gray-500 mt-1">
+                  {getWordCount(formData.message)}/30 words
+                </p>
               </div>
               <Button
                 variant="primary"
                 size="md"
                 type="submit"
-                disabled={loading ||  !isFormValid}
+                disabled={loading || !isFormValid}
               >
                 {loading ? (
                   <span className="flex items-center">
