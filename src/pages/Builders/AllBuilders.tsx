@@ -35,6 +35,7 @@ export default function AllBuildersScreen() {
   const [selectedStatus, setSelectedStatus] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
 
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
   const itemsPerPage = 10;
@@ -68,7 +69,7 @@ export default function AllBuildersScreen() {
     };
   }, [isAuthenticated, user, dispatch]);
 
-  // Skip the first user in the filteredUsers array
+  // Updated filteredUsers logic
   const filteredUsers = users?.filter((user, index) => {
     if (index === 0) return false; // Skip the first user
     const matchesTextFilter = [
@@ -83,20 +84,33 @@ export default function AllBuildersScreen() {
       .map((field) => field?.toLowerCase() || "")
       .some((field) => field.includes(filterValue.toLowerCase()));
 
-    const userCreatedDate = user.created_date.split("T")[0];
+    const userCreatedDate = user.created_date?.split("T")[0] || "";
     const matchesCreatedDate =
       (!createdDate || userCreatedDate >= createdDate) &&
       (!createdEndDate || userCreatedDate <= createdEndDate);
 
     const matchesStatus = selectedStatus === null || user.status === parseInt(selectedStatus);
 
-    const matchesState = !selectedState || user.state?.toLowerCase() === states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+    const matchesState = !selectedState || 
+      user.state?.toLowerCase() === 
+      states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
 
+    // Updated city filter logic to match AllProjects
     const matchesCity =
       !selectedCity ||
       (citiesResult.data &&
-        citiesResult.data.find((c) => c.value.toString() === selectedCity)?.label.toLowerCase() ===
-          user.city?.toLowerCase());
+        user.city &&
+        citiesResult.data.find((c) => c.value === selectedCity)?.label.toLowerCase() ===
+          user.city.toLowerCase());
+
+    // Optional: Log for debugging (remove in production)
+    if (selectedCity && user.city && !matchesCity) {
+      console.log({
+        selectedCity,
+        userCity: user.city,
+        cityLabel: citiesResult.data?.find((c) => c.value === selectedCity)?.label,
+      });
+    }
 
     return matchesTextFilter && matchesCreatedDate && matchesStatus && matchesState && matchesCity;
   }) || [];
@@ -109,7 +123,7 @@ export default function AllBuildersScreen() {
 
   const handleViewProfile = (user: any) => {
     if (isAuthenticated && user?.id) {
-      navigate(`/builder/${user.id}`, { state: { userDetails: user } }); // Pass user details in state
+      navigate(`/builder/${user.id}`, { state: { userDetails: user } });
     }
   };
 
@@ -135,7 +149,7 @@ export default function AllBuildersScreen() {
 
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
-    setSelectedCity(null);
+    setSelectedCity(null); // Reset city when state changes
     setCurrentPage(1);
   };
 
@@ -154,6 +168,21 @@ export default function AllBuildersScreen() {
     setCurrentPage(1);
   };
 
+  const handleCheckboxChange = (userId: number) => {
+    setSelectedUserId((prev) => (prev === userId ? null : userId));
+  };
+
+  const handleBulkViewProfile = () => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      handleViewProfile(user);
+    }
+  };
+
   const formatDate = (dateString: string): string => {
     const date = new Date(dateString);
     return date.toISOString().split("T")[0];
@@ -161,11 +190,6 @@ export default function AllBuildersScreen() {
 
   return (
     <div className="relative min-h-screen">
-      <PageBreadcrumbList
-        pageTitle={`${categoryLabel} Table`}
-        pagePlacHolder="Filter partners by name, mobile, email, city, GST, or RERA"
-        onFilter={handleFilter}
-      />
       <FilterBar
         showCreatedDateFilter={true}
         showCreatedEndDateFilter={true}
@@ -189,10 +213,26 @@ export default function AllBuildersScreen() {
         <div className="text-sm text-gray-500 dark:text-gray-400 mb-4 px-4">
           Filters: Search: {filterValue || "None"} | 
           State: {selectedState ? states.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"} | 
-          City: {selectedCity ? citiesResult.data?.find((c) => c.value.toString() === selectedCity)?.label || "All" : "All"} | 
+          City: {selectedCity ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All" : "All"} | 
           Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
+      <div className="mb-2 flex gap-2">
+        <PageBreadcrumbList
+          pageTitle={`${categoryLabel} Table`}
+          pagePlacHolder="Filter partners by name, mobile, email, city, GST, or RERA"
+          onFilter={handleFilter}
+        />
+        <Button
+          variant="primary"
+          onClick={handleBulkViewProfile}
+          disabled={selectedUserId === null}
+          className="px-4 py-1 h-10"
+        >
+          View Profile
+        </Button>
+      </div>
+      
       <div className="space-y-6">
         <ComponentCard title={`${categoryLabel} Table`}>
           {loading && (
@@ -230,6 +270,12 @@ export default function AllBuildersScreen() {
                         isHeader
                         className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[5%]"
                       >
+                        Select
+                      </TableCell>
+                      <TableCell
+                        isHeader
+                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[5%]"
+                      >
                         ID
                       </TableCell>
                       <TableCell
@@ -237,12 +283,6 @@ export default function AllBuildersScreen() {
                         className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[15%]"
                       >
                         Name
-                      </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[20%]"
-                      >
-                        Email
                       </TableCell>
                       <TableCell
                         isHeader
@@ -268,12 +308,6 @@ export default function AllBuildersScreen() {
                       >
                         Status
                       </TableCell>
-                      <TableCell
-                        isHeader
-                        className="px-5 py-3 font-medium text-white text-start text-theme-xs whitespace-nowrap w-[10%]"
-                      >
-                        Actions
-                      </TableCell>
                     </TableRow>
                   </TableHeader>
                   <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
@@ -285,17 +319,20 @@ export default function AllBuildersScreen() {
                           className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
                         >
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
+                            <input
+                              type="checkbox"
+                              checked={selectedUserId === user.id}
+                              onChange={() => handleCheckboxChange(user.id)}
+                              className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                              />
+                          </TableCell>
+                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
                             {user.id}
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-theme-sm whitespace-nowrap w-[15%]">
                             <div className="flex items-center gap-3">
-                              
-                                {user.name}
-                             
+                              {user.name}
                             </div>
-                          </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[20%]">
-                            {user.email}
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {user.mobile}
@@ -313,16 +350,6 @@ export default function AllBuildersScreen() {
                               {statusText}
                             </span>
                           </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 relative whitespace-nowrap w-[10%]">
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              className="w-full text-left border-gray-300 hover:bg-gray-100 dark:border-gray-600 dark:hover:bg-gray-800"
-                              onClick={() => handleViewProfile(user)} // Pass entire user object
-                            >
-                              View Details
-                            </Button>
-                          </TableCell>
                         </TableRow>
                       );
                     })}
@@ -333,7 +360,7 @@ export default function AllBuildersScreen() {
           )}
           {totalItems > itemsPerPage && (
             <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-              <div className="text-sm text-gray-500 dark:text-gray-400">
+              <div className="w-full text-sm text-gray-500 dark:text-gray-400">
                 Showing {startIndex + 1} to {endIndex} of {totalItems} entries
               </div>
               <Pagination
