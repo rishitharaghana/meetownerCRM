@@ -274,7 +274,7 @@ export default function PartnerScreen() {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Channel Partners", link: "/channel-partners" },
+           
             { label: "All Channel Partners" },
           ]}
         />
