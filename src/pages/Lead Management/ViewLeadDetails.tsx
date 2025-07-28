@@ -8,6 +8,7 @@ import { getLeadSources, getLeadUpdatesByLeadId } from '../../store/slices/leads
 import { Lead, LeadUpdate } from '../../types/LeadModel';
 import { BUILDER_USER_TYPE } from './CustomComponents';
 import toast from 'react-hot-toast';
+import PageBreadcrumb from '../../components/common/PageBreadCrumb';
 
 const ViewLeadDetails = () => {
   const location = useLocation();
@@ -111,6 +112,14 @@ const ViewLeadDetails = () => {
 
   return (
     <div className="p-6 space-y-6">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: 'Leads', link: '/leads' },
+            { label: lead.interested_project_name || 'Lead Details' },
+          ]}
+        />
+      </div>
       <h2 className="text-3xl font-bold text-blue-900 dark:text-white mb-4">
         Lead Details: {lead.interested_project_name}
       </h2>

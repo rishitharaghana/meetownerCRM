@@ -16,6 +16,7 @@ import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import {
   clearUsers,
   getUsersByType,
@@ -270,6 +271,14 @@ export default function PartnerScreen() {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Channel Partners", link: "/channel-partners" },
+            { label: "All Channel Partners" },
+          ]}
+        />
+      </div>
       <PageMeta title=" All Channel Partners - Channel Partners" />
       <FilterBar
         showCreatedDateFilter={true}

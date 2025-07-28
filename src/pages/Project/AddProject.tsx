@@ -14,6 +14,7 @@ import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { useMemo } from "react";
 import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface SelectOption {
   value: string;
@@ -860,6 +861,14 @@ export default function AddProject() {
 
   return (
     <div className="relative min-h-screen px-4 sm:px-6 lg:px-8 py-8 max-w-7xl mx-auto">
+      <div className="flex justify-end items-end">
+          <PageBreadcrumb
+            items={[
+              { label: "Dashboard", link: "/" },
+              { label: "Add Projects", link: "/add-projects" },
+            ]}  
+          />
+      </div>
       <PageMeta title="Add Projects - Project Management " />
       <ComponentCard title="Create Property">
         <form onSubmit={handleSubmit} className="space-y-6">

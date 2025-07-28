@@ -17,6 +17,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -236,6 +237,14 @@ const AllProjects: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Dashboard", link: "/" },
+            { label: "All Projects", link: "/projects" },
+          ]}
+        />
+      </div>
       <PageMeta title=" All Projects - Project Management " />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

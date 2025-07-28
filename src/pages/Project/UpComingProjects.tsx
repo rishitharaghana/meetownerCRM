@@ -17,6 +17,7 @@ import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -237,6 +238,14 @@ const UpComingProjects: React.FC = () => {
 
   return (
     <div className="p-6 min-h-screen bg-gray-50">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Projects", link: "/projects" },
+            { label: "UpComing Projects" },
+          ]}
+        />
+      </div>
       <PageMeta title="UpComing Projects - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">

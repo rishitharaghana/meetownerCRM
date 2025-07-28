@@ -18,6 +18,7 @@ import { BUILDER_USER_TYPE, sidebarSubItems } from "./CustomComponents";
 import UpdateLeadModal from "./UpdateLeadModel";
 import FilterBar from "../../components/common/FilterBar";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added for city queries
 import { setCityDetails } from "../../store/slices/propertyDetails"; // Added for city dispatch
 
@@ -346,6 +347,14 @@ const LeadsType: React.FC = () => {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end items-end">
+          <PageBreadcrumb
+            items={[
+              { label: "Dashboard", link: "/" },
+              { label: getPageTitle(), link: `/leads/${lead_in}/${status}` },
+            ]}
+            /> 
+      </div>
       <PageMeta title={` ${getPageTitle()} - Lead Management `} />
       <FilterBar
         showUserTypeFilter={true}

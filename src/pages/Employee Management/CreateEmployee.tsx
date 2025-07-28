@@ -21,6 +21,7 @@ import { insertUser } from "../../store/slices/userslice";
 import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface FormData {
   name: string;
@@ -310,6 +311,14 @@ const CreateEmployee = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Employee Management", link: "/employee-management" },
+            { label: "Create Employee" },
+          ]}
+        />
+      </div>
       <PageMeta title="  Add Employee - Employee Management " />
 
       <div className="max-w-2xl mx-auto">

@@ -5,7 +5,7 @@ import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import ComponentCard from "../../components/common/ComponentCard";
 import Button from "../../components/ui/button/Button";
 import { leadSourceOptions } from "../../components/common/reusedList";
-
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 
 const BookingDetails: React.FC = () => {
@@ -66,6 +66,10 @@ const BookingDetails: React.FC = () => {
 
   return (
     <div className="relative min-h-screen p-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb items={[{ label: "Bookings", link: "/bookings" }]} 
+        />
+      </div>
       <PageMeta title="Booking Details" />
       <PageBreadcrumbList pageTitle="Booking Details" />
       <ComponentCard title={`Booking Details - Lead ID: ${lead.lead_id}`}>

@@ -11,6 +11,7 @@ import { LeadSource } from "../../types/LeadModel";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
 import UpComingProjects from "../Project/UpComingProjects";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface FormData {
   name: string;
@@ -383,6 +384,14 @@ const LeadForm: React.FC = () => {
   // };
   return (
     <div className="min-h-screen bg-gradient-to-br from-realty-50 via-white to-realty-100 py-8 px-4">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[  
+            { label: "Dashboard", link: "/" },
+            { label: "Add New Lead", link: "/add-leads" },
+          ]}
+          />
+      </div>
       <PageMeta title="Add New Leads - Lead Management" />
 
       <div className="max-w-2xl mx-auto">

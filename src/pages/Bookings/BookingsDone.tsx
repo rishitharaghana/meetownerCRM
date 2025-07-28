@@ -20,6 +20,7 @@ import { BUILDER_USER_TYPE } from "../Lead Management/CustomComponents";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added import
 import { setCityDetails } from "../../store/slices/propertyDetails"; // Added import
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const BookingsDone: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
@@ -312,6 +313,11 @@ const BookingsDone: React.FC = () => {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[{ label: ""}, { label: "Bookings Done" }]}
+        />
+      </div>
       <PageMeta title="Booked Leads" />
 
       <FilterBar

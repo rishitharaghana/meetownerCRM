@@ -4,6 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchProjectById } from "../../store/slices/projectSlice";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 // import defaultImage from '/images/DefaultImage.jpeg'
 
 const ProjectDetailsPage = () => {
@@ -107,6 +108,14 @@ const defaultImage ="";
 
   return (
     <div className="max-w-6xl mx-auto p-8 bg-gray-50 dark:bg-gray-900 rounded-2xl shadow-xl">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Projects", link: "/projects" },
+            { label: selectedProject.project_name },
+          ]}
+        />
+      </div>
       {/* Main Image Section */}
       <div className="relative w-full h-70 mb-10 overflow-hidden rounded-2xl shadow-lg">
         <img

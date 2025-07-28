@@ -4,7 +4,7 @@ import { useSelector, useDispatch } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { getUserById, clearUsers } from "../../store/slices/userslice";
-
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 
 const statusText = (status: number) => {
@@ -78,6 +78,14 @@ const EmployeeDetail = () => {
 
   return (
     <div className="px-4 py-6 sm:p-10 max-w-5xl mx-auto">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Employee Management", link: "/employee-management" },
+            { label: "Employee Details" },
+          ]}
+        />
+      </div>
       <div className="mb-6 flex items-center justify-between">
         <h1 className="text-xl md:text-2xl font-semibold text-gray-800 dark:text-white">
           Employee Details - {selectedUser.name}

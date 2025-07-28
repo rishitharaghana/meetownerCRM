@@ -25,6 +25,7 @@ import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserMod
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import PageMeta from "../../components/common/PageMeta";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
@@ -252,6 +253,14 @@ export default function EmployeesScreen() {
 
   return (
     <div className="relative min-h-screen">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Employee Management", link: "/employee-management" },
+            { label: categoryLabel },
+          ]}
+        />
+      </div>
       <PageMeta title={`${categoryLabel} - Employee Management`} />
       <FilterBar
         showCreatedDateFilter={true}

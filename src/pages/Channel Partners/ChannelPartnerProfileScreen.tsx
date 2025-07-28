@@ -7,7 +7,7 @@ import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Button from "../../components/ui/button/Button";
 import { RootState, AppDispatch } from "../../store/store";
 import { clearUsers, getUserById } from "../../store/slices/userslice";
-
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 export default function PartnerProfile() {
   const { id } = useParams<{ id: string }>();
@@ -54,6 +54,14 @@ export default function PartnerProfile() {
 
   return (
     <div className="relative min-h-screen p-6">
+      <div className="flex justify-end">
+        <PageBreadcrumb
+          items={[
+            { label: "Channel Partners", link: "/channel-partners" },
+            { label: "Partner Profile" },
+          ]}
+        />
+      </div>
       <PageBreadcrumbList
         pageTitle={`Partner Profile - ${selectedUser.name}`}
         pagePlacHolder=""
