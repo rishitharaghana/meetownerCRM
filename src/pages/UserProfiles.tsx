@@ -15,24 +15,35 @@ export default function UserProfiles() {
   const { selectedUser, loading, error } = useSelector((state: RootState) => state.user);
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
 
-  const profileParams = useMemo(() => {
-    if (!isAuthenticated || !user?.id || !user?.user_type) {
-      return null;
-    }
-    if (user.user_type === BUILDER_USER_TYPE) {
-      return {
-        admin_user_id: user.id,
-        admin_user_type: user.user_type,
-      };
-    } else {
-      return {
-        admin_user_id: user.created_user_id,
-        admin_user_type: BUILDER_USER_TYPE,
-        emp_id: user.id,
-        emp_user_type: user.user_type,
-      };
-    }
-  }, [isAuthenticated, user]);
+ const profileParams = useMemo(() => {
+  if (!isAuthenticated || !user?.id || !user?.user_type) {
+    return null;
+  }
+
+  // If the user is an Admin (user_type === 1), force user_type to 1
+  if (user.user_type === 1) {
+    return {
+      admin_user_id: user.id,
+      admin_user_type: 1,
+    };
+  }
+
+  // For all other users, use original logic
+  if (user.user_type === BUILDER_USER_TYPE) {
+    return {
+      admin_user_id: user.id,
+      admin_user_type: user.user_type,
+    };
+  } else {
+    return {
+      admin_user_id: user.created_user_id,
+      admin_user_type: BUILDER_USER_TYPE,
+      emp_id: user.id,
+      emp_user_type: user.user_type,
+    };
+  }
+}, [isAuthenticated, user]);
+
 
   useEffect(() => {
     if (profileParams) {

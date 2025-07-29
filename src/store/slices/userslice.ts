@@ -101,6 +101,54 @@ export const insertUser = createAsyncThunk<
   }
 );
 
+export const insertUserNoAuth = createAsyncThunk<
+  InsertUserResponse,
+  FormData,
+  { rejectValue: string }
+>(
+  "user/insertUserNoAuth",
+  async (formData, { rejectWithValue }) => {
+    try {
+      // Log FormData for debugging
+      for (let [key, value] of formData.entries()) {
+        console.log(`${key}: ${value}`);
+      }
+
+      const response = await ngrokAxiosInstance.post<InsertUserResponse>(
+        `/api/v1/insertuser-link`,
+        formData,
+        {
+          headers: {
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
+
+      toast.success(response.data.message);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Insert user (no auth) error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid user data provided");
+          case 403:
+            return rejectWithValue("Forbidden: Only Admin (1) or Builder (2) can create users");
+          case 409:
+            return rejectWithValue("User with this mobile number already exists");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(axiosError.response.data?.message || "Failed to insert user");
+        }
+      }
+      return rejectWithValue("Network error. Please check your connection and try again.");
+    }
+  }
+);
+
 export const fetchChannelPartnerLink = createAsyncThunk<
   { link: string },
   void,
@@ -445,6 +493,19 @@ const userSlice = createSlice({
         state.selectedUser = action.payload.user || null; 
       })
       .addCase(insertUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
+      .addCase(insertUserNoAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(insertUserNoAuth.fulfilled, (state, action: PayloadAction<InsertUserResponse>) => {
+        state.loading = false;
+        state.selectedUser = action.payload.user || null;
+      })
+      .addCase(insertUserNoAuth.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         toast.error(action.payload as string);
