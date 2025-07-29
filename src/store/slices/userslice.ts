@@ -101,6 +101,22 @@ export const insertUser = createAsyncThunk<
   }
 );
 
+export const fetchChannelPartnerLink = createAsyncThunk<
+  { link: string },
+  void,
+  { rejectValue: string }
+>(
+  "user/fetchChannelPartnerLink",
+  async (_, { rejectWithValue }) => {
+    try {
+      const response = await ngrokAxiosInstance.get(`/api/v1/channelpartner-link`);
+      return response.data;
+    } catch (error) {
+      const axiosError = error as AxiosError;
+      return rejectWithValue(axiosError.response?.data?.error || "Failed to fetch link");
+    }
+  }
+);
 
 export const getTypesCount = createAsyncThunk<
   UserCount[],

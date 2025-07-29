@@ -18,6 +18,7 @@ import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import defaultImage from '/images/Image.jpg'
 
 const BUILDER_USER_TYPE = 2;
 
@@ -293,7 +294,7 @@ const AllProjects: React.FC = () => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-          const defaultImage = " ";
+          // const defaultImage = " ";
           return (
             <div
               key={project.property_id}

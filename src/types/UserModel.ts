@@ -97,6 +97,7 @@ export interface UserState {
   selectedUser: User | null; 
   loading: boolean;
   error: string | null;
+   channelPartnerLink?: string;
 }
 
 export interface DeleteUserRequest {
