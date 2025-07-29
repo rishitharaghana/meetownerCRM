@@ -1,5 +1,4 @@
 import { useLocation, useNavigate } from "react-router";
-
 import Button from "../../components/ui/button/Button";
 import ComponentCard from "../../components/common/ComponentCard";
 import { getStatusDisplay } from "../../utils/statusdisplay";
@@ -7,13 +6,10 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 export default function BuilderDetailsScreen() {
   const navigate = useNavigate();
-  const location = useLocation();
-  const userDetails = location.state?.userDetails; // Retrieve user details from route state
+  const { state } = useLocation();
+  const userDetails = state?.userDetails;
 
-  const formatDate = (dateString: string): string => {
-    const date = new Date(dateString);
-    return date.toISOString().split("T")[0];
-  };
+  const formatDate = (dateString) => new Date(dateString).toISOString().split("T")[0];
 
   if (!userDetails) {
     return (
@@ -25,7 +21,7 @@ export default function BuilderDetailsScreen() {
           onClick={() => navigate("/builders")}
           className="ml-4"
         >
-          Back to builders
+          Back to Builders
         </Button>
       </div>
     );
@@ -34,14 +30,9 @@ export default function BuilderDetailsScreen() {
   const { text: statusText, className: statusClass } = getStatusDisplay(userDetails.status);
 
   return (
-    <div className="relative min-h-screen p-4">
+    <div className="min-h-screen p-4">
       <div className="flex justify-end">
-        <PageBreadcrumb
-          items={[
-            { label: "Builders", link: "/builders" },
-            { label: "Builder Details" },
-          ]}
-        />
+        <PageBreadcrumb items={[{ label: "Builders", link: "/builders" }, { label: "Builder Details" }]} />
       </div>
       <ComponentCard title={`Partner Details - ${userDetails.name}`}>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -53,14 +44,12 @@ export default function BuilderDetailsScreen() {
             <p><strong>Mobile:</strong> {userDetails.mobile}</p>
             <p>
               <strong>Status:</strong>{" "}
-              <span className={`inline-block px-2 py-1 rounded-full text-xs font-medium ${statusClass}`}>
+              <span className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass}`}>
                 {statusText}
               </span>
             </p>
             <p><strong>Joined:</strong> {formatDate(userDetails.created_date)}</p>
-            <p>
-              <strong>Location:</strong> {userDetails.location}, {userDetails.city}, {userDetails.state}
-            </p>
+            <p><strong>Location:</strong> {userDetails.city}, {userDetails.state}</p>
             <p><strong>Address:</strong> {userDetails.address || "N/A"}</p>
             <p><strong>Pincode:</strong> {userDetails.pincode || "N/A"}</p>
           </div>
@@ -71,7 +60,6 @@ export default function BuilderDetailsScreen() {
             <p><strong>Company Address:</strong> {userDetails.company_address || "N/A"}</p>
             <p><strong>GST Number:</strong> {userDetails.gst_number || "N/A"}</p>
             <p><strong>RERA Number:</strong> {userDetails.rera_number || "N/A"}</p>
-            {/* <p><strong>Representative Name:</strong> {userDetails.representative_name || "N/A"}</p> */}
             <p><strong>PAN Card Number:</strong> {userDetails.pan_card_number || "N/A"}</p>
             <p><strong>Aadhar Number:</strong> {userDetails.aadhar_number || "N/A"}</p>
           </div>
@@ -94,16 +82,11 @@ export default function BuilderDetailsScreen() {
             <p>{userDetails.feedback}</p>
           </div>
         )}
-        {/* <div className="mt-6">
-          <h3 className="text-lg font-semibold mb-2">Bank Details</h3>
-          <p><strong>Account Number:</strong> {userDetails.account_number || "N/A"}</p>
-          <p><strong>IFSC Code:</strong> {userDetails.ifsc_code || "N/A"}</p>
-        </div> */}
         <div className="mt-6">
           <Button
             variant="primary"
             size="sm"
-            onClick={() => navigate("/builders")} // Navigate back to the list
+            onClick={() => navigate("/builders")}
           >
             Back to Partners
           </Button>

@@ -1,7 +1,4 @@
 
-
-
-
 export const sidebarSubItems = [
   { name: "Today Leads", lead_in: "new", status: 0 },
   { name: "Open Leads", lead_in: "open", status: 1 },

@@ -104,7 +104,6 @@ const StoppedProjectsLeads: React.FC = () => {
     }
   }, [projectParams, dispatch, isAuthenticated, user]);
 
-  // Client-side filtering for search, state, city, and dates
   const filteredProjects = useMemo(() => {
     return stoppedProjects.filter((project: Project) => {
       const matchesSearch =
@@ -113,7 +112,6 @@ const StoppedProjectsLeads: React.FC = () => {
         project.city?.toLowerCase().includes(search.toLowerCase()) ||
         project.state?.toLowerCase().includes(search.toLowerCase());
 
-      // State filter: Compare project.state with the label of selectedState
       const matchesState =
         !selectedState ||
         project.state?.toLowerCase() ===
@@ -121,7 +119,6 @@ const StoppedProjectsLeads: React.FC = () => {
             .find((s) => s.value.toString() === selectedState)
             ?.label.toLowerCase();
 
-      // City filter: Compare project.city with the label of selectedCity
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&

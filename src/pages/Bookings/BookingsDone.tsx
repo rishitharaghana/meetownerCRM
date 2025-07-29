@@ -17,42 +17,29 @@ import { RootState, AppDispatch } from "../../store/store";
 import { clearLeads, getBookedLeads } from "../../store/slices/leadslice";
 import { leadSourceOptions } from "../../components/common/reusedList";
 import { BUILDER_USER_TYPE } from "../Lead Management/CustomComponents";
-import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added import
-import { setCityDetails } from "../../store/slices/propertyDetails"; // Added import
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 const BookingsDone: React.FC = () => {
-  const [localPage, setLocalPage] = useState<number>(1);
-  const [searchQuery, setSearchQuery] = useState<string>("");
-  const [initialSearch, setInitialSearch] = useState<string>("");
+  const [localPage, setLocalPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<
-    number | null
-  >(null);
-  const searchInputRef = useRef<HTMLInputElement>(null);
-  const location = useLocation();
+  const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-  const { bookedLeads, loading, error } = useSelector(
-    (state: RootState) => state.lead
-  );
-  const { states } = useSelector((state: RootState) => state.property); // Added to access states
-  const { citiesQuery } = usePropertyQueries(); // Added to fetch cities
-
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { bookedLeads, loading, error } = useSelector((state: RootState) => state.lead);
+  const { states } = useSelector((state: RootState) => state.property);
+  const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 10;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
 
   // Fetch cities based on selected state
-  const citiesResult = citiesQuery(
-    selectedState ? parseInt(selectedState) : undefined
-  );
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
 
   // Dispatch cities to Redux store
   useEffect(() => {
@@ -61,43 +48,25 @@ const BookingsDone: React.FC = () => {
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle errors for city fetching
+  // Handle city fetch errors
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(
-        `Failed to fetch cities: ${
-          citiesResult.error?.message || "Unknown error"
-        }`
-      );
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
     }
   }, [citiesResult.isError, citiesResult.error]);
 
+  // Prepare parameters for fetching leads
   const leadsParams = useMemo(() => {
-    if (
-      !isAuthenticated ||
-      !user?.id ||
-      !user.user_type ||
-      (!isBuilder &&
-        (!user?.created_user_id || user?.created_user_type === undefined))
-    ) {
+    if (!isAuthenticated || !user?.id || !user.user_type) {
       return null;
     }
 
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
-      lead_added_user_type: isBuilder
-        ? user.user_type
-        : Number(user.created_user_type),
+      lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
     };
 
-    if (!isBuilder) {
-      console.log(
-        "Channel Partner: Adding assigned_user_type and assigned_id",
-        {
-          assigned_user_type: user.user_type,
-          assigned_id: user.id,
-        }
-      );
+    if (!isBuilder && user.created_user_id && user.created_user_type !== undefined) {
       return {
         ...params,
         assigned_user_type: user.user_type.toString(),
@@ -105,24 +74,14 @@ const BookingsDone: React.FC = () => {
       };
     }
 
-    console.log("Builder: Using params without assigned fields", params);
     return params;
   }, [isAuthenticated, user, isBuilder]);
 
+  // Fetch booked leads
   useEffect(() => {
     if (leadsParams) {
-      console.log("Dispatching getBookedLeads with params:", leadsParams);
-      dispatch(getBookedLeads(leadsParams))
-        .unwrap()
-        .catch((err) => {
-          console.error("Failed to fetch booked leads:", err);
-        });
-    } else if (isAuthenticated && user) {
-      console.warn("Skipping getBookedLeads: Invalid user data", {
-        id: user.id,
-        user_type: user.user_type,
-        created_user_id: user.created_user_id,
-        created_user_type: user.created_user_type,
+      dispatch(getBookedLeads(leadsParams)).unwrap().catch((err) => {
+        console.error("Failed to fetch booked leads:", err);
       });
     }
     return () => {
@@ -130,123 +89,59 @@ const BookingsDone: React.FC = () => {
     };
   }, [leadsParams, dispatch]);
 
+  // Filter leads based on search and filter criteria
   const filteredLeads = useMemo(() => {
-    return (
-      bookedLeads?.filter((item) => {
-        const matchesTextFilter = !searchQuery
-          ? true
-          : [
-              item.customer_name,
-              item.customer_phone_number,
-              item.customer_email,
-              item.interested_project_name,
-              item.assigned_name,
-              item.assigned_emp_number,
-              item.assigned_priority,
-            ]
-              .map((field) => field?.toLowerCase() || "")
-              .some((field) => field.includes(searchQuery.toLowerCase()));
+    return bookedLeads?.filter((item) => {
+      const matchesText = !searchQuery
+        ? true
+        : [
+            item.customer_name,
+            item.customer_phone_number,
+            item.customer_email,
+            item.interested_project_name,
+            item.assigned_name,
+            item.assigned_emp_number,
+            item.assigned_priority,
+          ]
+            .map((field) => field?.toLowerCase() || "")
+            .some((field) => field.includes(searchQuery.toLowerCase()));
 
-        const matchesCreatedDate =
-          !createdDate || item.created_date?.split("T")[0] === createdDate;
-        const matchesUpdatedDate =
-          !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
-        const matchesState =
-          !selectedState ||
-          item.state?.toLowerCase() ===
-            states
-              .find((s) => s.value.toString() === selectedState)
-              ?.label.toLowerCase();
-        const matchesCity =
-          !selectedCity ||
-          (citiesResult.data &&
-            citiesResult.data
-              .find((c) => c.value === selectedCity)
-              ?.label.toLowerCase() === item.city?.toLowerCase());
+      const matchesCreatedDate = !createdDate || item.created_date?.split("T")[0] === createdDate;
+      const matchesUpdatedDate = !updatedDate || item.updated_date?.split("T")[0] === updatedDate;
+      const matchesState =
+        !selectedState ||
+        item.state?.toLowerCase() ===
+          states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
+      const matchesCity =
+        !selectedCity ||
+        citiesResult.data?.find((c) => c.value === selectedCity)?.label.toLowerCase() ===
+          item.city?.toLowerCase();
 
-        return (
-          matchesTextFilter &&
-          matchesCreatedDate &&
-          matchesUpdatedDate &&
-          matchesState &&
-          matchesCity
-        );
-      }) || []
-    );
-  }, [
-    bookedLeads,
-    searchQuery,
-    createdDate,
-    updatedDate,
-    selectedState,
-    selectedCity,
-    states,
-    citiesResult.data,
-  ]);
+      return matchesText && matchesCreatedDate && matchesUpdatedDate && matchesState && matchesCity;
+    }) || [];
+  }, [bookedLeads, searchQuery, createdDate, updatedDate, selectedState, selectedCity, states, citiesResult.data]);
 
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
-  const currentLeads = filteredLeads.slice(
-    (localPage - 1) * itemsPerPage,
-    localPage * itemsPerPage
-  );
+  const currentLeads = filteredLeads.slice((localPage - 1) * itemsPerPage, localPage * itemsPerPage);
 
-  useEffect(() => {
-    const savedSearch = localStorage.getItem("searchQuery") || "";
-    setInitialSearch(savedSearch);
-    setSearchQuery(savedSearch);
-  }, []);
-
-  useEffect(() => {
-    if (searchInputRef.current) {
-      searchInputRef.current.focus();
-    }
-  }, []);
-
-  useEffect(() => {
-    localStorage.removeItem("searchQuery");
-    setSearchQuery("");
-    setInitialSearch("");
-    setCreatedDate(null);
-    setUpdatedDate(null);
-    setSelectedState(null);
-    setSelectedCity(null);
-    setLocalPage(1);
-  }, [location.pathname]);
-
+  // Reset page on filter change
   useEffect(() => {
     setLocalPage(1);
   }, [searchQuery, createdDate, updatedDate, selectedState, selectedCity]);
 
-  useEffect(() => {
-    const handleStorageChange = () => {
-      const currentSearch = localStorage.getItem("searchQuery") || "";
-      if (currentSearch === "" && initialSearch !== "") {
-        setSearchQuery("");
-        setCreatedDate(null);
-        setUpdatedDate(null);
-        setSelectedState(null);
-        setSelectedCity(null);
-        setLocalPage(1);
-        setInitialSearch("");
-      }
-    };
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
-  }, [initialSearch]);
-
+  // Handle checkbox selection
   const handleCheckboxChange = (leadId: number) => {
-    setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId));
+    setSelectedLeadId((prev) => (prev === leadId ? null : leadId));
   };
 
+  // Navigate to lead details
   const handleViewDetails = () => {
-    if (selectedLeadIdSingle === null) {
+    if (selectedLeadId === null) {
       toast.error("Please select a lead.");
       return;
     }
-    const lead = currentLeads.find(
-      (item) => item.lead_id === selectedLeadIdSingle
-    );
+    const lead = currentLeads.find((item) => item.lead_id === selectedLeadId);
     if (lead) {
       navigate(`/booking/${lead.lead_id}`, { state: { lead } });
     } else {
@@ -254,27 +149,15 @@ const BookingsDone: React.FC = () => {
     }
   };
 
-  const handleSearch = (value: string) => {
-    setSearchQuery(value.trim());
-  };
-
-  const handleCreatedDateChange = (date: string | null) => {
-    setCreatedDate(date);
-  };
-
-  const handleUpdatedDateChange = (date: string | null) => {
-    setUpdatedDate(date);
-  };
-
+  // Filter handlers
+  const handleSearch = (value: string) => setSearchQuery(value.trim());
+  const handleCreatedDateChange = (date: string | null) => setCreatedDate(date);
+  const handleUpdatedDateChange = (date: string | null) => setUpdatedDate(date);
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
     setSelectedCity(null); // Reset city when state changes
   };
-
-  const handleCityChange = (value: string | null) => {
-    setSelectedCity(value);
-  };
-
+  const handleCityChange = (value: string | null) => setSelectedCity(value);
   const handleClearFilters = () => {
     setSearchQuery("");
     setCreatedDate(null);
@@ -284,21 +167,19 @@ const BookingsDone: React.FC = () => {
     setLocalPage(1);
   };
 
-  const goToPage = (page: number) => {
-    setLocalPage(page);
-  };
-
+  // Pagination handlers
+  const goToPage = (page: number) => setLocalPage(page);
   const goToPreviousPage = () => localPage > 1 && goToPage(localPage - 1);
   const goToNextPage = () => localPage < totalPages && goToPage(localPage + 1);
 
   const getPaginationItems = () => {
-    const pages = [];
     const totalVisiblePages = 7;
     let startPage = Math.max(1, localPage - Math.floor(totalVisiblePages / 2));
     let endPage = Math.min(totalPages, startPage + totalVisiblePages - 1);
     if (endPage - startPage + 1 < totalVisiblePages) {
       startPage = Math.max(1, endPage - totalVisiblePages + 1);
     }
+    const pages: (number | "...")[] = [];
     if (startPage > 1) pages.push(1);
     if (startPage > 2) pages.push("...");
     for (let i = startPage; i <= endPage; i++) pages.push(i);
@@ -314,18 +195,16 @@ const BookingsDone: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       <div className="flex justify-end">
-        <PageBreadcrumb
-          items={[{ label: ""}, { label: "Bookings Done" }]}
-        />
+        <PageBreadcrumb items={[{ label: "" }, { label: "Bookings Done" }]} />
       </div>
       <PageMeta title="Booked Leads" />
 
       <FilterBar
         className="mb-4"
-        showCreatedDateFilter={true}
-        showUpdatedDateFilter={true}
-        showStateFilter={true}
-        showCityFilter={true}
+        showCreatedDateFilter
+        showUpdatedDateFilter
+        showStateFilter
+        showCityFilter
         onCreatedDateChange={handleCreatedDateChange}
         onUpdatedDateChange={handleUpdatedDateChange}
         onStateChange={handleStateChange}
@@ -337,106 +216,76 @@ const BookingsDone: React.FC = () => {
         selectedCity={selectedCity}
       />
       <div className="mb-4 flex gap-2">
-        <PageBreadcrumbList
-          pagePlacHolder="Search by Name, Mobile, Email, Project"
-          onFilter={handleSearch}
-          pageTitle={""}
+        <input
+          type="text"
+          placeholder="Search by Name, Mobile, Email, Project"
+          value={searchQuery}
+          onChange={(e) => handleSearch(e.target.value)}
+          className="flex-1 px-3 py-2 border rounded"
         />
         <Button
           variant="primary"
           onClick={handleViewDetails}
-          disabled={selectedLeadIdSingle === null}
+          disabled={selectedLeadId === null}
           className="px-4 py-2 h-10"
         >
           View Details
         </Button>
       </div>
       <div className="space-y-6">
-        {loading && (
-          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-            Loading leads...
-          </div>
-        )}
+        {loading && <div className="text-center text-gray-600 py-4">Loading leads...</div>}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
         {!loading && !error && filteredLeads.length === 0 && (
-          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
-            No leads found.
-          </div>
+          <div className="text-center text-gray-600 py-4">No leads found.</div>
         )}
         {!loading && !error && filteredLeads.length > 0 && (
-          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
+          <div className="overflow-hidden rounded-xl border border-gray-200 bg-white">
             <div className="w-full overflow-x-auto">
               <Table className="w-full">
-                <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
+                <TableHeader className="border-b border-gray-100">
                   <TableRow className="bg-blue-900 text-white">
-                    <TableCell
-                      isHeader
-                      className="text-center font-medium text-xs whitespace-nowrap w-[5%]"
-                    >
+                    <TableCell isHeader className="text-center font-medium text-xs w-[5%]">
                       Select
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[15%]">
                       Name
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[15%]">
                       Number
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[15%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[15%]">
                       Project
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[10%]">
                       Lead Type
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[10%]">
                       Created
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[10%]">
                       Updated
                     </TableCell>
-                    <TableCell
-                      isHeader
-                      className="text-left font-medium text-xs whitespace-nowrap w-[10%]"
-                    >
+                    <TableCell isHeader className="text-left font-medium text-xs w-[10%]">
                       City
                     </TableCell>
                   </TableRow>
                 </TableHeader>
-                <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                  {currentLeads.map((item, index) => (
+                <TableBody className="divide-y divide-gray-100">
+                  {currentLeads.map((item) => (
                     <TableRow
                       key={item.lead_id}
-                      className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
+                      className="hover:bg-gray-50 transition-colors"
                     >
                       <TableCell className="text-center w-[5%]">
                         <input
                           type="checkbox"
-                          checked={selectedLeadIdSingle === item.lead_id}
+                          checked={selectedLeadId === item.lead_id}
                           onChange={() => handleCheckboxChange(item.lead_id)}
-                          className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                          className="h-3 w-3 text-blue-600 border-gray-300 rounded"
                         />
                       </TableCell>
                       <TableCell className="text-left truncate max-w-[120px] w-[15%]">
-                        <span title={item.customer_name || "N/A"}>
-                          {item.customer_name || "N/A"}
-                        </span>
+                        <span title={item.customer_name || "N/A"}>{item.customer_name || "N/A"}</span>
                       </TableCell>
                       <TableCell className="text-left w-[15%]">
                         {item.customer_phone_number || "N/A"}
@@ -455,9 +304,7 @@ const BookingsDone: React.FC = () => {
                       <TableCell className="text-left w-[10%]">
                         {item.updated_date?.split("T")[0] || "N/A"}
                       </TableCell>
-                      <TableCell className="text-left w-[10%]">
-                        {item.city || "N/A"}
-                      </TableCell>
+                      <TableCell className="text-left w-[10%]">{item.city || "N/A"}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -467,10 +314,9 @@ const BookingsDone: React.FC = () => {
         )}
         {filteredLeads.length > itemsPerPage && (
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
-            <div className="text-sm text-gray-500 dark:text-gray-400">
+            <div className="text-sm text-gray-500">
               Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(localPage * itemsPerPage, filteredLeads.length)} of{" "}
-              {filteredLeads.length} entries
+              {Math.min(localPage * itemsPerPage, filteredLeads.length)} of {filteredLeads.length} entries
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
               <Button

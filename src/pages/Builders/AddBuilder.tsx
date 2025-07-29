@@ -1,17 +1,7 @@
 import React, { useEffect, useState } from "react";
-import {
-  User,
-  MapPin,
-  KeyRound,
-  Mail,
-  EyeIcon,
-  EyeOff,
-  Landmark,
-  Image,
-} from "lucide-react";
+import { User, MapPin, KeyRound, Mail, EyeIcon, EyeOff, Landmark, Image } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
-
 import Input from "../../components/form/input/InputField";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
@@ -50,12 +40,10 @@ interface Errors {
 const AddBuilder = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { states } = useSelector((state: RootState) => state.property);
+  const { states, cities } = useSelector((state: RootState) => state.property);
   const { loading } = useSelector((state: RootState) => state.user);
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
-  const { citiesQuery, statesQuery } = usePropertyQueries();
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
+  const { citiesQuery } = usePropertyQueries();
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -79,65 +67,44 @@ const AddBuilder = () => {
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
-  const citiesResult = citiesQuery(
-    formData.state ? parseInt(formData.state) : undefined
-  );
-  // Redirect if not authenticated or not authorized
+  const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
+
+  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate("/login");
       toast.error("Please log in to access this page");
-      return;
     }
-
-    // Assuming only admins (user_type = 1) can add builders
   }, [isAuthenticated, user, navigate]);
 
-  // Fetch cities
+  // Dispatch cities to Redux store
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle errors for city and state fetching
+  // Handle city fetch errors
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(
-        `Failed to fetch cities: ${
-          citiesResult.error?.message || "Unknown error"
-        }`
-      );
+      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
     }
-    if (statesQuery.isError) {
-      toast.error(
-        `Failed to fetch states: ${
-          statesQuery.error?.message || "Unknown error"
-        }`
-      );
-    }
-  }, [
-    citiesResult.isError,
-    citiesResult.error,
-    statesQuery.isError,
-    statesQuery.error,
-  ]);
+  }, [citiesResult.isError, citiesResult.error]);
 
-  const cityOptions =
-    citiesResult?.data?.map((city: any) => ({
-      value: city.value,
-      text: city.label,
-    })) || [];
+  const cityOptions = cities?.map((city: any) => ({
+    value: city.value,
+    text: city.label,
+  })) || [];
 
-  const stateOptions =
-    states?.map((state: any) => ({ value: state.value, text: state.label })) ||
-    [];
+  const stateOptions = states?.map((state: any) => ({
+    value: state.value,
+    text: state.label,
+  })) || [];
 
-  const handleChange =
-    (field: keyof FormData) => (value: string | File | null) => {
-      setFormData((prev) => ({ ...prev, [field]: value }));
-      if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
-    };
+  const handleChange = (field: keyof FormData) => (value: string | File | null) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: undefined }));
+  };
 
   const handleDropdownChange = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => ({
@@ -152,76 +119,42 @@ const AddBuilder = () => {
     const newErrors: Errors = {};
     if (!formData.name.trim()) newErrors.name = "Name is required";
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
-    else if (!/^\d{10}$/.test(formData.mobile))
-      newErrors.mobile = "Mobile must be 10 digits";
-    // Email is optional
-    if (!formData.password) {
-      newErrors.password = "Password is required";
-    } else if (formData.password.length > 12) {
-      newErrors.password = "Password should not exceed 12 characters";
-    } else if (
-      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/.test(
+    else if (!/^\d{10}$/.test(formData.mobile)) newErrors.mobile = "Mobile must be 10 digits";
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email))
+      newErrors.email = "Invalid email format";
+    if (!formData.password) newErrors.password = "Password is required";
+    else if (
+      !/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,12}$/.test(
         formData.password
       )
-    ) {
+    )
       newErrors.password =
-        "Password must be at least 8 characters and include uppercase, lowercase, number, and special character";
-    }
-
-    if (!formData.city) newErrors.city = "City is required";
+        "Password must be 8-12 characters, including uppercase, lowercase, number, and special character";
     if (!formData.state) newErrors.state = "State is required";
+    if (!formData.city) newErrors.city = "City is required";
     if (!formData.locality.trim()) newErrors.locality = "Locality is required";
-    if (!formData.pincode.trim()) {
-      newErrors.pincode = "Pincode is required";
-    } else if (!/^\d{6}$/.test(formData.pincode)) {
-      newErrors.pincode = "Pincode must be 6 digits";
-    }
-    if (!formData.panCardNumber.trim()) {
-      newErrors.panCardNumber = "PAN Card is required";
-    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
+    if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
+    else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits";
+    if (!formData.panCardNumber.trim()) newErrors.panCardNumber = "PAN Card is required";
+    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber))
       newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
-    }
-    if (!formData.aadharNumber.trim()) {
-      newErrors.aadharNumber = "Aadhar is required";
-    } else if (!/^\d{12}$/.test(formData.aadharNumber)) {
+    if (!formData.aadharNumber.trim()) newErrors.aadharNumber = "Aadhar is required";
+    else if (!/^\d{12}$/.test(formData.aadharNumber))
       newErrors.aadharNumber = "Aadhar must be 12 digits";
-    }
-    if (!formData.companyName.trim())
-      newErrors.companyName = "Company name is required";
-    if (!formData.companyAddress.trim())
-      newErrors.companyAddress = "Company address is required";
-  
-    if (!formData.companyNumber.trim()) {
-      newErrors.companyNumber = "Company number is required";
-    } else if (!/^\d{10}$/.test(formData.companyNumber)) {
+    if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
+    if (!formData.companyAddress.trim()) newErrors.companyAddress = "Company address is required";
+    if (!formData.companyNumber.trim()) newErrors.companyNumber = "Company number is required";
+    else if (!/^\d{10}$/.test(formData.companyNumber))
       newErrors.companyNumber = "Company number must be 10 digits";
-    }
-
-    if (!formData.gstNumber.trim())
-      newErrors.gstNumber = "GST number is required";
-    else if (
-      !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
-        formData.gstNumber
-      )
-    ) {
+    if (!formData.gstNumber.trim()) newErrors.gstNumber = "GST number is required";
+    else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber))
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
-    }
-    if (!formData.reraNumber.trim())
-      newErrors.reraNumber = "RERA number is required";
+    if (!formData.reraNumber.trim()) newErrors.reraNumber = "RERA number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    // Company logo and photo are optional
-    if (
-      formData.companyLogo &&
-      !["image/jpeg", "image/png"].includes(formData.companyLogo.type)
-    ) {
-      newErrors.companyLogo = "Company logo must be a JPEG or PNG image";
-    }
-    if (
-      formData.photo &&
-      !["image/jpeg", "image/png"].includes(formData.photo.type)
-    ) {
-      newErrors.photo = "Photo must be a JPEG or PNG image";
-    }
+    if (formData.companyLogo && !["image/jpeg", "image/png"].includes(formData.companyLogo.type))
+      newErrors.companyLogo = "Company logo must be JPEG or PNG";
+    if (formData.photo && !["image/jpeg", "image/png"].includes(formData.photo.type))
+      newErrors.photo = "Photo must be JPEG or PNG";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -231,15 +164,8 @@ const AddBuilder = () => {
     e.preventDefault();
     if (!validateForm()) return;
 
-    const createdBy = localStorage.getItem("name") || "Admin";
-    const createdUserId = parseInt(localStorage.getItem("userId") || "0", 10);
-
-    const cityName =
-      cityOptions.find((option) => option.value === formData.city)?.text ||
-      formData.city;
-    const stateName =
-      stateOptions.find((option) => option.value === formData.state)?.text ||
-      formData.state;
+    const cityName = cityOptions.find((option) => option.value === formData.city)?.text || "";
+    const stateName = stateOptions.find((option) => option.value === formData.state)?.text || "";
 
     const payload: InsertUserRequest = {
       user_type: 2,
@@ -255,7 +181,7 @@ const AddBuilder = () => {
       pincode: formData.pincode,
       gst_number: formData.gstNumber,
       rera_number: formData.reraNumber,
-      created_by: createdBy,
+      created_by: user?.name || "Admin",
       created_user_id: user?.id || 1,
       created_user_type: user?.user_type || 1,
       company_name: formData.companyName,
@@ -270,14 +196,7 @@ const AddBuilder = () => {
     const formDataToSend = new FormData();
     Object.entries(payload).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
-        if (
-          (key === "photo" || key === "company_logo") &&
-          value instanceof File
-        ) {
-          formDataToSend.append(key, value);
-        } else {
-          formDataToSend.append(key, String(value));
-        }
+        formDataToSend.append(key, value instanceof File ? value : String(value));
       }
     });
 
@@ -306,31 +225,24 @@ const AddBuilder = () => {
       });
       setErrors({});
     } catch (err) {
-      // Error is handled in the user slice and displayed via toast
+      // Error is handled in the user slice
     }
   };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
       <div className="flex justify-end">
-        <PageBreadcrumb
-          items={[
-            { label: "Builders", link: "/builders" },
-            { label: "Add Builder" },
-          ]}
-        />
+        <PageBreadcrumb items={[{ label: "Builders", link: "/builders" }, { label: "Add Builder" }]} />
       </div>
       <div className="max-w-2xl mx-auto">
         <div className="text-center mb-4">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">Add Builder</h1>
-          <p className="text-gray-600">
-            Fill in the details below to add a new builder
-          </p>
+          <p className="text-gray-600">Fill in the details below to add a new builder</p>
         </div>
 
         <form
           onSubmit={handleSubmit}
-          className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6"
+          className="bg-white/70 rounded-2xl shadow-xl p-8 border border-white/30 space-y-6"
           encType="multipart/form-data"
         >
           <div>
@@ -342,9 +254,7 @@ const AddBuilder = () => {
               onChange={(e) => handleChange("name")(e.target.value)}
               placeholder="Enter name"
             />
-            {errors.name && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>
-            )}
+            {errors.name && <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>}
           </div>
 
           <div>
@@ -355,9 +265,7 @@ const AddBuilder = () => {
               placeholder="Enter mobile"
               onChange={handleChange("mobile")}
             />
-            {errors.mobile && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>
-            )}
+            {errors.mobile && <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>}
           </div>
 
           <div>
@@ -370,62 +278,42 @@ const AddBuilder = () => {
               onChange={(e) => handleChange("email")(e.target.value)}
               placeholder="email@example.com"
             />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>
-            )}
+            {errors.email && <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              <Landmark size={16} className="inline" /> Company Name
+            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+              <Landmark size={16} /> Company Name
             </label>
             <Input
               value={formData.companyName}
               onChange={(e) => handleChange("companyName")(e.target.value)}
               placeholder="Enter company name"
             />
-            {errors.companyName && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyName}
-              </p>
-            )}
+            {errors.companyName && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyName}</p>}
           </div>
 
-          
-
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Company Address
-            </label>
+            <label className="text-sm font-medium text-gray-700">Company Address</label>
             <textarea
               value={formData.companyAddress}
               onChange={(e) => handleChange("companyAddress")(e.target.value)}
               rows={3}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
+              className="w-full p-3 border rounded-md"
               placeholder="Enter company address"
             />
-            {errors.companyAddress && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyAddress}
-              </p>
-            )}
+            {errors.companyAddress && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyAddress}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Company Phone
-            </label>
+            <label className="text-sm font-medium text-gray-700">Company Phone</label>
             <PhoneInput
               countries={[{ code: "IN", label: "+91" }]}
               value={formData.companyNumber}
               placeholder="Enter company phone number"
               onChange={handleChange("companyNumber")}
             />
-            {errors.companyNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyNumber}
-              </p>
-            )}
+            {errors.companyNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyNumber}</p>}
           </div>
 
           <div>
@@ -434,47 +322,31 @@ const AddBuilder = () => {
             </label>
             <input
               type="file"
-              accept="image/*"
-              onChange={(e) =>
-                handleChange("companyLogo")(e.target.files?.[0] || null)
-              }
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
+              accept="image/jpeg,image/png"
+              onChange={(e) => handleChange("companyLogo")(e.target.files?.[0] || null)}
+              className="w-full p-3 border rounded-md"
             />
-            {errors.companyLogo && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyLogo}
-              </p>
-            )}
+            {errors.companyLogo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.companyLogo}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              GST Number
-            </label>
+            <label className="text-sm font-medium text-gray-700">GST Number</label>
             <Input
               value={formData.gstNumber}
               onChange={(e) => handleChange("gstNumber")(e.target.value)}
               placeholder="Enter GST number (e.g., 22ABCDE1234F1Z5)"
             />
-            {errors.gstNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.gstNumber}</p>
-            )}
+            {errors.gstNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.gstNumber}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              RERA Number
-            </label>
+            <label className="text-sm font-medium text-gray-700">RERA Number</label>
             <Input
               value={formData.reraNumber}
               onChange={(e) => handleChange("reraNumber")(e.target.value)}
               placeholder="Enter RERA number"
             />
-            {errors.reraNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.reraNumber}
-              </p>
-            )}
+            {errors.reraNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.reraNumber}</p>}
           </div>
 
           <div>
@@ -483,59 +355,40 @@ const AddBuilder = () => {
               value={formData.address}
               onChange={(e) => handleChange("address")(e.target.value)}
               rows={3}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
+              className="w-full p-3 border rounded-md"
               placeholder="Enter address"
             />
-            {errors.address && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
-            )}
+            {errors.address && <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Locality
-            </label>
+            <label className="text-sm font-medium text-gray-700">Locality</label>
             <Input
               value={formData.locality}
               onChange={(e) => handleChange("locality")(e.target.value)}
               placeholder="Enter locality"
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
             />
-            {errors.locality && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>
-            )}
+            {errors.locality && <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              PAN Card Number
-            </label>
+            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
             <Input
               value={formData.panCardNumber}
               onChange={(e) => handleChange("panCardNumber")(e.target.value)}
               placeholder="Enter PAN card number (e.g., ABCDE1234F)"
             />
-            {errors.panCardNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.panCardNumber}
-              </p>
-            )}
+            {errors.panCardNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.panCardNumber}</p>}
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">
-              Aadhar Number
-            </label>
+            <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
             <Input
               value={formData.aadharNumber}
               onChange={(e) => handleChange("aadharNumber")(e.target.value)}
               placeholder="Enter 12-digit Aadhar number"
             />
-            {errors.aadharNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.aadharNumber}
-              </p>
-            )}
+            {errors.aadharNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>}
           </div>
 
           <div>
@@ -544,15 +397,11 @@ const AddBuilder = () => {
             </label>
             <input
               type="file"
-              accept="image/*"
-              onChange={(e) =>
-                handleChange("photo")(e.target.files?.[0] || null)
-              }
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
+              accept="image/jpeg,image/png"
+              onChange={(e) => handleChange("photo")(e.target.files?.[0] || null)}
+              className="w-full p-3 border rounded-md"
             />
-            {errors.photo && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
-            )}
+            {errors.photo && <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>}
           </div>
 
           <div className="relative">
@@ -572,12 +421,10 @@ const AddBuilder = () => {
             >
               {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
             </button>
-            {errors.password && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>
-            )}
+            {errors.password && <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>}
           </div>
 
-          <div className="min-h-[80px] w-full max-w-md">
+          <div>
             <Dropdown
               id="state"
               label="Select State"
@@ -589,7 +436,7 @@ const AddBuilder = () => {
             />
           </div>
 
-          <div className="min-h-[80px] w-full max-w-md">
+          <div>
             <Dropdown
               id="city"
               label="Select City"
@@ -611,9 +458,7 @@ const AddBuilder = () => {
               onChange={(e) => handleChange("pincode")(e.target.value)}
               placeholder="Enter pincode"
             />
-            {errors.pincode && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>
-            )}
+            {errors.pincode && <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>}
           </div>
 
           <div className="pt-4">

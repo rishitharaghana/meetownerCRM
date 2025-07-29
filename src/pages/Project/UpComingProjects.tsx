@@ -295,7 +295,7 @@ const UpComingProjects: React.FC = () => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-          const defaultImage = " "; // Replace with actual default image URL
+          const defaultImage = " "; 
 
           return (
             <div
