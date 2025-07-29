@@ -55,17 +55,14 @@ const LeadsType: React.FC = () => {
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
 
-  // Fetch cities based on selected state
   const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
 
-  // Dispatch cities to Redux store
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle errors for city fetching
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
@@ -118,7 +115,6 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        // Error handling already managed by toast in error state
       });
     } else if (isAuthenticated && user) {
       console.warn("Invalid user data:", {
@@ -191,7 +187,7 @@ const LeadsType: React.FC = () => {
     selectedState,
     selectedCity,
     states,
-    citiesResult.data, // Added dependencies
+    citiesResult.data,
   ]);
 
   const totalCount = filteredLeads.length;
@@ -203,7 +199,6 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Existing logic
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);

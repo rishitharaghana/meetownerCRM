@@ -117,13 +117,12 @@ const AllProjects: React.FC = () => {
               .find((s) => s.value.toString() === selectedState)
               ?.label.toLowerCase() === project.state?.toLowerCase());
 
-        // City filtering - Updated to ensure accurate matching
         const matchesCity =
           !selectedCity ||
           (citiesResult.data &&
             project.city &&
             citiesResult.data
-              .find((c) => c.value === selectedCity) // Match value directly
+              .find((c) => c.value === selectedCity) 
               ?.label.toLowerCase() === project.city?.toLowerCase());
 
         let matchesDate = true;
@@ -141,15 +140,6 @@ const AllProjects: React.FC = () => {
             }
           }
         }
-
-        // Optional: Log mismatches for debugging (remove in production)
-        // if (selectedCity && project.city && !matchesCity) {
-        //   console.log({
-        //     selectedCity,
-        //     projectCity: project.city,
-        //     cityLabel: citiesResult.data?.find((c) => c.value === selectedCity)?.label,
-        //   });
-        // }
 
         return matchesSearch && matchesState && matchesCity && matchesDate;
       });

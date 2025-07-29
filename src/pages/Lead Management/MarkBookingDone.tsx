@@ -34,7 +34,7 @@ const MarkBookingPage: React.FC = () => {
     }
     if (!leadId || !leadAddedUserId || !leadAddedUserType || !propertyId) {
       toast.error("Invalid booking data");
-      navigate(-1); // Navigate back if required data is missing
+      navigate(-1); 
     }
   }, [error, leadId, leadAddedUserId, leadAddedUserType, propertyId, navigate]);
 
@@ -86,14 +86,14 @@ const MarkBookingPage: React.FC = () => {
 
       const result = await dispatch(markLeadAsBooked(submitData)).unwrap();
       toast.success(`Lead ${result.lead_id} booked successfully!`);
-      navigate(-1); // Navigate back to the previous page (LeadsType)
+      navigate(-1); 
     } catch (err) {
-      // Error is already handled by toast in useEffect
+      
     }
   };
 
   const handleCancel = () => {
-    navigate(-1); // Navigate back to the previous page
+    navigate(-1); 
   };
 
   return (
@@ -102,7 +102,7 @@ const MarkBookingPage: React.FC = () => {
       <PageBreadcrumb
         pageTitle="Mark Lead as Booked"
         pagePlacHolder=""
-        onFilter={() => {}} // No search on this page
+        onFilter={() => {}} 
       />
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full mx-auto mt-6">
         <h2 className="text-xl font-semibold mb-4">Mark Lead as Booked</h2>

@@ -474,7 +474,6 @@ const OnGoingProjects: React.FC = () => {
         })}
       </div>
 
-      {/* Confirmation Modal */}
       <ConfirmDeleteUserModal
         isOpen={isModalOpen}
         userName={selectedProject?.project_name || ""}
