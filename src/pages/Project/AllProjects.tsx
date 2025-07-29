@@ -283,14 +283,14 @@ const AllProjects: React.FC = () => {
           return (
             <div
               key={project.property_id}
-              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] flexਮ
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-800 hover:shadow-xl hover:scale-[1.01] flexਮ
               flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
             >
               <div className="w-full sm:w-[40%] h-48 sm:h-auto relative overflow-hidden">
                 <img
                   src={project.property_image || defaultImage}
                   alt={project.project_name}
-                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
+                  className="w-full h-full object-cover transition-transform duration-800 hover:scale-110"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = defaultImage;
                   }}
