@@ -34,7 +34,7 @@ const EditChannelPartner: React.FC = () => {
   );
   const user = useSelector((state: RootState) => state.auth.user);
   const { citiesQuery } = usePropertyQueries();
-
+//changes made
   const [selectedPartner, setSelectedPartner] = useState<any>(partner || null);
   const [feedback, setFeedback] = useState<string>(partner?.feedback || "");
   const [photoFile, setPhotoFile] = useState<File | null>(null);
