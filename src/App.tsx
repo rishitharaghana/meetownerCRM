@@ -42,6 +42,7 @@ import EmpLeads from "./pages/Lead Management/EmpLeads";
 import ForgotPassword from "./pages/AuthPages/ForgotPassword";
 import ChannelPartnerLink from "./pages/Channel Partners/ChannelPartnerLink";
 import EditEmployee from "./pages/Employee Management/EditEmployee";
+import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector(
@@ -76,6 +77,7 @@ export default function App() {
                 path="/partners/addpartners"
                 element={<AddChannelPartner />}
               />
+              <Route path="edit-channelpartners/:id" element= {<EditChannelPartner/>} />
 
               <Route path="/builders" element={<AllBuildersScreen />} />
               <Route path="/builders/addbuilders" element={<AddBuilder />} />
