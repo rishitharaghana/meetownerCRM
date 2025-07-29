@@ -215,13 +215,13 @@ const BookingsDone: React.FC = () => {
         selectedState={selectedState}
         selectedCity={selectedCity}
       />
-      <div className="mb-4 flex gap-2">
+      <div className="mb-4 w-md flex gap-2">
         <input
           type="text"
           placeholder="Search by Name, Mobile, Email, Project"
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="flex-1 px-3 py-2 border rounded"
+          className="flex-1 px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-200"
         />
         <Button
           variant="primary"
