@@ -62,6 +62,7 @@ export default function PartnerProfile() {
           ]}
         />
       </div>
+      {/* changes */}
       <PageBreadcrumbList
         pageTitle={`Partner Profile - ${selectedUser.name}`}
         pagePlacHolder=""

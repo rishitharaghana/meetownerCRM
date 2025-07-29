@@ -214,6 +214,7 @@ export default function PartnerScreen() {
       toast.error("Please select a partner.");
       return;
     }
+    //changes
     const user = paginatedUsers.find((u) => u.id === selectedUserId);
     if (user) {
       navigate(`/edit-channelpartners/${selectedUserId}`, { state: { partner: user } });
