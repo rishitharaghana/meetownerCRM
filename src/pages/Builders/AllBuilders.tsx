@@ -15,7 +15,7 @@ import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
 import { RootState, AppDispatch } from "../../store/store";
-import { clearUsers, getUsersByType } from "../../store/slices/userslice";
+import { clearUsers, getUsersByType, deleteUser } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
@@ -96,22 +96,12 @@ export default function AllBuildersScreen() {
       user.state?.toLowerCase() === 
       states.find((s) => s.value.toString() === selectedState)?.label.toLowerCase();
 
-    // Updated city filter logic to match AllProjects
     const matchesCity =
       !selectedCity ||
       (citiesResult.data &&
         user.city &&
         citiesResult.data.find((c) => c.value === selectedCity)?.label.toLowerCase() ===
           user.city.toLowerCase());
-
-    // Optional: Log for debugging (remove in production)
-    if (selectedCity && user.city && !matchesCity) {
-      console.log({
-        selectedCity,
-        userCity: user.city,
-        cityLabel: citiesResult.data?.find((c) => c.value === selectedCity)?.label,
-      });
-    }
 
     return matchesTextFilter && matchesCreatedDate && matchesStatus && matchesState && matchesCity;
   }) || [];
@@ -125,6 +115,83 @@ export default function AllBuildersScreen() {
   const handleViewProfile = (user: any) => {
     if (isAuthenticated && user?.id) {
       navigate(`/builder/${user.id}`, { state: { userDetails: user } });
+    }
+  };
+
+  const handleEdit = (user: any) => {
+    if (isAuthenticated && user?.id) {
+      navigate(`/builder/edit/${user.id}`, { state: { userDetails: user } });
+    }
+  };
+
+  const handleDelete = (userId: number) => {
+    if (isAuthenticated && user?.id) {
+      toast((t) => (
+        <div>
+          <p>Are you sure you want to delete this partner?</p>
+          <div className="flex gap-2 mt-2">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => {
+                dispatch(deleteUser({ admin_user_id: user.id, user_id: userId }))
+                  .unwrap()
+                  .then(() => {
+                    toast.success("Partner deleted successfully!");
+                    dispatch(getUsersByType({ admin_user_id: user.id })); // Refresh the list
+                    setSelectedUserId(null); // Clear selection after deletion
+                  })
+                  .catch((err) => {
+                    toast.error(`Failed to delete partner: ${err.message || "Unknown error"}`);
+                  });
+                toast.dismiss(t.id);
+              }}
+            >
+              Yes
+            </Button>
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              No
+            </Button>
+          </div>
+        </div>
+      ), { duration: Infinity });
+    }
+  };
+
+  const handleBulkViewProfile = () => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      handleViewProfile(user);
+    }
+  };
+
+  const handleBulkEdit = () => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      handleEdit(user);
+    }
+  };
+
+  const handleBulkDelete = () => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      handleDelete(user.id);
     }
   };
 
@@ -171,17 +238,6 @@ export default function AllBuildersScreen() {
 
   const handleCheckboxChange = (userId: number) => {
     setSelectedUserId((prev) => (prev === userId ? null : userId));
-  };
-
-  const handleBulkViewProfile = () => {
-    if (selectedUserId === null) {
-      toast.error("Please select a partner.");
-      return;
-    }
-    const user = paginatedUsers.find((u) => u.id === selectedUserId);
-    if (user) {
-      handleViewProfile(user);
-    }
   };
 
   const formatDate = (dateString: string): string => {
@@ -239,6 +295,22 @@ export default function AllBuildersScreen() {
           className="px-4 py-1 h-10"
         >
           View Profile
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleBulkEdit}
+          disabled={selectedUserId === null}
+          className="px-4 py-1 h-10"
+        >
+          Edit
+        </Button>
+        <Button
+          variant="danger"
+          onClick={handleBulkDelete}
+          disabled={selectedUserId === null}
+          className="px-4 py-1 h-10"
+        >
+          Delete
         </Button>
       </div>
       
@@ -333,7 +405,7 @@ export default function AllBuildersScreen() {
                               checked={selectedUserId === user.id}
                               onChange={() => handleCheckboxChange(user.id)}
                               className="h-3 w-3 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
-                              />
+                            />
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[5%]">
                             {user.id}
@@ -346,7 +418,7 @@ export default function AllBuildersScreen() {
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {user.mobile}
                           </TableCell>
-                          <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
+                          <TableCell className="truncate max-w-[150px] px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
                             {`${user.city}, ${user.state}`}
                           </TableCell>
                           <TableCell className="px-5 py-4 sm:px-6 text-start text-gray-500 text-theme-sm dark:text-gray-400 whitespace-nowrap w-[10%]">
