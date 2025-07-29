@@ -11,9 +11,9 @@ import {
 } from "../../components/ui/table";
 import Button from "../../components/ui/button/Button";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
-import { Modal } from "../../components/ui/modal";
 import Pagination from "../../components/ui/pagination/Pagination";
 import FilterBar from "../../components/common/FilterBar";
+import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 import { RootState, AppDispatch } from "../../store/store";
 import { User } from "../../types/UserModel";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
@@ -21,12 +21,14 @@ import {
   clearUsers,
   getUsersByType,
   updateUserStatus,
+  deleteUser,
 } from "../../store/slices/userslice";
 import { getStatusDisplay } from "../../utils/statusdisplay";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import PageMeta from "../../components/common/PageMeta";
-import { debounce } from "lodash"; // Ensure lodash is installed
+import { debounce } from "lodash";
+import { Modal } from "../../components/ui/modal";
 
 const statusFilterOptions = [
   { value: "0", label: "Pending" },
@@ -60,11 +62,13 @@ export default function PartnerScreen() {
   });
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [isRejectModalOpen, setIsRejectModalOpen] = useState<boolean>(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
   const [selectedUser, setSelectedUser] = useState<User | null>(null);
   const [rejectReason, setRejectReason] = useState<string>("");
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [selectedUserId, setSelectedUserId] = useState<number | null>(null);
   const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
+  const createdUserType = user?.user_type || 2; // Assume Builder (2) if not available
   const itemsPerPage = 10;
   const categoryLabel = "Partners";
 
@@ -205,6 +209,56 @@ export default function PartnerScreen() {
     }
   }, [dispatch, selectedUser, rejectReason, createdUserId]);
 
+  const handleEdit = useCallback(() => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      navigate(`/edit-channelpartners/${selectedUserId}`, { state: { partner: user } });
+    }
+  }, [selectedUserId, paginatedUsers, navigate]);
+
+  const handleBulkDelete = useCallback(() => {
+    if (selectedUserId === null) {
+      toast.error("Please select a partner.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      setSelectedUser(user);
+      setIsDeleteModalOpen(true);
+    }
+  }, [selectedUserId, paginatedUsers]);
+
+  const handleConfirmDelete = useCallback(async () => {
+    if (selectedUser && user?.user_type) {
+      try {
+        await dispatch(
+          deleteUser({
+            id: selectedUser.id,
+            created_user_id: createdUserId,
+            created_user_type: user.user_type,
+          })
+        ).unwrap();
+        setStatusUpdated((prev) => !prev);
+        setIsDeleteModalOpen(false);
+        setSelectedUser(null);
+        setSelectedUserId(null);
+        toast.success("Channel partner deleted successfully");
+      } catch (error) {
+        console.error("Failed to delete partner:", error);
+        toast.error((error as any).message || "Failed to delete partner");
+      }
+    }
+  }, [dispatch, selectedUser, createdUserId, user?.user_type]);
+
+  const handleCancelDelete = useCallback(() => {
+    setIsDeleteModalOpen(false);
+    setSelectedUser(null);
+  }, []);
+
   const handleFilterChange = useCallback((key: keyof FilterState, value: string | null) => {
     setFilters((prev) => ({ ...prev, [key]: value }));
     setCurrentPage(1);
@@ -316,6 +370,24 @@ export default function PartnerScreen() {
           aria-label="View selected partner profile"
         >
           View Profile
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleEdit}
+          disabled={selectedUserId === null}
+          className="px-4 py-1 h-10"
+          aria-label="Edit selected partner"
+        >
+          Edit
+        </Button>
+        <Button
+          variant="primary"
+          onClick={handleBulkDelete}
+          disabled={selectedUserId === null}  
+          className="px-4 py-1 h-10"
+          aria-label="Delete selected partner"
+        >
+          Delete
         </Button>
       </div>
       <div className="space-y-6">
@@ -512,6 +584,13 @@ export default function PartnerScreen() {
           </div>
         </div>
       </Modal>
+      <ConfirmDeleteUserModal
+        isOpen={isDeleteModalOpen}
+        userName={selectedUser?.name || ""}
+        description="Are you sure you want to delete this channel partner? This action cannot be undone if the partner has no associated leads or updates."
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
     </div>
   );
 }
