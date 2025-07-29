@@ -98,6 +98,7 @@ export interface UserState {
   loading: boolean;
   error: string | null;
    channelPartnerLink?: string;
+   updateSuccess: boolean; 
 }
 
 export interface DeleteUserRequest {

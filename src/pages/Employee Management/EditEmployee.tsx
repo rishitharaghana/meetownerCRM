@@ -3,17 +3,19 @@ import { useLocation, useNavigate } from "react-router";
 import ComponentCard from "../../components/common/ComponentCard";
 import Label from "../../components/form/Label";
 import Input from "../../components/form/input/InputField";
-import MultiSelect from "../../components/form/MultiSelect";
 import { useDispatch, useSelector } from "react-redux";
+import toast from "react-hot-toast";
 import { AppDispatch, RootState } from "../../store/store";
-import { clearMessages, updateEmployee } from "../../store/slices/employee";
-import { getCities, getStates } from "../../store/slices/propertyDetails";
+import { clearMessages, updateUser } from "../../store/slices/userslice";
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 import PageMeta from "../../components/common/PageMeta";
-import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+
 interface Option {
   value: string;
   text: string;
 }
+
 const allDesignationOptions: Option[] = [
   { value: "7", text: "Manager" },
   { value: "8", text: "TeleCaller" },
@@ -21,132 +23,165 @@ const allDesignationOptions: Option[] = [
   { value: "10", text: "Customer Support" },
   { value: "11", text: "Customer Service" },
 ];
+
+const statusOptions: Option[] = [
+  { value: "1", text: "Approved" },
+  { value: "2", text: "Rejected" },
+];
+
 const EditEmployee: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
   const location = useLocation();
   const { employee } = location.state || {};
-  const { cities, states } = useSelector((state: RootState) => state.property);
+  const { states } = useSelector((state: RootState) => state.property);
   const { updateLoading, updateError, updateSuccess } = useSelector(
-    (state: RootState) => state.employee
+    (state: RootState) => state.user
   );
-  const pageUserType = useSelector(
-    (state: RootState) => state.auth.user?.user_type
+  const user = useSelector((state: RootState) => state.auth.user);
+  const { citiesQuery } = usePropertyQueries();
+
+  const [selectedEmployee, setSelectedEmployee] = useState<any>(employee || null);
+  const [feedback, setFeedback] = useState<string>("");
+  const [photoFile, setPhotoFile] = useState<File | null>(null); // Track photo file separately
+  const [selectedState, setSelectedState] = useState<string>(
+    employee?.state
+      ? states?.find((s: any) => s.label.toLowerCase() === employee.state.toLowerCase())?.value?.toString() || ""
+      : ""
   );
-  const [selectedEmployee, setSelectedEmployee] = useState<any>(
-    employee || null
-  );
+
   const designationOptions: Option[] =
-    pageUserType === 7
+    user?.user_type === 7
       ? allDesignationOptions.filter((option) => option.value !== "7")
       : allDesignationOptions;
-  const cityOptions: Option[] =
-    cities?.map((city: any) => ({
-      value: city.value,
-      text: city.label,
-    })) || [];
+
   const stateOptions: Option[] =
     states?.map((state: any) => ({
-      value: state.value,
+      value: state.value.toString(),
       text: state.label,
     })) || [];
+
+  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+  const cityOptions: Option[] =
+    citiesResult?.data?.map((city: any) => ({
+      value: city.value.toString(),
+      text: city.label,
+    })) || [];
+
   useEffect(() => {
-    dispatch(getCities());
-    dispatch(getStates());
-  }, [dispatch]);
+    if (citiesResult.data) {
+      dispatch(setCityDetails(citiesResult.data));
+    }
+  }, [citiesResult.data, dispatch]);
+
+  useEffect(() => {
+    if (citiesResult.isError) {
+      toast.error(
+        `Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`
+      );
+    }
+  }, [citiesResult.isError, citiesResult.error]);
+
   useEffect(() => {
     if (updateSuccess) {
+      toast.success("Employee updated successfully");
       setTimeout(() => {
         navigate(-1);
         dispatch(clearMessages());
       }, 1000);
     }
-  }, [updateSuccess, navigate, dispatch]);
+  }, [updateSuccess, navigate, dispatch, employee]);
+
+  useEffect(() => {
+    if (updateError) {
+      toast.error(updateError);
+    }
+  }, [updateError]);
+
   const getDesignationValue = (text: string) => {
-    const option = designationOptions.find((opt) => opt.text === text);
-    return option ? [option.value] : [];
+    const option = designationOptions.find((opt) => opt.text.toLowerCase() === text.toLowerCase());
+    return option ? option.value : "";
   };
+
   const getCityValue = (text: string) => {
-    const option = cityOptions.find((opt) => opt.text === text);
-    return option ? [option.value] : [];
+    const option = cityOptions.find((opt) => opt.text.toLowerCase() === text.toLowerCase());
+    return option ? option.value : "";
   };
+
   const getStateValue = (text: string) => {
-    const option = stateOptions.find((opt) => opt.text === text);
-    return option ? [option.value] : [];
+    const option = stateOptions.find((opt) => opt.text.toLowerCase() === text.toLowerCase());
+    return option ? option.value : "";
   };
+
   const handleSave = (e: React.FormEvent) => {
-    const createdBy = localStorage.getItem("name") as string;
-    const createdUserIdRaw = localStorage.getItem("userId");
-    const designationText =
-      typeof selectedEmployee.designation === "string"
-        ? selectedEmployee.designation
-        : Array.isArray(selectedEmployee.designation) &&
-          selectedEmployee.designation.length > 0
-        ? selectedEmployee.designation[0]
-        : "";
-    const designationValue = designationOptions.find(
-      (opt) => opt.text === designationText
-    )?.value;
     e.preventDefault();
+    if (!selectedEmployee) {
+      toast.error("No employee selected");
+      return;
+    }
+    if (!user?.user_type) {
+      toast.error("User authentication data missing");
+      return;
+    }
+
+    const createdUserIdRaw = localStorage.getItem("userId") || "0";
+    const statusValue = parseInt(selectedEmployee.status) || 0;
+
+    if (statusValue === 2 && !feedback.trim()) {
+      toast.error("Feedback is required when rejecting an employee");
+      return;
+    }
+    if (statusValue === 1 && feedback.trim()) {
+      toast.error("Feedback must be empty when status is Approved");
+      return;
+    }
+    if (!selectedEmployee.name || !selectedEmployee.mobile || !selectedEmployee.email || 
+        !selectedEmployee.state || !selectedEmployee.city || !selectedEmployee.pincode) {
+      toast.error("All required fields must be filled");
+      return;
+    }
+
+    const formData = new FormData();
+    formData.append("name", selectedEmployee.name);
+    formData.append("mobile", selectedEmployee.mobile);
+    formData.append("email", selectedEmployee.email);
+    formData.append("state", selectedEmployee.state);
+    formData.append("city", selectedEmployee.city);
+    formData.append("location", selectedEmployee.location || "");
+    formData.append("address", selectedEmployee.address || "");
+    formData.append("pincode", selectedEmployee.pincode);
+    formData.append("status", statusValue.toString());
+    formData.append("feedback", statusValue === 2 ? feedback : "");
+    formData.append("created_user_id", createdUserIdRaw);
+    formData.append("created_user_type", user.user_type.toString());
+    if (photoFile) {
+      formData.append("photo", photoFile);
+    }
+
+    dispatch(updateUser({ id: selectedEmployee.id, formData }));
+  };
+
+  const handleInputChange = (field: string, value: string) => {
     if (selectedEmployee) {
-      const employeeToUpdate = {
-        id: selectedEmployee.id,
-        name: Array.isArray(selectedEmployee.name)
-          ? selectedEmployee.name[0]
-          : selectedEmployee.name || "",
-        mobile: Array.isArray(selectedEmployee.mobile)
-          ? selectedEmployee.mobile[0]
-          : selectedEmployee.mobile || "",
-        email: Array.isArray(selectedEmployee.email)
-          ? selectedEmployee.email[0]
-          : selectedEmployee.email || "",
-        designation: selectedEmployee.designation,
-        city:
-          Array.isArray(selectedEmployee.city) &&
-          selectedEmployee.city.length > 0
-            ? selectedEmployee.city[0]
-            : typeof selectedEmployee.city === "string"
-            ? selectedEmployee.city
-            : "",
-        pincode: selectedEmployee.pincode,
-        state:
-          Array.isArray(selectedEmployee.state) &&
-          selectedEmployee.state.length > 0
-            ? selectedEmployee.state[0]
-            : typeof selectedEmployee.state === "string"
-            ? selectedEmployee.state
-            : "",
-        user_type: parseInt(designationValue || "0"),
-        status: selectedEmployee.status,
-        created_by: createdBy,
-        created_userID: parseInt(createdUserIdRaw || "0"),
-      };
-      dispatch(updateEmployee(employeeToUpdate));
+      setSelectedEmployee({ ...selectedEmployee, [field]: value });
     }
   };
-  const handleInputChange = (field: string, value: string | string[]) => {
-    if (selectedEmployee) {
-      const newValue =
-        field === "name" ||
-        field === "mobile" ||
-        field === "email" ||
-        field === "pincode"
-          ? Array.isArray(value)
-            ? value[0]
-            : value
-          : field === "designation"
-          ? Array.isArray(value)
-            ? value[0]
-            : value
-          : Array.isArray(value)
-          ? value
-          : [value];
-      setSelectedEmployee({ ...selectedEmployee, [field]: newValue });
+
+  const handlePhotoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setPhotoFile(e.target.files[0]);
     }
   };
+
+  const handleStateChange = (value: string) => {
+    setSelectedState(value);
+    handleInputChange("city", ""); // Reset city when state changes
+  };
+
   const handleCancel = () => {
     navigate(-1);
   };
+
   if (!selectedEmployee) {
     return (
       <div className="min-h-screen bg-gray-50 dark:bg-dark-900 py-6 px-4 sm:px-6 lg:px-8">
@@ -156,18 +191,15 @@ const EditEmployee: React.FC = () => {
       </div>
     );
   }
+
   return (
     <div className="py-6 px-4 sm:px-6 lg:px-8">
       <PageMeta title="Edit Employee" />
-      <PageBreadcrumbList
-        pageTitle="Edit Employee"
-        pagePlacHolder="Edit employee details"
-      />
       <ComponentCard title="Edit Employee">
         <form onSubmit={handleSave} className="space-y-6">
           {updateSuccess && (
             <div className="p-3 bg-green-100 text-green-700 rounded-md">
-              {updateSuccess}
+              Employee updated successfully
             </div>
           )}
           {updateError && (
@@ -180,11 +212,7 @@ const EditEmployee: React.FC = () => {
             <Input
               type="text"
               id="name"
-              value={
-                Array.isArray(selectedEmployee.name)
-                  ? selectedEmployee.name[0]
-                  : selectedEmployee.name || ""
-              }
+              value={selectedEmployee.name || ""}
               onChange={(e) => handleInputChange("name", e.target.value)}
               placeholder="Enter employee name"
               disabled={updateLoading}
@@ -195,11 +223,7 @@ const EditEmployee: React.FC = () => {
             <Input
               type="text"
               id="mobile"
-              value={
-                Array.isArray(selectedEmployee.mobile)
-                  ? selectedEmployee.mobile[0]
-                  : selectedEmployee.mobile || ""
-              }
+              value={selectedEmployee.mobile || ""}
               onChange={(e) => handleInputChange("mobile", e.target.value)}
               placeholder="Enter mobile number"
               disabled={updateLoading}
@@ -210,73 +234,78 @@ const EditEmployee: React.FC = () => {
             <Input
               type="email"
               id="email"
-              value={
-                Array.isArray(selectedEmployee.email)
-                  ? selectedEmployee.email[0]
-                  : selectedEmployee.email || ""
-              }
+              value={selectedEmployee.email || ""}
               onChange={(e) => handleInputChange("email", e.target.value)}
               placeholder="example@domain.com"
               disabled={updateLoading}
             />
           </div>
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="Designation"
-              options={designationOptions}
-              defaultSelected={getDesignationValue(
-                selectedEmployee.designation
-              )}
-              onChange={(values) =>
-                handleInputChange(
-                  "designation",
-                  designationOptions
-                    .filter((opt) => values.includes(opt.value))
-                    .map((opt) => opt.text)
-                )
-              }
+          <div className="min-h-[80px]">
+            <Label htmlFor="designation">Designation</Label>
+            <select
+              id="designation"
+              value={getDesignationValue(selectedEmployee.designation || "")}
+              onChange={(e) => {
+                const selectedOption = designationOptions.find(
+                  (opt) => opt.value === e.target.value
+                );
+                handleInputChange("user_type", selectedOption?.value || "");
+              }}
               disabled={updateLoading}
-            />
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Select Designation</option>
+              {designationOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.text}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="City"
-              options={cityOptions}
-              defaultSelected={getCityValue(
-                Array.isArray(selectedEmployee.city)
-                  ? selectedEmployee.city[0]
-                  : selectedEmployee.city
-              )}
-              onChange={(values) =>
-                handleInputChange(
-                  "city",
-                  cityOptions
-                    .filter((opt) => values.includes(opt.value))
-                    .map((opt) => opt.text)
-                )
-              }
+          <div className="min-h-[80px]">
+            <Label htmlFor="state">State</Label>
+            <select
+              id="state"
+              value={selectedState}
+              onChange={(e) => {
+                handleStateChange(e.target.value);
+                const selectedOption = stateOptions.find(
+                  (opt) => opt.value === e.target.value
+                );
+                handleInputChange("state", selectedOption?.text || "");
+              }}
               disabled={updateLoading}
-            />
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Select State</option>
+              {stateOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.text}
+                </option>
+              ))}
+            </select>
           </div>
-          <div className="relative mb-10 min-h-[80px]">
-            <MultiSelect
-              label="State"
-              options={stateOptions}
-              defaultSelected={getStateValue(
-                Array.isArray(selectedEmployee.state)
-                  ? selectedEmployee.state[0]
-                  : selectedEmployee.state
-              )}
-              onChange={(values) =>
-                handleInputChange(
-                  "state",
-                  stateOptions
-                    .filter((opt) => values.includes(opt.value))
-                    .map((opt) => opt.text)
-                )
-              }
-              disabled={updateLoading}
-            />
+          <div className="min-h-[80px]">
+            <Label htmlFor="city">City</Label>
+            <select
+              id="city"
+              value={getCityValue(selectedEmployee.city || "")}
+              onChange={(e) => {
+                const selectedOption = cityOptions.find(
+                  (opt) => opt.value === e.target.value
+                );
+                handleInputChange("city", selectedOption?.text || "");
+              }}
+              disabled={updateLoading || !selectedState}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Select City</option>
+              {cityOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.text}
+                </option>
+              ))}
+            </select>
           </div>
           <div className="min-h-[80px]">
             <Label htmlFor="pincode">Pincode</Label>
@@ -289,6 +318,53 @@ const EditEmployee: React.FC = () => {
               disabled={updateLoading}
             />
           </div>
+          <div className="min-h-[80px]">
+            <Label htmlFor="photo">Photo</Label>
+            <Input
+              type="file"
+              id="photo"
+              accept=".jpg,.jpeg,.png"
+              onChange={handlePhotoChange}
+              disabled={updateLoading}
+            />
+            {selectedEmployee.photo && !photoFile && (
+              <img
+                src={selectedEmployee.photo}
+                alt="Current employee photo"
+                className="mt-2 w-24 h-24 object-cover rounded"
+              />
+            )}
+          </div>
+          <div className="min-h-[80px]">
+            <Label htmlFor="status">Status</Label>
+            <select
+              id="status"
+              value={selectedEmployee.status || ""}
+              onChange={(e) => handleInputChange("status", e.target.value)}
+              disabled={updateLoading}
+              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+            >
+              <option value="">Select Status</option>
+              {statusOptions.map((option) => (
+                <option key={option.value} value={option.value}>
+                  {option.text}
+                </option>
+              ))}
+            </select>
+          </div>
+          {selectedEmployee.status === "2" && (
+            <div className="min-h-[80px]">
+              <Label htmlFor="feedback">Feedback (Required for Rejected Status)</Label>
+              <Input
+                type="text"
+                id="feedback"
+                value={feedback}
+                onChange={(e) => setFeedback(e.target.value)}
+                placeholder="Enter feedback for rejection"
+                disabled={updateLoading}
+              />
+            </div>
+          )}
           <div className="flex justify-center gap-4">
             <button
               type="button"
@@ -311,4 +387,5 @@ const EditEmployee: React.FC = () => {
     </div>
   );
 };
+
 export default EditEmployee;

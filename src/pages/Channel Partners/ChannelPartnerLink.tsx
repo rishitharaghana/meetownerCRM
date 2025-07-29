@@ -11,15 +11,15 @@ import {
 } from "lucide-react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
-import { insertUser, InsertUserRequest } from "../../store/slices/userslice";
+import { insertUserNoAuth, InsertUserRequest } from "../../store/slices/userslice";
 import Input from "../../components/form/input/InputField";
 import PhoneInput from "../../components/form/group-input/PhoneInput";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import toast from "react-hot-toast";
 import Dropdown from "../../components/form/Dropdown";
-// import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import PageMeta from "../../components/common/PageMeta";
+import { useSearchParams } from "react-router";
 
 interface FormData {
   name: string;
@@ -50,12 +50,10 @@ interface Errors {
 
 const ChannelPartnerLink = () => {
   const dispatch = useDispatch<AppDispatch>();
-  // const navigate = useNavigate();
   const { states } = useSelector((state: RootState) => state.property);
   const { loading } = useSelector((state: RootState) => state.user);
-  // const { user, isAuthenticated } = useSelector(
-  //   (state: RootState) => state.auth
-  // );
+const [searchParams] = useSearchParams();
+const builderId = searchParams.get("builderId");
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -85,19 +83,6 @@ const ChannelPartnerLink = () => {
   const citiesResult = citiesQuery(
     formData.state ? parseInt(formData.state) : undefined
   );
-
-  // useEffect(() => {
-  //   if (!isAuthenticated || !user) {
-  //     navigate("/login");
-  //     toast.error("Please log in to access this page");
-  //     return;
-  //   }
-
-  //   if (user.user_type !== 2) {
-  //     navigate("/");
-  //     toast.error("Access denied: Only builders can create employees");
-  //   }
-  // }, [isAuthenticated, user, navigate]);
 
   useEffect(() => {
     if (citiesResult.data) {
@@ -148,9 +133,7 @@ const ChannelPartnerLink = () => {
     if (!reraRegex.test(reraNumber)) {
       return "RERA number must be alphanumeric with optional hyphens and up to 30 characters";
     }
-    // Example state-specific validation for Maharashtra
     if (state === "27") {
-      // Assuming '27' is Maharashtra's state code
       const maharashtraReraRegex = /^P\d{3}\d{8}$/;
       if (!maharashtraReraRegex.test(reraNumber)) {
         return "Invalid RERA number format for Maharashtra (e.g., P51700012345)";
@@ -179,7 +162,6 @@ const ChannelPartnerLink = () => {
       ...(field === "state" && { city: "" }),
     }));
     if (field === "state") {
-      // Re-validate RERA number when state changes
       setErrors((prev) => ({
         ...prev,
         reraNumber: validateReraNumber(formData.reraNumber, value),
@@ -196,7 +178,6 @@ const ChannelPartnerLink = () => {
     if (!formData.mobile.trim()) newErrors.mobile = "Mobile is required";
     else if (!/^\d{10}$/.test(formData.mobile))
       newErrors.mobile = "Mobile must be 10 digits";
-    // Email is optional, so no validation required
     if (!formData.password) {
       newErrors.password = "Password is required";
     } else if (formData.password.length > 12) {
@@ -250,11 +231,9 @@ const ChannelPartnerLink = () => {
     const reraError = validateReraNumber(formData.reraNumber, formData.state);
     if (reraError) newErrors.reraNumber = reraError;
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    // Account Number validation (optional)
     if (formData.accountNumber && formData.accountNumber.length > 20) {
       newErrors.accountNumber = "Account number must not exceed 20 characters";
     }
-    // IFSC Code validation (optional)
     if (
       formData.ifscCode &&
       !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)
@@ -265,20 +244,29 @@ const ChannelPartnerLink = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+     if (!builderId) {
+    alert("Missing builderId in URL");
+    return;
+  }
+
     if (!validateForm()) {
       toast.error("Please fill correct details");
       return;
     }
-    const createdBy = localStorage.getItem("name") || "Admin";
-    const createdUserId = parseInt(localStorage.getItem("userId") || "1", 10);
+ const createdBy = "Public Registration"
+   const createdUserId = parseInt(builderId, 10); 
+  const createdUserType = 2; 
+
     const cityName =
       cityOptions.find((option) => option.value === formData.city)?.text ||
       formData.city;
     const stateName =
       stateOptions.find((option) => option.value === formData.state)?.text ||
       formData.state;
+
     const payload: InsertUserRequest = {
       user_type: 3,
       name: formData.name,
@@ -295,7 +283,7 @@ const ChannelPartnerLink = () => {
       rera_number: formData.reraNumber,
       created_by: createdBy,
       created_user_id: createdUserId,
-      created_user_type: 2,
+      created_user_type: createdUserType,
       company_name: formData.companyName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
@@ -305,7 +293,9 @@ const ChannelPartnerLink = () => {
       photo: formData.photo || undefined,
       account_number: formData.accountNumber,
       ifsc_code: formData.ifscCode,
+      admin_user_id: builderId,
     };
+
     const formDataToSend = new FormData();
     Object.entries(payload).forEach(([key, value]) => {
       if (value !== undefined && value !== null) {
@@ -316,8 +306,9 @@ const ChannelPartnerLink = () => {
         }
       }
     });
+
     try {
-      const result = await dispatch(insertUser(formDataToSend)).unwrap();
+      const result = await dispatch(insertUserNoAuth(formDataToSend)).unwrap();
       toast.success(
         `Channel Partner added successfully with ID: ${result.user_id}`
       );
@@ -345,25 +336,21 @@ const ChannelPartnerLink = () => {
       });
       setErrors({});
     } catch (err) {
-      // Error is handled in the user slice and displayed via toast
+      // Error is handled in userSlice via toast
     }
   };
 
- 
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
-      <PageMeta title=" Add Channel Partners - Channel Partners" />
+      <PageMeta title="Add Channel Partners - Channel Partners" />
       <div className="max-w-2xl mx-auto">
-        <div className="flex justify-between items-center mb-8">
-          <div className="text-center mb-4">
-            <h1 className="text-2xl font-bold text-gray-800 mb-1">
-              Add Channel Partner
-            </h1>
-            <p className="text-gray-600">
-              Fill in the details below to add a new partner.
-            </p>
-          </div>
-        
+        <div className="text-center mb-8">
+          <h1 className="text-2xl font-bold text-gray-800 mb-1">
+            Add Channel Partner
+          </h1>
+          <p className="text-gray-600">
+            Fill in the details below to add a new partner.
+          </p>
         </div>
         <form
           onSubmit={handleSubmit}

@@ -2,14 +2,23 @@ import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import { toast } from "react-hot-toast";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, UserCount, UserCountResponse, User, UsersResponse, UserState, UpdateUserStatusResponse, UpdateUserStatusRequest, DeleteUserResponse } from "../../types/UserModel";
-
+import {
+  ErrorResponse,
+  UserCount,
+  UserCountResponse,
+  User,
+  UsersResponse,
+  UserState,
+  UpdateUserStatusResponse,
+  UpdateUserStatusRequest,
+  DeleteUserResponse,
+} from "../../types/UserModel";
 
 export interface InsertUserRequest {
   user_type: number;
   name: string;
   mobile: string;
-  email:string;
+  email: string;
   password: string;
   status: number;
   state: string;
@@ -17,21 +26,21 @@ export interface InsertUserRequest {
   location: string;
   address: string;
   pincode: string;
-  gst_number?: string; 
-  rera_number?: string; 
+  gst_number?: string;
+  rera_number?: string;
   created_by: string;
   created_user_id: number;
-  created_user_type:number;
+  created_user_type: number;
   company_name?: string;
-  company_number?: string; 
-  company_address?: string; 
-  representative_name?: string; 
-  pan_card_number?: string; 
+  company_number?: string;
+  company_address?: string;
+  representative_name?: string;
+  pan_card_number?: string;
   aadhar_number?: string;
-  photo?:string;
-  account_number:string;
-  ifsc_code:string;
-  company_logo?:string | null;
+  photo?: string;
+  account_number: string;
+  ifsc_code: string;
+  company_logo?: string | null;
   user?: string;
 }
 
@@ -39,7 +48,7 @@ export interface InsertUserResponse {
   message: string;
   user_id: number;
   user?: User;
-  photo?:string;
+  photo?: string;
   company_logo?: string;
 }
 
@@ -49,82 +58,143 @@ const initialState: UserState = {
   selectedUser: null,
   loading: false,
   error: null,
+  updateSuccess: false,
 };
-
 
 export const insertUser = createAsyncThunk<
   InsertUserResponse,
+  FormData, 
+  { rejectValue: string }
+>("user/insertUser", async (formData, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
+    }
+
+    const response = await ngrokAxiosInstance.post<InsertUserResponse>(
+      `/api/v1/insertuser`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Insert user error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 400:
+          return rejectWithValue("Invalid user data provided");
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 409:
+          return rejectWithValue("User with this mobile number already exists");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to insert user"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
+  }
+});
+
+export const insertUserNoAuth = createAsyncThunk<
+  InsertUserResponse,
   FormData,
   { rejectValue: string }
->(
-  "user/insertUser",
-  async (formData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-
-      const response = await ngrokAxiosInstance.post<InsertUserResponse>(
-        `/api/v1/insertuser`,
-        formData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "multipart/form-data",
-          },
-        }
-      );
-
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Insert user error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 400:
-            return rejectWithValue("Invalid user data provided");
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 409:
-            return rejectWithValue("User with this mobile number already exists");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to insert user");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("user/insertUserNoAuth", async (formData, { rejectWithValue }) => {
+  try {
+    // Log FormData for debugging
+    for (let [key, value] of formData.entries()) {
+      console.log(`${key}: ${value}`);
     }
+
+    const response = await ngrokAxiosInstance.post<InsertUserResponse>(
+      `/api/v1/insertuser-link`,
+      formData,
+      {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Insert user (no auth) error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 400:
+          return rejectWithValue("Invalid user data provided");
+        case 403:
+          return rejectWithValue(
+            "Forbidden: Only Admin (1) or Builder (2) can create users"
+          );
+        case 409:
+          return rejectWithValue("User with this mobile number already exists");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to insert user"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 
 export const fetchChannelPartnerLink = createAsyncThunk<
   { link: string },
   void,
   { rejectValue: string }
->(
-  "user/fetchChannelPartnerLink",
-  async (_, { rejectWithValue }) => {
-    try {
-      const response = await ngrokAxiosInstance.get(`/api/v1/channelpartner-link`);
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError;
-      return rejectWithValue(axiosError.response?.data?.error || "Failed to fetch link");
-    }
+>("user/fetchChannelPartnerLink", async (_, { rejectWithValue }) => {
+  try {
+    const response = await ngrokAxiosInstance.get(
+      `/api/v1/channelpartner-link`
+    );
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+    return rejectWithValue(
+      axiosError.response?.data?.error || "Failed to fetch link"
+    );
   }
-);
+});
 
 export const getTypesCount = createAsyncThunk<
   UserCount[],
-  { admin_user_id: number; admin_user_type: number; emp_id?: number; emp_user_type?: number },
+  {
+    admin_user_id: number;
+    admin_user_type: number;
+    emp_id?: number;
+    emp_user_type?: number;
+  },
   { rejectValue: string }
 >(
   "user/getTypesCount",
-  async ({ admin_user_id, admin_user_type, emp_id, emp_user_type }, { rejectWithValue }) => {
+  async (
+    { admin_user_id, admin_user_type, emp_id, emp_user_type },
+    { rejectWithValue }
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -135,7 +205,9 @@ export const getTypesCount = createAsyncThunk<
         admin_user_id: admin_user_id.toString(),
         admin_user_type: admin_user_type.toString(),
         ...(emp_id !== undefined && { emp_id: emp_id.toString() }),
-        ...(emp_user_type !== undefined && { emp_user_type: emp_user_type.toString() }),
+        ...(emp_user_type !== undefined && {
+          emp_user_type: emp_user_type.toString(),
+        }),
       });
 
       const response = await ngrokAxiosInstance.get<UserCountResponse>(
@@ -161,22 +233,26 @@ export const getTypesCount = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch user counts");
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to fetch user counts"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
 
 export const getUsersByType = createAsyncThunk<
   User[],
-  { admin_user_id: number; emp_user_type: number,status:number },
+  { admin_user_id: number; emp_user_type: number; status: number },
   { rejectValue: string }
 >(
   "user/getUsersByType",
-  async ({ admin_user_id, emp_user_type,status }, { rejectWithValue }) => {
-    console.log(status)
+  async ({ admin_user_id, emp_user_type, status }, { rejectWithValue }) => {
+    console.log(status);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -206,10 +282,14 @@ export const getUsersByType = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch users");
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to fetch users"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -220,7 +300,10 @@ export const getUserById = createAsyncThunk<
   { rejectValue: string }
 >(
   "user/getUserById",
-  async ({ admin_user_id, emp_user_type, emp_user_id }, { rejectWithValue }) => {
+  async (
+    { admin_user_id, emp_user_type, emp_user_id },
+    { rejectWithValue }
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -254,10 +337,15 @@ export const getUserById = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch user details");
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Failed to fetch user details"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -266,63 +354,74 @@ export const updateUserStatus = createAsyncThunk<
   UpdateUserStatusResponse,
   UpdateUserStatusRequest,
   { rejectValue: string }
->(
-  "user/updateUserStatus",
-  async (userStatusData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-
-      // Validate feedback for status: 2
-      if (userStatusData.status === 2 && !userStatusData.feedback?.trim()) {
-        return rejectWithValue("Feedback is required when rejecting a user (status: 2)");
-      }
-
-      const response = await ngrokAxiosInstance.post<UpdateUserStatusResponse>(
-        `/api/v1/updateuserstatus`,
-        userStatusData,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      toast.success(response.data.message);
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Update user status error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 400:
-            return rejectWithValue("Invalid user status data provided");
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 404:
-            return rejectWithValue("User not found");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to update user status");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("user/updateUserStatus", async (userStatusData, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
     }
+
+    // Validate feedback for status: 2
+    if (userStatusData.status === 2 && !userStatusData.feedback?.trim()) {
+      return rejectWithValue(
+        "Feedback is required when rejecting a user (status: 2)"
+      );
+    }
+
+    const response = await ngrokAxiosInstance.post<UpdateUserStatusResponse>(
+      `/api/v1/updateuserstatus`,
+      userStatusData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Update user status error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 400:
+          return rejectWithValue("Invalid user status data provided");
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 404:
+          return rejectWithValue("User not found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to update user status"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 
 export const getUserProfile = createAsyncThunk<
   User,
-  { admin_user_id: number; admin_user_type: number; emp_id?: number; emp_user_type?: number },
+  {
+    admin_user_id: number;
+    admin_user_type: number;
+    emp_id?: number;
+    emp_user_type?: number;
+  },
   { rejectValue: string }
 >(
   "user/getUserProfile",
-  async ({ admin_user_id, admin_user_type, emp_id, emp_user_type }, { rejectWithValue }) => {
+  async (
+    { admin_user_id, admin_user_type, emp_id, emp_user_type },
+    { rejectWithValue }
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -333,7 +432,9 @@ export const getUserProfile = createAsyncThunk<
         admin_user_id: admin_user_id.toString(),
         admin_user_type: admin_user_type.toString(),
         ...(emp_id !== undefined && { emp_id: emp_id.toString() }),
-        ...(emp_user_type !== undefined && { emp_user_type: emp_user_type.toString() }),
+        ...(emp_user_type !== undefined && {
+          emp_user_type: emp_user_type.toString(),
+        }),
       });
 
       const response = await ngrokAxiosInstance.get<UsersResponse>(
@@ -365,13 +466,70 @@ export const getUserProfile = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch user profile");
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Failed to fetch user profile"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
+
+export const updateUser = createAsyncThunk<
+  { message: string },
+  { id: number; formData: FormData },
+  { rejectValue: string }
+>("user/updateUser", async ({ id, formData }, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
+    }
+
+    const response = await ngrokAxiosInstance.put<{ message: string }>(
+      `/api/v1/users/${id}`,
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+
+    toast.success(response.data.message);
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Update user error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 400:
+          return rejectWithValue("Invalid user data provided");
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 403:
+          return rejectWithValue("Forbidden: Insufficient permissions");
+        case 404:
+          return rejectWithValue("User not found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to update user"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
+  }
+});
 
 export const deleteUser = createAsyncThunk<
   DeleteUserResponse,
@@ -410,16 +568,22 @@ export const deleteUser = createAsyncThunk<
           case 401:
             return rejectWithValue("Unauthorized: Invalid or expired token");
           case 403:
-            return rejectWithValue("Forbidden: You do not have permission to delete this user");
+            return rejectWithValue(
+              "Forbidden: You do not have permission to delete this user"
+            );
           case 404:
             return rejectWithValue("User not found");
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to delete user");
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to delete user"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -432,19 +596,42 @@ const userSlice = createSlice({
       state.users = null;
       state.selectedUser = null;
     },
+    clearMessages: (state) => {
+      state.error = null;
+      state.updateSuccess = false;
+    },
   },
   extraReducers: (builder) => {
     builder
-    
+
       .addCase(insertUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(insertUser.fulfilled, (state, action: PayloadAction<InsertUserResponse>) => {
-        state.loading = false;
-        state.selectedUser = action.payload.user || null; 
-      })
+      .addCase(
+        insertUser.fulfilled,
+        (state, action: PayloadAction<InsertUserResponse>) => {
+          state.loading = false;
+          state.selectedUser = action.payload.user || null;
+        }
+      )
       .addCase(insertUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
+      .addCase(insertUserNoAuth.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        insertUserNoAuth.fulfilled,
+        (state, action: PayloadAction<InsertUserResponse>) => {
+          state.loading = false;
+          state.selectedUser = action.payload.user || null;
+        }
+      )
+      .addCase(insertUserNoAuth.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
         toast.error(action.payload as string);
@@ -488,7 +675,7 @@ const userSlice = createSlice({
         state.error = action.payload as string;
         toast.error(action.payload as string);
       })
-       .addCase(updateUserStatus.pending, (state) => {
+      .addCase(updateUserStatus.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -513,14 +700,36 @@ const userSlice = createSlice({
         state.error = action.payload as string;
         toast.error(action.payload as string);
       })
-       .addCase(deleteUser.pending, (state) => {
+      .addCase(updateUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+        state.updateSuccess = false;
+      })
+      .addCase(updateUser.fulfilled, (state, action) => {
+        state.loading = false;
+        state.updateSuccess = true;
+        if (state.selectedUser) {
+          state.selectedUser = {
+            ...state.selectedUser,
+            ...action.meta.arg.formData,
+          };
+        }
+      })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+        toast.error(action.payload as string);
+      })
+      .addCase(deleteUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(deleteUser.fulfilled, (state) => {
         state.loading = false;
         if (state.users) {
-          state.users = state.users.filter((user) => user.id !== state.selectedUser?.id);
+          state.users = state.users.filter(
+            (user) => user.id !== state.selectedUser?.id
+          );
         }
         state.selectedUser = null;
       })
@@ -532,5 +741,5 @@ const userSlice = createSlice({
   },
 });
 
-export const { clearUsers } = userSlice.actions;
+export const { clearUsers, clearMessages } = userSlice.actions;
 export default userSlice.reducer;
