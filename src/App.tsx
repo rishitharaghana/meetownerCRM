@@ -41,6 +41,7 @@ import AllCpLeadDetails from "./pages/Lead Management/CpLeads";
 import EmpLeads from "./pages/Lead Management/EmpLeads";
 import ForgotPassword from "./pages/AuthPages/ForgotPassword";
 import ChannelPartnerLink from "./pages/Channel Partners/ChannelPartnerLink";
+import EditEmployee from "./pages/Employee Management/EditEmployee";
 
 export default function App() {
   const { isAuthenticated, token } = useSelector(
@@ -94,6 +95,7 @@ export default function App() {
                 path="/employeedetails/:status/:id"
                 element={<EmployeeDetail />}
               />
+              <Route path ="/editemployee/:status/:id"element = {<EditEmployee/>}/>
 
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/support" element={<Support />} />

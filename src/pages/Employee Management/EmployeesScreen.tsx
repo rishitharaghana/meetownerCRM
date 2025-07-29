@@ -103,7 +103,11 @@ export default function EmployeesScreen() {
   useEffect(() => {
     if (isAuthenticated && user?.id && empUserType) {
       dispatch(
-        getUsersByType({ admin_user_id: user.id, emp_user_type: empUserType })
+        getUsersByType({
+          admin_user_id: user.id,
+          emp_user_type: empUserType,
+          
+        })
       );
     }
     return () => {
@@ -161,6 +165,25 @@ export default function EmployeesScreen() {
     }
   };
 
+  const handleEdit = (user: User) => {
+    if (isAuthenticated && user?.id && empUserType) {
+      navigate(`/editemployee/${empUserType}/${user.id}`, {
+        state: { employee: user },
+      });
+    }
+  };
+
+  const handleBulkEdit = () => {
+    if (selectedUserId === null) {
+      toast.error("Please select an employee.");
+      return;
+    }
+    const user = paginatedUsers.find((u) => u.id === selectedUserId);
+    if (user) {
+      handleEdit(user);
+    }
+  };
+
   const handleDelete = (user: User) => {
     setSelectedUser(user);
     setIsDeleteModalOpen(true);
@@ -180,9 +203,10 @@ export default function EmployeesScreen() {
         setIsDeleteModalOpen(false);
         setSelectedUser(null);
         setSelectedUserId(null);
+        toast.success("User deleted successfully");
       } catch (error) {
         console.error("Failed to delete user:", error);
-        toast.error(error as string);
+        toast.error((error as any).message || "Failed to delete user");
       }
     }
   };
@@ -294,6 +318,14 @@ export default function EmployeesScreen() {
         </Button>
         <Button
           variant="primary"
+          onClick={handleBulkEdit}
+          disabled={selectedUserId === null}
+          className="px-4 py-1 h-10"
+        >
+          Edit
+        </Button>
+        <Button
+          variant="primary"
           onClick={handleBulkDelete}
           disabled={selectedUserId === null}
           className="px-4 py-1 h-10"
@@ -318,6 +350,7 @@ export default function EmployeesScreen() {
                   getUsersByType({
                     admin_user_id: user!.id,
                     emp_user_type: empUserType,
+                    
                   })
                 )
               }
