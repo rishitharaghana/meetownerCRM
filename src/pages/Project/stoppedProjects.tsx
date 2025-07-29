@@ -382,30 +382,6 @@ const StoppedProjectsLeads: React.FC = () => {
                 {/* Action Buttons */}
                 <div className="flex justify-end gap-2 mt-4">
                   <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      navigate(`/projects/edit/${project.property_id}`, {
-                        state: {
-                          property_id: project.property_id,
-                          posted_by: project.posted_by,
-                          user_id: project.user_id,
-                        },
-                      });
-                    }}
-                  >
-                    Edit
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      console.log(`Delete project ${project.property_id}`);
-                    }}
-                  >
-                    Delete
-                  </Button>
-                  <Button
                     variant="primary"
                     size="sm"
                     onClick={() =>
