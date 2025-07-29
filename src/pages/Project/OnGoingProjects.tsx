@@ -1,19 +1,10 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import {
-  fetchOngoingProjects,
-  stopPropertyLeads,
-} from "../../store/slices/projectSlice";
+import { fetchOngoingProjects, stopPropertyLeads } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
@@ -22,6 +13,7 @@ import FilterBar from "../../components/common/FilterBar";
 import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import defaultImage from "/images/Image.jpg";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -35,7 +27,6 @@ const OnGoingProjects: React.FC = () => {
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
-  const defaultImage = " ";
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -164,7 +155,7 @@ const OnGoingProjects: React.FC = () => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Handle opening the confirmation modal
+  // Handle opening the confirmation modal for Stop Leads
   const handleStopLeadsClick = (project: Project) => {
     setSelectedProject(project);
     setIsModalOpen(true);
@@ -297,9 +288,9 @@ const OnGoingProjects: React.FC = () => {
           ]}
         />
       </div>
-      <PageMeta title=" OnGoing Projects - Project Management " />
+      <PageMeta title="OnGoing Projects - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
-        <div className="flex flex-col sm:flex-row justify-between items-center gap- personally">
+        <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
             ref={searchRef}
             placeholder="Search Projects"
@@ -329,13 +320,12 @@ const OnGoingProjects: React.FC = () => {
       </div>
 
       {/* Display active filters */}
-      {(search ||
-        selectedState ||
-        selectedCity ||
-        createdDate ||
-        createdEndDate) && (
+      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState ? states?.find((s) => s.value.toString() === selectedState)?.label || "All" : "All"}{" "}
+          Filters: Search: {search || "None"} | State:{" "}
+          {selectedState
+            ? states?.find((s) => s.value.toString() === selectedState)?.label || "All"
+            : "All"}{" "}
           | City:{" "}
           {selectedCity
             ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
@@ -344,7 +334,7 @@ const OnGoingProjects: React.FC = () => {
         </div>
       )}
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {paginatedProjects.map((project: Project) => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
@@ -353,78 +343,73 @@ const OnGoingProjects: React.FC = () => {
           return (
             <div
               key={project.property_id}
-              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="w-full sm:w-[40%] h-48 sm:h-auto relative overflow-hidden">
                 <img
                   src={project.property_image || defaultImage}
                   alt={project.project_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = defaultImage;
                   }}
                 />
+                <span className="absolute top-4 left-4 bg-[#1D3A76] text-white text-xs font-medium px-2 py-1 rounded capitalize">
+                  {project.construction_status}
+                </span>
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      {project.project_name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {project.locality}, {project.city}, {project.state}
-                    </p>
+
+              <div className="w-full sm:w-[60%] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-[#1D3A76]">
+                        {project.project_name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {project.locality}, {project.city}, {project.state}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                    {project.construction_status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-700 space-y-1 mb-4">
-                  <p>
-                    <strong>Builder:</strong> {project.builder_name}
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {project.property_type} (
-                    {project.property_subtype})
-                  </p>
-                  <p>
-                    <strong>Possession:</strong>{" "}
-                    {project.possession_end_date
-                      ? new Date(
-                          project.possession_end_date
-                        ).toLocaleDateString()
-                      : "Ready to Move"}
-                  </p>
-                  <p>
-                    <strong>Created:</strong>{" "}
-                    {project.created_date
-                      ? new Date(project.created_date).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="mb-5">
-                  <p className="text-sm font-medium text-gray-700">Nearby:</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {initialAmenities.map((item) => (
-                      <span
-                        key={item.title}
-                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
-                      >
-                        {item.title} ({formatDistance(item.distance)})
-                      </span>
-                    ))}
-                    {hiddenAmenities.length > 0 && !isExpanded && (
-                      <button
-                        onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline"
-                      >
-                        +{hiddenAmenities.length} more
-                      </button>
-                    )}
+
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+                    <div>
+                      <p className="mb-1">
+                        <strong>Builder:</strong> {project.builder_name}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Type:</strong> {project.property_type} (
+                        {project.property_subtype})
+                      </p>
+                      <p className="mb-1">
+                        <strong>Built-Up Area:</strong>{" "}
+                        {project.built_up_area || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1">
+                        <strong>Possession:</strong>{" "}
+                        {project.possession_end_date
+                          ? new Date(project.possession_end_date).toLocaleDateString()
+                          : "Ready to Move"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Created:</strong>{" "}
+                        {project.created_date
+                          ? new Date(project.created_date).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Price per Sq.Ft:</strong>{" "}
+                        {project.price_per_sqft || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  {isExpanded && (
+
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700">Nearby:</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {hiddenAmenities.map((item) => (
+                      {initialAmenities.map((item) => (
                         <span
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
@@ -432,19 +417,32 @@ const OnGoingProjects: React.FC = () => {
                           {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
+                      {isExpanded &&
+                        hiddenAmenities.map((item) => (
+                          <span
+                            key={item.title}
+                            className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
+                          >
+                            {item.title} ({formatDistance(item.distance)})
+                          </span>
+                        ))}
+                    </div>
+                    {hiddenAmenities.length > 0 && (
                       <button
                         onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline w-full text-left"
+                        className="text-xs text-blue-600 underline mt-2"
                       >
-                        Show less
+                        {isExpanded ? "Show less" : `+${hiddenAmenities.length} more`}
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-between items-center mt-4">
-                  {user.user_type == 2 && (
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 mt-4">
+                  {user.user_type === BUILDER_USER_TYPE && (
                     <Button
-                      variant="primary"
+                      variant="outline"
                       size="sm"
                       onClick={() => handleStopLeadsClick(project)}
                       disabled={project.stop_leads === "Yes"}
@@ -452,6 +450,30 @@ const OnGoingProjects: React.FC = () => {
                       Stop Leads
                     </Button>
                   )}
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigate(`/projects/edit/${project.property_id}`, {
+                        state: {
+                          property_id: project.property_id,
+                          posted_by: project.posted_by,
+                          user_id: project.user_id,
+                        },
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log(`Delete project ${project.property_id}`);
+                    }}
+                  >
+                    Delete
+                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
@@ -477,7 +499,7 @@ const OnGoingProjects: React.FC = () => {
       <ConfirmDeleteUserModal
         isOpen={isModalOpen}
         userName={selectedProject?.project_name || ""}
-        description="Are you sure stop the leads for "
+        description="Are you sure you want to stop the leads for "
         onConfirm={handleConfirmStopLeads}
         onCancel={handleCancelStopLeads}
       />
@@ -510,11 +532,6 @@ const OnGoingProjects: React.FC = () => {
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={
-                    page === currentPage
-                      ? ""
-                      : ""
-                  }
                 >
                   {page}
                 </Button>

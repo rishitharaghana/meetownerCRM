@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
@@ -18,15 +12,14 @@ import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
+import defaultImage from "/images/Image.jpg";
 
 const BUILDER_USER_TYPE = 2;
 
 const StoppedProjectsLeads: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
-    {}
-  );
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
@@ -41,8 +34,7 @@ const StoppedProjectsLeads: React.FC = () => {
   const { user, isAuthenticated } = useSelector(
     (state: RootState) => state.auth
   );
-  const { states } = useSelector((state: RootState) => state.property); // Fetch states from Redux
-
+  const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
   const itemsPerPage = 4;
 
@@ -66,7 +58,6 @@ const StoppedProjectsLeads: React.FC = () => {
     }
   }, [citiesResult.isError, citiesResult.error]);
 
-  // Project parameters for server-side fetching
   const projectParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -82,14 +73,13 @@ const StoppedProjectsLeads: React.FC = () => {
     return Object.keys(baseParams).length > 0 ? baseParams : null;
   }, [isAuthenticated, user]);
 
-  // Fetch projects when parameters change
   useEffect(() => {
     if (projectParams) {
       dispatch(getStoppedProperties(projectParams))
         .unwrap()
         .catch((err) => {
           toast.error(
-            `Failed to fetch upcoming projects: ${
+            `Failed to fetch stopped projects: ${
               err.message || "Unknown error"
             }`
           );
@@ -114,14 +104,15 @@ const StoppedProjectsLeads: React.FC = () => {
 
       const matchesState =
         !selectedState ||
-        project.state?.toLowerCase() ===
+        (states &&
           states
             .find((s) => s.value.toString() === selectedState)
-            ?.label.toLowerCase();
+            ?.label.toLowerCase() === project.state?.toLowerCase());
 
       const matchesCity =
         !selectedCity ||
         (citiesResult.data &&
+          project.city &&
           citiesResult.data
             .find((c) => c.value === selectedCity)
             ?.label.toLowerCase() === project.city?.toLowerCase());
@@ -152,14 +143,24 @@ const StoppedProjectsLeads: React.FC = () => {
     createdDate,
     createdEndDate,
     citiesResult.data,
-    states, // Add states to dependencies
+    states,
   ]);
 
   const toggleExpand = (id: number) => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
-  // Pagination logic
+  const formatDistance = (value: string): string => {
+    if (!value) return "N/A";
+    const trimmed = value.trim().toLowerCase();
+    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
+    if (regex.test(trimmed)) {
+      const [, number, , , unit] = trimmed.match(regex)!;
+      return `${number} ${unit}`;
+    }
+    return value;
+  };
+
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -175,7 +176,6 @@ const StoppedProjectsLeads: React.FC = () => {
   const getPaginationItems = () => {
     const pages: (number | string)[] = [];
     const totalVisiblePages = 5;
-
     if (totalPages <= totalVisiblePages + 2) {
       for (let i = 1; i <= totalPages; i++) pages.push(i);
     } else {
@@ -195,21 +195,9 @@ const StoppedProjectsLeads: React.FC = () => {
       if (end < totalPages - 1) pages.push("...");
       pages.push(totalPages);
     }
-
     return pages;
   };
-  const formatDistance = (value: string): string => {
-    if (!value) return "N/A";
-    const trimmed = value.trim().toLowerCase();
-    const regex = /^(\d+(\.\d+)?)(\s)?(m|km)$/;
-    if (regex.test(trimmed)) {
-      const [, number, , , unit] = trimmed.match(regex)!;
-      return `${number} ${unit}`;
-    }
-    return value;
-  };
 
-  // Clear all filters
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setCreatedDate(null);
@@ -222,11 +210,10 @@ const StoppedProjectsLeads: React.FC = () => {
 
   if (!isAuthenticated || !user) {
     return (
-      <div className="p-6 text-center">
-        Please log in to view ongoing projects.
-      </div>
+      <div className="p-6 text-center">Please log in to view projects.</div>
     );
   }
+
   if (loading) return <div className="p-6 text-center">Loading...</div>;
   if (error)
     return <div className="p-6 text-center text-red-500">Error: {error}</div>;
@@ -236,12 +223,12 @@ const StoppedProjectsLeads: React.FC = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Projects", link: "/projects" },
-            { label: "Stopped Projects" },
+            { label: "Dashboard", link: "/" },
+            { label: "Stopped Projects", link: "/projects/stopped" },
           ]}
         />
       </div>
-      <PageMeta title="Stopped Project - Project Management" />
+      <PageMeta title="Stopped Projects - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
@@ -271,17 +258,11 @@ const StoppedProjectsLeads: React.FC = () => {
           />
         </div>
       </div>
-
-      {/* Display active filters */}
-      {(search ||
-        selectedState ||
-        selectedCity ||
-        createdDate ||
-        createdEndDate) && (
+      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
           Filters: Search: {search || "None"} | State:{" "}
           {selectedState
-            ? states.find((s) => s.value.toString() === selectedState)?.label ||
+            ? states?.find((s) => s.value.toString() === selectedState)?.label ||
               "All"
             : "All"}{" "}
           | City:{" "}
@@ -292,89 +273,84 @@ const StoppedProjectsLeads: React.FC = () => {
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {paginatedProjects.map((project: Project) => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-          const defaultImage = " "; // Temporary placeholder
 
           return (
             <div
               key={project.property_id}
-              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="w-full sm:w-[40%] h-48 sm:h-auto relative overflow-hidden">
                 <img
-                  src={project.property_image || defaultImage} // Use project.image or fallback
+                  src={project.property_image || defaultImage}
                   alt={project.project_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   onError={(e) => {
-                    (e.target as HTMLImageElement).src = defaultImage; // Fallback if image fails
+                    (e.target as HTMLImageElement).src = defaultImage;
                   }}
                 />
+                <span className="absolute top-4 left-4 bg-[#1D3A76] text-white text-xs font-medium px-2 py-1 rounded capitalize">
+                  {project.construction_status}
+                </span>
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      {project.project_name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {project.locality}, {project.city}, {project.state}
-                    </p>
+
+              <div className="w-full sm:w-[60%] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold [#1D3A76]">
+                        {project.project_name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {project.locality}, {project.city}, {project.state}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                    {project.construction_status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-700 space-y-1 mb-4">
-                  <p>
-                    <strong>Builder:</strong> {project.builder_name}
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {project.property_type} (
-                    {project.property_subtype})
-                  </p>
-                  <p>
-                    <strong>Possession:</strong>{" "}
-                    {project.possession_end_date
-                      ? new Date(
-                          project.possession_end_date
-                        ).toLocaleDateString()
-                      : "Ready to Move"}
-                  </p>
-                  <p>
-                    <strong>Created:</strong>{" "}
-                    {project.created_date
-                      ? new Date(project.created_date).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="mb-5">
-                  <p className="text-sm font-medium text-gray-700">Nearby:</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {initialAmenities.map((item) => (
-                      <span
-                        key={item.title}
-                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
-                      >
-                        {item.title} ({formatDistance(item.distance)})
-                      </span>
-                    ))}
-                    {hiddenAmenities.length > 0 && !isExpanded && (
-                      <button
-                        onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline"
-                      >
-                        +{hiddenAmenities.length} more
-                      </button>
-                    )}
+
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+                    <div>
+                      <p className="mb-1">
+                        <strong>Builder:</strong> {project.builder_name}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Type:</strong> {project.property_type} (
+                        {project.property_subtype})
+                      </p>
+                      <p className="mb-1">
+                        <strong>Built-Up Area:</strong>{" "}
+                        {project.built_up_area || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1">
+                        <strong>Possession:</strong>{" "}
+                        {project.possession_end_date
+                          ? new Date(
+                              project.possession_end_date
+                            ).toLocaleDateString()
+                          : "Ready to Move"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Created:</strong>{" "}
+                        {project.created_date
+                          ? new Date(project.created_date).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Price per Sq.Ft:</strong>{" "}
+                        {project.price_per_sqft || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  {isExpanded && (
+
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700">Nearby:</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {hiddenAmenities.map((item) => (
+                      {initialAmenities.map((item) => (
                         <span
                           key={item.title}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
@@ -382,16 +358,53 @@ const StoppedProjectsLeads: React.FC = () => {
                           {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
+                      {isExpanded &&
+                        hiddenAmenities.map((item) => (
+                          <span
+                            key={item.title}
+                            className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
+                          >
+                            {item.title} ({formatDistance(item.distance)})
+                          </span>
+                        ))}
+                    </div>
+                    {hiddenAmenities.length > 0 && (
                       <button
                         onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline w-full text-left"
+                        className="text-xs text-blue-600 underline mt-2"
                       >
-                        Show less
+                        {isExpanded ? "Show less" : "Show more"}
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-end items-center mt-4">
+
+                {/* Action Buttons */}
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigate(`/projects/edit/${project.property_id}`, {
+                        state: {
+                          property_id: project.property_id,
+                          posted_by: project.posted_by,
+                          user_id: project.user_id,
+                        },
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log(`Delete project ${project.property_id}`);
+                    }}
+                  >
+                    Delete
+                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
@@ -413,7 +426,6 @@ const StoppedProjectsLeads: React.FC = () => {
           );
         })}
       </div>
-
       {totalItems > itemsPerPage && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
           <div className="text-sm text-gray-500">
@@ -442,7 +454,6 @@ const StoppedProjectsLeads: React.FC = () => {
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={page === currentPage ? "" : ""}
                 >
                   {page}
                 </Button>

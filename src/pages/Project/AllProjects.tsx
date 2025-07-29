@@ -1,10 +1,4 @@
-import React, {
-  useState,
-  useEffect,
-  useRef,
-  useMemo,
-  useCallback,
-} from "react";
+import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
@@ -18,7 +12,7 @@ import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import defaultImage from '/images/Image.jpg'
+import defaultImage from "/images/Image.jpg";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -109,7 +103,6 @@ const AllProjects: React.FC = () => {
           project.city?.toLowerCase().includes(search.toLowerCase()) ||
           project.state?.toLowerCase().includes(search.toLowerCase());
 
-        // State filtering
         const matchesState =
           !selectedState ||
           (states &&
@@ -122,7 +115,7 @@ const AllProjects: React.FC = () => {
           (citiesResult.data &&
             project.city &&
             citiesResult.data
-              .find((c) => c.value === selectedCity) 
+              .find((c) => c.value === selectedCity)
               ?.label.toLowerCase() === project.city?.toLowerCase());
 
         let matchesDate = true;
@@ -236,7 +229,7 @@ const AllProjects: React.FC = () => {
           ]}
         />
       </div>
-      <PageMeta title=" All Projects - Project Management " />
+      <PageMeta title="All Projects - Project Management" />
       <div className="flex flex-col gap-4 mb-6">
         <div className="flex flex-col sm:flex-row justify-between items-center gap-4">
           <InputWithRef
@@ -266,117 +259,153 @@ const AllProjects: React.FC = () => {
           />
         </div>
       </div>
-      {(search ||
-        selectedState ||
-        selectedCity ||
-        createdDate ||
-        createdEndDate) && (
+      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
-          Filters: Search: {search || "None"} | State: {selectedState
-            ? states?.find((s) => s.value.toString() === selectedState)?.label || "All"
-            : "All"} | City: {selectedCity
-            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
-            : "All"} | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
+          Filters: Search: {search || "None"} | State:{" "}
+          {selectedState
+            ? states?.find((s) => s.value.toString() === selectedState)?.label ||
+              "All"
+            : "All"}{" "}
+          | City:{" "}
+          {selectedCity
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label ||
+              "All"
+            : "All"}{" "}
+          | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 gap-6">
         {paginatedProjects.map((project: Project) => {
           const isExpanded = expandedCards[project.property_id];
           const initialAmenities = project.around_this.slice(0, 4);
           const hiddenAmenities = project.around_this.slice(4);
-          // const defaultImage = " ";
+
           return (
             <div
               key={project.property_id}
-              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] w-full max-w-[500px] mx-auto"
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-300 hover:shadow-xl hover:scale-[1.01] flexਮ
+              flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
             >
-              <div className="relative w-full h-48 overflow-hidden">
+              <div className="w-full sm:w-[40%] h-48 sm:h-auto relative overflow-hidden">
                 <img
                   src={project.property_image || defaultImage}
                   alt={project.project_name}
-                  className="w-full h-full object-cover"
+                  className="w-full h-full object-cover transition-transform duration-300 hover:scale-110"
                   onError={(e) => {
                     (e.target as HTMLImageElement).src = defaultImage;
                   }}
                 />
+                <span className="absolute top-4 left-4 bg-[#1D3A76] text-white text-xs font-medium px-2 py-1 rounded capitalize">
+                  {project.construction_status}
+                </span>
               </div>
-              <div className="p-6">
-                <div className="flex justify-between items-start mb-4">
-                  <div>
-                    <h3 className="text-xl font-semibold text-gray-800">
-                      {project.project_name}
-                    </h3>
-                    <p className="text-sm text-gray-500">
-                      {project.locality}, {project.city}, {project.state}
-                    </p>
+
+              <div className="w-full sm:w-[60%] p-6 flex flex-col justify-between">
+                <div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <h3 className="text-xl font-semibold text-[#1D3A76]">
+                        {project.project_name}
+                      </h3>
+                      <p className="text-sm text-gray-500">
+                        {project.locality}, {project.city}, {project.state}
+                      </p>
+                    </div>
                   </div>
-                  <span className="text-xs font-medium px-2 py-1 rounded-full bg-blue-100 text-blue-800">
-                    {project.construction_status}
-                  </span>
-                </div>
-                <div className="text-sm text-gray-700 space-y-1 mb-4">
-                  <p>
-                    <strong>Builder:</strong> {project.builder_name}
-                  </p>
-                  <p>
-                    <strong>Type:</strong> {project.property_type} (
-                    {project.property_subtype})
-                  </p>
-                  <p>
-                    <strong>Possession:</strong>{" "}
-                    {project.possession_end_date
-                      ? new Date(
-                          project.possession_end_date
-                        ).toLocaleDateString()
-                      : "Ready to Move"}
-                  </p>
-                  <p>
-                    <strong>Created:</strong>{" "}
-                    {project.created_date
-                      ? new Date(project.created_date).toLocaleDateString()
-                      : "N/A"}
-                  </p>
-                </div>
-                <div className="mb-5">
-                  <p className="text-sm font-medium text-gray-700">Nearby:</p>
-                  <div className="flex flex-wrap gap-2 mt-2">
-                    {initialAmenities.map((item) => (
-                      <span
-                        key={item.title}
-                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
-                      >
-                        {item.title} ({formatDistance(item.distance)})
-                      </span>
-                    ))}
-                    {hiddenAmenities.map((item) => (
-                      <span
-                        key={item.title}
-                        className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
-                      >
-                        {item.title} ({formatDistance(item.distance)})
-                      </span>
-                    ))}
+
+                  <div className="grid grid-cols-2 gap-4 text-sm text-gray-700 mb-4">
+                    <div>
+                      <p className="mb-1">
+                        <strong>Builder:</strong> {project.builder_name}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Type:</strong> {project.property_type} (
+                        {project.property_subtype})
+                      </p>
+                      <p className="mb-1">
+                        <strong>Built-Up Area:</strong>{" "}
+                        {project.built_up_area || "N/A"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="mb-1">
+                        <strong>Possession:</strong>{" "}
+                        {project.possession_end_date
+                          ? new Date(
+                              project.possession_end_date
+                            ).toLocaleDateString()
+                          : "Ready to Move"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Created:</strong>{" "}
+                        {project.created_date
+                          ? new Date(project.created_date).toLocaleDateString()
+                          : "N/A"}
+                      </p>
+                      <p className="mb-1">
+                        <strong>Price per Sq.Ft:</strong>{" "}
+                        {project.price_per_sqft || "N/A"}
+                      </p>
+                    </div>
                   </div>
-                  {isExpanded && (
+
+                  <div className="mb-4">
+                    <p className="text-sm font-medium text-gray-700">Nearby:</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {hiddenAmenities.map((item) => (
+                      {initialAmenities.map((item) => (
                         <span
                           key={item.title}
-                          className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
+                          className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-md"
                         >
                           {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
+                      {isExpanded &&
+                        hiddenAmenities.map((item) => (
+                          <span
+                            key={item.title}
+                            className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
+                          >
+                            {item.title} ({formatDistance(item.distance)})
+                          </span>
+                        ))}
+                    </div>
+                    {hiddenAmenities.length > 0 && (
                       <button
                         onClick={() => toggleExpand(project.property_id)}
-                        className="text-xs text-blue-600 underline w-full text-left"
+                        className="text-xs text-blue-600 underline mt-2"
                       >
-                        Show less
+                        {isExpanded ? "Show less" : "Show more"}
                       </button>
-                    </div>
-                  )}
+                    )}
+                  </div>
                 </div>
-                <div className="flex justify-end items-center mt-4">
+
+                <div className="flex justify-end gap-2 mt-4">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      navigate(`/projects/edit/${project.property_id}`, {
+                        state: {
+                          property_id: project.property_id,
+                          posted_by: project.posted_by,
+                          user_id: project.user_id,
+                        },
+                      });
+                    }}
+                  >
+                    Edit
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => {
+                      console.log(`Delete project ${project.property_id}`);
+                    }}
+                  >
+                    Delete
+                  </Button>
                   <Button
                     variant="primary"
                     size="sm"
@@ -426,7 +455,6 @@ const AllProjects: React.FC = () => {
                   variant={page === currentPage ? "primary" : "outline"}
                   size="sm"
                   onClick={() => goToPage(page as number)}
-                  className={page === currentPage ? "" : ""}
                 >
                   {page}
                 </Button>
