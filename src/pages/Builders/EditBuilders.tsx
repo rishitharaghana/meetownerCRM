@@ -77,7 +77,7 @@ const EditBuilder: React.FC = () => {
       text: city.label,
     })) || [];
 
-  // Check if user is a Builder
+ 
   useEffect(() => {
     if (userDetails && userDetails.user_type !== 2) {
       toast.error('This page can only edit Builders (user_type 2)');
@@ -85,14 +85,14 @@ const EditBuilder: React.FC = () => {
     }
   }, [userDetails, navigate]);
 
-  // Sync cities to Redux
+
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle city fetch errors
+
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(`Failed to fetch cities: ${citiesResult.error?.message || 'Unknown error'}`);

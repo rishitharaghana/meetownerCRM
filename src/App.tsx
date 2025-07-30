@@ -45,12 +45,11 @@ import EditEmployee from "./pages/Employee Management/EditEmployee";
 import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
 import EditProject from "./pages/Project/EditProject";
 import EditBuilder from "./pages/Builders/EditBuilders";
-
 export default function App() {
   const { isAuthenticated, token } = useSelector(
     (state: RootState) => state.auth
   );
-
+// changes
   return (
     <>
       <Router>
@@ -91,6 +90,7 @@ export default function App() {
                 path="/bookings/bookings-done"
                 element={<BookingsDone />}
               />
+
               <Route path="/booking/:leadId" element={<BookingDetails />} />
               <Route path="/leads/book/:leadId" element={<MarkBookingPage />} />
 

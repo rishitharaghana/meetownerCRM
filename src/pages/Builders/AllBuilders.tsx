@@ -59,14 +59,14 @@ export default function AllBuildersScreen() {
 
   const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
 
-  // Map state options
+ 
   const stateOptions =
     states?.map((state: any) => ({
       value: state.value.toString(),
       text: state.label,
     })) || [];
 
-  // Map city options
+
   const cityOptions =
     citiesResult?.data?.map((city: any) => ({
       value: city.value,
