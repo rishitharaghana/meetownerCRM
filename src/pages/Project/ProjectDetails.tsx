@@ -138,7 +138,7 @@ const ProjectDetailsPage = () => {
       {/* Project Details */}
       <div className="space-y-10 text-gray-700 dark:text-gray-200">
         <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg p-6 mb-2">
-          <h2 className="text-xl font-semibold text-gray-800 dark:text-white mb-4">
+          <h2 className="text-xl font-semibold text-[#1D3A76] dark:text-white mb-4">
             Project Details
           </h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
