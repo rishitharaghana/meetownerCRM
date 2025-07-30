@@ -20,7 +20,7 @@ const ProjectDetailsPage = () => {
   );
 
   const defaultFloorPlan = " ";
-const defaultImage ="";
+  const defaultImage = "";
   const { property_id, posted_by, user_id } = (location.state || {}) as {
     property_id?: number;
     posted_by?: string;
@@ -117,11 +117,11 @@ const defaultImage ="";
         />
       </div>
       {/* Main Image Section */}
-      <div className="relative w-full h-70 mb-10 overflow-hidden rounded-2xl shadow-lg">
+      <div className="relative w-full h-70 mb-10 overflow-hidden rounded-2xl p-2 shadow-lg">
         <img
           src={selectedProject.property_image || defaultImage}
           alt={selectedProject.project_name}
-          className="w-full h-full object-cover transition-transform duration-500 hover:scale-105"
+          className="w-full rounded-2xl h-full object-cover transition-transform duration-500 hover:scale-105"
           onError={(e) => {
             (e.target as HTMLImageElement).src = defaultImage;
           }}
@@ -130,17 +130,9 @@ const defaultImage ="";
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
-        <h1 className="text-2xl font-extrabold text-gray-800 dark:text-white">
+        <h1 className="text-xl font-medium text-gray-800 dark:text-white">
           {selectedProject.project_name}
         </h1>
-        <Button
-          variant="primary"
-          size="sm"
-          onClick={() => navigate(-1)}
-          className="bg-blue-900 hover:bg-blue-800 text-white dark:bg-blue-500 dark:hover:bg-blue-600 px-6 py-2 rounded-lg"
-        >
-          Back
-        </Button>
       </div>
 
       {/* Project Details */}
@@ -191,7 +183,7 @@ const defaultImage ="";
 
         {/* Sizes Section */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-xl font-medium text-gray-800 dark:text-white">
             Sizes
           </h2>
           {selectedProject.sizes && selectedProject.sizes.length > 0 ? (
@@ -244,10 +236,10 @@ const defaultImage ="";
 
         {/* Floor Plans Section */}
         <div className="w-full mb-10">
-          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-4">
-            <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
+          <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
               Floor Plan
             </p>
+          <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-2">
             <img
               src={
                 selectedProject.sizes.find(
@@ -266,7 +258,7 @@ const defaultImage ="";
 
         {/* Nearby Amenities Section */}
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-xl font-medium text-gray-800 dark:text-white">
             Nearby Amenities
           </h2>
           <div className="bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 flex flex-wrap gap-3">
@@ -289,10 +281,10 @@ const defaultImage ="";
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl font-bold text-gray-800 dark:text-white">
+          <h2 className="text-xl font-medium text-gray-800 dark:text-white">
             Documents
           </h2>
-          <div className="rounded-xl p-6 flex gap-4">
+          <div className="rounded-xl p-6 flex gap-4 bg-white dark:bg-gray-800 shadow-md">
             {selectedProject.brochure ? (
               <Button
                 onClick={() => window.open(selectedProject.brochure, "_blank")}
@@ -302,7 +294,7 @@ const defaultImage ="";
                 View Brochure
               </Button>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 bg-blue-100 p-2 rounded-md dark:text-gray-400">
                 No brochure available.
               </p>
             )}
@@ -317,12 +309,22 @@ const defaultImage ="";
                 View Price Sheet
               </Button>
             ) : (
-              <p className="text-gray-500 dark:text-gray-400">
+              <p className="text-gray-500 bg-blue-100 p-2 rounded-md dark:text-gray-400">
                 No price sheet available.
               </p>
             )}
           </div>
         </div>
+        <div className="flex justify-end">
+            <Button
+              variant="primary"
+              size="sm"
+              onClick={() => navigate(-1)}
+              className="bg-[#1D3A76] text-white dark:bg-blue-500 dark:hover:bg-blue-600 px-6 py-2 rounded-lg"
+            >
+              Back
+            </Button>
+          </div>
       </div>
     </div>
   );
