@@ -4,7 +4,7 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import { fetchAllProjects } from "../../store/slices/projectSlice";
+import { fetchAllProjects, deleteProperty } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
@@ -13,6 +13,7 @@ import FilterBar from "../../components/common/FilterBar";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import defaultImage from "/images/Image.jpg";
+import ConfirmDeleteProjectModal from "../../components/common/ConfirmDeleteProjectModal";
 
 const BUILDER_USER_TYPE = 2;
 
@@ -23,6 +24,8 @@ const AllProjects: React.FC = () => {
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState<boolean>(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null); // Fixed type
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -162,6 +165,48 @@ const AllProjects: React.FC = () => {
     return value;
   };
 
+  // Handle opening the delete confirmation modal
+  const handleDeleteClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle the actual deletion
+  const handleDelete = async () => {
+    if (!user?.id || !user?.user_type || !selectedProject) {
+      toast.error("User authentication data or project missing");
+      setIsDeleteModalOpen(false);
+      return;
+    }
+
+    try {
+      await dispatch(
+        deleteProperty({
+          property_id: selectedProject.property_id,
+          admin_user_id: user.id,
+          admin_user_type: user.user_type,
+        })
+      ).unwrap();
+      toast.success("Project deleted successfully");
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+      // Refetch projects after deletion
+      if (projectParams) {
+        dispatch(fetchAllProjects(projectParams));
+      }
+    } catch (err) {
+      toast.error(`Failed to delete project: ${err || "Unknown error"}`);
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    }
+  };
+
+  // Handle modal cancel
+  const handleCancelDelete = () => {
+    setIsDeleteModalOpen(false);
+    setSelectedProject(null);
+  };
+
   const totalItems = filteredProjects.length;
   const totalPages = Math.ceil(totalItems / itemsPerPage);
   const startIndex = (currentPage - 1) * itemsPerPage;
@@ -274,6 +319,7 @@ const AllProjects: React.FC = () => {
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
       )}
+
       <div className="grid grid-cols-1 gap-6">
         {paginatedProjects.map((project: Project) => {
           const isExpanded = expandedCards[project.property_id];
@@ -283,8 +329,7 @@ const AllProjects: React.FC = () => {
           return (
             <div
               key={project.property_id}
-              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-800 hover:shadow-xl hover:scale-[1.01] flexਮ
-              flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
+              className="bg-white border border-blue-200 rounded-2xl shadow-md overflow-hidden transition-transform duration-800 hover:shadow-xl hover:scale-[1.01] flex flex-col sm:flex-row w-full max-w-4xl mx-auto"
             >
               <div className="w-full sm:w-[40%] h-48 sm:h-auto relative overflow-hidden">
                 <img
@@ -324,16 +369,14 @@ const AllProjects: React.FC = () => {
                       </p>
                       <p className="mb-1">
                         <strong>Built-Up Area:</strong>{" "}
-                        {project.built_up_area || "N/A"}
+                        {project.sizes[0]?.build_up_area || "N/A"}
                       </p>
                     </div>
                     <div>
                       <p className="mb-1">
                         <strong>Possession:</strong>{" "}
                         {project.possession_end_date
-                          ? new Date(
-                              project.possession_end_date
-                            ).toLocaleDateString()
+                          ? new Date(project.possession_end_date).toLocaleDateString()
                           : "Ready to Move"}
                       </p>
                       <p className="mb-1">
@@ -343,8 +386,8 @@ const AllProjects: React.FC = () => {
                           : "N/A"}
                       </p>
                       <p className="mb-1">
-                        <strong>Price per Sq.Ft:</strong>{" "}
-                        {project.price_per_sqft || "N/A"}
+                        <strong>Square Feet Price:</strong>{" "}
+                        {project.sizes[0]?.sqft_price || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -352,18 +395,18 @@ const AllProjects: React.FC = () => {
                   <div className="mb-4">
                     <p className="text-sm font-medium text-gray-700">Nearby:</p>
                     <div className="flex flex-wrap gap-2 mt-2">
-                      {initialAmenities.map((item) => (
+                      {initialAmenities.map((item, index) => (
                         <span
-                          key={item.title}
+                          key={`${item.title}-${index}`}
                           className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-md"
                         >
                           {item.title} ({formatDistance(item.distance)})
                         </span>
                       ))}
                       {isExpanded &&
-                        hiddenAmenities.map((item) => (
+                        hiddenAmenities.map((item, index) => (
                           <span
-                            key={item.title}
+                            key={`${item.title}-${index + initialAmenities.length}`}
                             className="text-xs bg-blue-50 text-blue-800 px-2 py-1 rounded-full"
                           >
                             {item.title} ({formatDistance(item.distance)})
@@ -388,7 +431,7 @@ const AllProjects: React.FC = () => {
                     onClick={() => {
                       navigate(`/projects/edit/${project.property_id}`, {
                         state: {
-                          property_id: project.property_id,
+                          project,
                           posted_by: project.posted_by,
                           user_id: project.user_id,
                         },
@@ -400,11 +443,10 @@ const AllProjects: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      console.log(`Delete project ${project.property_id}`);
-                    }}
+                    onClick={() => handleDeleteClick(project)}
+                    disabled={loading && selectedProject?.property_id === project.property_id}
                   >
-                    Delete
+                    {loading && selectedProject?.property_id === project.property_id ? "Deleting..." : "Delete"}
                   </Button>
                   <Button
                     variant="primary"
@@ -427,6 +469,16 @@ const AllProjects: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Render ConfirmDeleteProjectModal */}
+      <ConfirmDeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        projectName={selectedProject?.project_name || ""}
+        description={`Are you sure you want to delete ${selectedProject?.project_name}? This action cannot be undone.`}
+        onConfirm={handleDelete}
+        onCancel={handleCancelDelete}
+      />
+
       {totalItems > itemsPerPage && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
           <div className="text-sm text-gray-500">

@@ -42,7 +42,6 @@ const EditBuilder: React.FC = () => {
     company_name: userDetails?.company_name || '',
     company_number: userDetails?.company_number || '',
     company_address: userDetails?.company_address || '',
-    representative_name: userDetails?.representative_name || '',
     name: userDetails?.name || '',
     mobile: userDetails?.mobile || '',
     email: userDetails?.email || '',
@@ -240,7 +239,6 @@ useEffect(() => {
     formData.append('company_name', selectedBuilder.company_name || '');
     formData.append('company_number', selectedBuilder.company_number || '');
     formData.append('company_address', selectedBuilder.company_address || '');
-    formData.append('representative_name', selectedBuilder.representative_name || '');
     formData.append('pan_card_number', selectedBuilder.pan_card_number || '');
     formData.append('aadhar_number', selectedBuilder.aadhar_number || '');
     formData.append('status', statusValue.toString());
@@ -472,17 +470,7 @@ useEffect(() => {
               disabled={updateLoading}
             />
           </div>
-          <div className="min-h-[80px]">
-            <Label htmlFor="representative_name">Representative Name (Optional)</Label>
-            <Input
-              type="text"
-              id="representative_name"
-              value={selectedBuilder.representative_name || ''}
-              onChange={(e) => handleInputChange('representative_name', e.target.value)}
-              placeholder="Enter representative name"
-              disabled={updateLoading}
-            />
-          </div>
+          
           <div className="min-h-[80px]">
             <Label htmlFor="pan_card_number">PAN Card Number (Optional)</Label>
             <Input

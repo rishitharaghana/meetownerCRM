@@ -322,7 +322,7 @@ const StoppedProjectsLeads: React.FC = () => {
                       </p>
                       <p className="mb-1">
                         <strong>Built-Up Area:</strong>{" "}
-                        {project.built_up_area || "N/A"}
+                        {project.build_up_area || "N/A"}
                       </p>
                     </div>
                     <div>
@@ -341,8 +341,8 @@ const StoppedProjectsLeads: React.FC = () => {
                           : "N/A"}
                       </p>
                       <p className="mb-1">
-                        <strong>Price per Sq.Ft:</strong>{" "}
-                        {project.price_per_sqft || "N/A"}
+                        <strong>Square Feet Price:</strong>{" "}
+                        {project.sqft_price || "N/A"}
                       </p>
                     </div>
                   </div>

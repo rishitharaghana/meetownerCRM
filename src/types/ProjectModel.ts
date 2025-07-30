@@ -13,8 +13,9 @@ export interface Size {
   plotAreaUnits: string;
   plot_area: string;
   builtupAreaUnits: string;
-  length_area: string;
+  lengthArea: string;
   width_area: string;
+  lengthAreaUnits: string;
 }
 
 export interface PaymentMode {
@@ -48,6 +49,7 @@ export interface Project {
   around_this: AroundThis[];
   payment_modes: PaymentMode[];
   property_image?: string;
+
 }
 
 export interface ProjectsResponse {

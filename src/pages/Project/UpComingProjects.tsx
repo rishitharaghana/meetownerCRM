@@ -1,15 +1,25 @@
-import React, { useState, useEffect, useRef, useMemo, useCallback } from "react";
+import React, {
+  useState,
+  useEffect,
+  useRef,
+  useMemo,
+  useCallback,
+} from "react";
 import { useNavigate } from "react-router";
 import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import { fetchUpcomingProjects } from "../../store/slices/projectSlice";
+import {
+  fetchUpcomingProjects,
+  deleteProperty,
+} from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
+import ConfirmDeleteProjectModal from "../../components/common/ConfirmDeleteProjectModal";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import defaultImage from "/images/Image.jpg";
@@ -19,11 +29,15 @@ const BUILDER_USER_TYPE = 2;
 const UpComingProjects: React.FC = () => {
   const [search, setSearch] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>({});
+  const [expandedCards, setExpandedCards] = useState<Record<number, boolean>>(
+    {}
+  );
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+  const [selectedProject, setSelectedProject] = useState<Project | null>(null);
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -151,6 +165,51 @@ const UpComingProjects: React.FC = () => {
     setExpandedCards((prev) => ({ ...prev, [id]: !prev[id] }));
   };
 
+  // Handle opening the confirmation modal for Delete
+  const handleDeleteClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle confirming delete
+  const handleConfirmDelete = useCallback(async () => {
+    if (!selectedProject || !user) {
+      toast.error("User authentication data or project missing");
+      setIsDeleteModalOpen(false);
+      return;
+    }
+
+    try {
+      await dispatch(
+        deleteProperty({
+          property_id: selectedProject.property_id,
+          admin_user_id: user.id,
+          admin_user_type: user.user_type,
+        })
+      ).unwrap();
+      toast.success(
+        `Project ${selectedProject.project_name} deleted successfully`
+      );
+      // Refetch upcoming projects to update the list
+      if (projectParams) {
+        dispatch(fetchUpcomingProjects(projectParams));
+      }
+    } catch (err: any) {
+      toast.error(
+        `Failed to delete project: ${err.message || "Unknown error"}`
+      );
+    } finally {
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    }
+  }, [selectedProject, user, dispatch, projectParams]);
+
+  // Handle canceling the delete modal
+  const handleCancelDelete = useCallback(() => {
+    setIsDeleteModalOpen(false);
+    setSelectedProject(null);
+  }, []);
+
   const handleClearFilters = useCallback(() => {
     setSearch("");
     setCreatedDate(null);
@@ -271,15 +330,21 @@ const UpComingProjects: React.FC = () => {
           />
         </div>
       </div>
-      {(search || selectedState || selectedCity || createdDate || createdEndDate) && (
+      {(search ||
+        selectedState ||
+        selectedCity ||
+        createdDate ||
+        createdEndDate) && (
         <div className="text-sm text-gray-500 mb-4">
           Filters: Search: {search || "None"} | State:{" "}
           {selectedState
-            ? states?.find((s) => s.value.toString() === selectedState)?.label || "All"
+            ? states?.find((s) => s.value.toString() === selectedState)
+                ?.label || "All"
             : "All"}{" "}
           | City:{" "}
           {selectedCity
-            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label || "All"
+            ? citiesResult.data?.find((c) => c.value === selectedCity)?.label ||
+              "All"
             : "All"}{" "}
           | Date: {createdDate || "Any"} to {createdEndDate || "Any"}
         </div>
@@ -333,14 +398,16 @@ const UpComingProjects: React.FC = () => {
                       </p>
                       <p className="mb-1">
                         <strong>Built-Up Area:</strong>{" "}
-                        {project.built_up_area || "N/A"}
+                        {project.sizes[0]?.build_up_area || "N/A"}
                       </p>
                     </div>
                     <div>
                       <p className="mb-1">
                         <strong>Possession:</strong>{" "}
                         {project.possession_end_date
-                          ? new Date(project.possession_end_date).toLocaleDateString()
+                          ? new Date(
+                              project.possession_end_date
+                            ).toLocaleDateString()
                           : "Ready to Move"}
                       </p>
                       <p className="mb-1">
@@ -350,8 +417,8 @@ const UpComingProjects: React.FC = () => {
                           : "N/A"}
                       </p>
                       <p className="mb-1">
-                        <strong>Price per Sq.Ft:</strong>{" "}
-                        {project.price_per_sqft || "N/A"}
+                        <strong>Square Feet Price:</strong>{" "}
+                        {project.sizes[0]?.sqft_price || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -382,7 +449,9 @@ const UpComingProjects: React.FC = () => {
                         onClick={() => toggleExpand(project.property_id)}
                         className="text-xs text-blue-600 underline mt-2"
                       >
-                        {isExpanded ? "Show less" : `+${hiddenAmenities.length} more`}
+                        {isExpanded
+                          ? "Show less"
+                          : `+${hiddenAmenities.length} more`}
                       </button>
                     )}
                   </div>
@@ -395,11 +464,7 @@ const UpComingProjects: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       navigate(`/projects/edit/${project.property_id}`, {
-                        state: {
-                          property_id: project.property_id,
-                          posted_by: project.posted_by,
-                          user_id: project.user_id,
-                        },
+                        state: { project },
                       });
                     }}
                   >
@@ -408,11 +473,16 @@ const UpComingProjects: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      console.log(`Delete project ${project.property_id}`);
-                    }}
+                    onClick={() => handleDeleteClick(project)}
+                    disabled={
+                      loading &&
+                      selectedProject?.property_id === project.property_id
+                    }
                   >
-                    Delete
+                    {loading &&
+                    selectedProject?.property_id === project.property_id
+                      ? "Deleting..."
+                      : "Delete"}
                   </Button>
                   <Button
                     variant="primary"
@@ -435,6 +505,16 @@ const UpComingProjects: React.FC = () => {
           );
         })}
       </div>
+
+      {/* Delete Project Modal */}
+      <ConfirmDeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        projectName={selectedProject?.project_name || ""}
+        description="Are you sure you want to delete"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
+      />
+
       {totalItems > itemsPerPage && (
         <div className="flex flex-col sm:flex-row justify-between items-center mt-8 gap-4">
           <div className="text-sm text-gray-500">

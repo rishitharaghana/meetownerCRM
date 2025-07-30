@@ -36,7 +36,7 @@ interface SizeEntry {
   lengthArea?: string;
   lengthAreaUnits?: string;
   floorPlan: File | null;
-  sqftPrice: string;
+  sqft_price: string;
 }
 
 interface AroundPropertyEntry {
@@ -127,7 +127,7 @@ const INITIAL_FORM_STATE: FormData = {
       build_up_area: "",
       carpetArea: "",
       floorPlan: null,
-      sqftPrice: "",
+      sqft_price: "",
       lengthArea: "",
       lengthAreaUnits: "",
       builtupAreaUnits: "",
@@ -505,7 +505,7 @@ export default function AddProject() {
           build_up_area: "",
           carpetArea: "",
           floorPlan: null,
-          sqftPrice: "",
+          sqft_price: "",
           lengthArea: "",
           lengthAreaUnits: "",
           builtupAreaUnits: "",
@@ -634,8 +634,8 @@ export default function AddProject() {
       const errorsForSize: { [key: string]: string | undefined } = {};
       if (!size.carpetArea.trim())
         errorsForSize.carpetArea = "Carpet Area is required";
-      if (!size.sqftPrice.trim())
-        errorsForSize.sqftPrice = "Square Foot Price is required";
+      if (!size.sqft_price.trim())
+        errorsForSize.sqft_price = "Square Foot Price is required";
       if (Object.keys(errorsForSize).length > 0) {
         sizeErrors[size.id] = errorsForSize;
       }
@@ -706,7 +706,7 @@ export default function AddProject() {
         build_up_area: size.build_up_area,
         builtupAreaUnits: size.builtupAreaUnits,
         carpet_area: size.carpetArea,
-        sqft_price: size.sqftPrice,
+        sqft_price: size.sqft_price,
       }))
     )
   );
@@ -1185,14 +1185,14 @@ export default function AddProject() {
                     {renderError(errors.sizes?.[size.id]?.carpetArea)}
                   </div>
                   <div className="min-h-[80px]">
-                    <Label htmlFor={`sqftPrice-${size.id}`}>
+                    <Label htmlFor={`sqft_price-${size.id}`}>
                       Square Feet Price
                     </Label>
                     <Input
                       type="number"
-                      id={`sqftPrice-${size.id}`}
-                      value={size.sqftPrice}
-                      onChange={handleSizeChange(size.id, "sqftPrice")}
+                      id={`sqft_price-${size.id}`}
+                      value={size.sqft_price}
+                      onChange={handleSizeChange(size.id, "sqft_price")}
                       placeholder="Enter square feet price"
                       className="dark:bg-gray-800"
                     />

@@ -4,16 +4,17 @@ import { useDispatch, useSelector } from "react-redux";
 import Button from "../../components/ui/button/Button";
 import { InputWithRef } from "../../components/form/input/InputField";
 import { AppDispatch, RootState } from "../../store/store";
-import { fetchOngoingProjects, stopPropertyLeads } from "../../store/slices/projectSlice";
+import { fetchOngoingProjects, stopPropertyLeads, deleteProperty } from "../../store/slices/projectSlice";
 import { Project } from "../../types/ProjectModel";
 import toast from "react-hot-toast";
 import { usePropertyQueries } from "../../hooks/PropertyQueries";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import FilterBar from "../../components/common/FilterBar";
-import ConfirmDeleteUserModal from "../../components/common/ConfirmDeleteUserModal";
+import ConfirmDeleteProjectModal from "../../components/common/ConfirmDeleteProjectModal";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import defaultImage from "/images/Image.jpg";
+
 
 const BUILDER_USER_TYPE = 2;
 
@@ -25,8 +26,10 @@ const OnGoingProjects: React.FC = () => {
   const [createdEndDate, setCreatedEndDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false); // Renamed for clarity
   const [selectedProject, setSelectedProject] = useState<Project | null>(null);
+    const [isModalOpen, setIsModalOpen] = useState(false);
+
 
   const navigate = useNavigate();
   const searchRef = useRef<HTMLInputElement>(null);
@@ -186,9 +189,50 @@ const OnGoingProjects: React.FC = () => {
     }
   }, [selectedProject, user, dispatch, projectParams]);
 
-  // Handle canceling the modal
+  // Handle canceling the stop leads modal
   const handleCancelStopLeads = useCallback(() => {
     setIsModalOpen(false);
+    setSelectedProject(null);
+  }, []);
+
+  // Handle opening the confirmation modal for Delete
+  const handleDeleteClick = (project: Project) => {
+    setSelectedProject(project);
+    setIsDeleteModalOpen(true);
+  };
+
+  // Handle confirming delete
+  const handleConfirmDelete = useCallback(async () => {
+    if (!selectedProject || !user) {
+      toast.error("User authentication data or project missing");
+      setIsDeleteModalOpen(false);
+      return;
+    }
+
+    try {
+      await dispatch(
+        deleteProperty({
+          property_id: selectedProject.property_id,
+          admin_user_id: user.id,
+          admin_user_type: user.user_type,
+        })
+      ).unwrap();
+      toast.success(`Project ${selectedProject.project_name} deleted successfully`);
+      // Refetch ongoing projects to update the list
+      if (projectParams) {
+        dispatch(fetchOngoingProjects(projectParams));
+      }
+    } catch (err: any) {
+      toast.error(`Failed to delete project: ${err.message || "Unknown error"}`);
+    } finally {
+      setIsDeleteModalOpen(false);
+      setSelectedProject(null);
+    }
+  }, [selectedProject, user, dispatch, projectParams]);
+
+  // Handle canceling the delete modal
+  const handleCancelDelete = useCallback(() => {
+    setIsDeleteModalOpen(false);
     setSelectedProject(null);
   }, []);
 
@@ -383,7 +427,7 @@ const OnGoingProjects: React.FC = () => {
                       </p>
                       <p className="mb-1">
                         <strong>Built-Up Area:</strong>{" "}
-                        {project.built_up_area || "N/A"}
+                        {project.sizes[0]?.build_up_area || "N/A"}
                       </p>
                     </div>
                     <div>
@@ -400,8 +444,8 @@ const OnGoingProjects: React.FC = () => {
                           : "N/A"}
                       </p>
                       <p className="mb-1">
-                        <strong>Price per Sq.Ft:</strong>{" "}
-                        {project.price_per_sqft || "N/A"}
+                        <strong>Square Feet Price:</strong>{" "}
+                        {project.sizes[0]?.sqft_price || "N/A"}
                       </p>
                     </div>
                   </div>
@@ -455,11 +499,7 @@ const OnGoingProjects: React.FC = () => {
                     size="sm"
                     onClick={() => {
                       navigate(`/projects/edit/${project.property_id}`, {
-                        state: {
-                          property_id: project.property_id,
-                          posted_by: project.posted_by,
-                          user_id: project.user_id,
-                        },
+                        state: { project },
                       });
                     }}
                   >
@@ -468,11 +508,10 @@ const OnGoingProjects: React.FC = () => {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => {
-                      console.log(`Delete project ${project.property_id}`);
-                    }}
+                    onClick={() => handleDeleteClick(project)}
+                    disabled={loading && selectedProject?.property_id === project.property_id}
                   >
-                    Delete
+                    {loading && selectedProject?.property_id === project.property_id ? "Deleting..." : "Delete"}
                   </Button>
                   <Button
                     variant="primary"
@@ -496,12 +535,22 @@ const OnGoingProjects: React.FC = () => {
         })}
       </div>
 
-      <ConfirmDeleteUserModal
+      {/* Stop Leads Modal */}
+      <ConfirmDeleteProjectModal
         isOpen={isModalOpen}
-        userName={selectedProject?.project_name || ""}
-        description="Are you sure you want to stop the leads for "
+        projectName={selectedProject?.project_name || ""}
+        description="Are you sure you want to stop the leads for"
         onConfirm={handleConfirmStopLeads}
         onCancel={handleCancelStopLeads}
+      />
+
+      {/* Delete Project Modal */}
+      <ConfirmDeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        projectName={selectedProject?.project_name || ""}
+        description="Are you sure you want to delete"
+        onConfirm={handleConfirmDelete}
+        onCancel={handleCancelDelete}
       />
 
       {totalItems > itemsPerPage && (

@@ -1,6 +1,10 @@
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import ngrokAxiosInstance from '../../hooks/AxiosInstance';
-import { Project, ProjectsResponse, InsertPropertyResponse } from '../../types/ProjectModel';
+import { createSlice, createAsyncThunk, PayloadAction } from "@reduxjs/toolkit";
+import ngrokAxiosInstance from "../../hooks/AxiosInstance";
+import {
+  Project,
+  ProjectsResponse,
+  InsertPropertyResponse,
+} from "../../types/ProjectModel";
 
 interface ProjectState {
   ongoingProjects: Project[];
@@ -27,28 +31,89 @@ export const insertProperty = createAsyncThunk<
   InsertPropertyResponse,
   FormData,
   { rejectValue: string }
+>("projects/insertProperty", async (formData, { rejectWithValue }) => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    return rejectWithValue("No authentication token found. Please log in.");
+  }
+  try {
+    const response = await ngrokAxiosInstance.post<InsertPropertyResponse>(
+      "/api/v1/insertproperty",
+      formData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return response.data;
+  } catch (error: any) {
+    return rejectWithValue(
+      error.response?.data?.error || "Failed to insert property"
+    );
+  }
+});
+
+export const updateProperty = createAsyncThunk<
+  InsertPropertyResponse,
+  { property_id: number; formData: FormData },
+  { rejectValue: string }
 >(
-  'projects/insertProperty',
-  async (formData, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+  "projects/editProperty",
+  async ({ property_id, formData }, { rejectWithValue }) => {
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
-      const response = await ngrokAxiosInstance.post<InsertPropertyResponse>(
-        '/api/v1/insertproperty',
+      const response = await ngrokAxiosInstance.put<InsertPropertyResponse>(
+        `/api/v1/properties/${property_id}`,
         formData,
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'multipart/form-data',
+            "Content-Type": "multipart/form-data",
           },
         }
       );
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.error || 'Failed to insert property'
+        error.response?.data?.error || "Failed to update property"
+      );
+    }
+  }
+);
+
+export const deleteProperty = createAsyncThunk<
+  { status: string; message: string },
+  { property_id: number; admin_user_id: number; admin_user_type: number },
+  { rejectValue: string }
+>(
+  "projects/deleteProperty",
+  async (
+    { property_id, admin_user_id, admin_user_type },
+    { rejectWithValue }
+  ) => {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
+    }
+    try {
+      const response = await ngrokAxiosInstance.delete<{
+        status: string;
+        message: string;
+      }>(`/api/v1/properties/${property_id}`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+        data: { admin_user_id, admin_user_type },
+      });
+      return response.data;
+    } catch (error: any) {
+      return rejectWithValue(
+        error.response?.data?.error || "Failed to delete property"
       );
     }
   }
@@ -60,11 +125,11 @@ export const fetchOngoingProjects = createAsyncThunk<
   { admin_user_type: number; admin_user_id: number },
   { rejectValue: string }
 >(
-  'projects/fetchOngoingProjects',
+  "projects/fetchOngoingProjects",
   async ({ admin_user_type, admin_user_id }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
       const response = await ngrokAxiosInstance.get<ProjectsResponse>(
@@ -78,7 +143,7 @@ export const fetchOngoingProjects = createAsyncThunk<
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch ongoing projects'
+        error.response?.data?.message || "Failed to fetch ongoing projects"
       );
     }
   }
@@ -90,11 +155,11 @@ export const fetchUpcomingProjects = createAsyncThunk<
   { admin_user_type: number; admin_user_id: number },
   { rejectValue: string }
 >(
-  'projects/fetchUpcomingProjects',
+  "projects/fetchUpcomingProjects",
   async ({ admin_user_type, admin_user_id }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
       const response = await ngrokAxiosInstance.get<ProjectsResponse>(
@@ -108,7 +173,7 @@ export const fetchUpcomingProjects = createAsyncThunk<
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch upcoming projects'
+        error.response?.data?.message || "Failed to fetch upcoming projects"
       );
     }
   }
@@ -120,11 +185,11 @@ export const fetchAllProjects = createAsyncThunk<
   { admin_user_type: number; admin_user_id: number },
   { rejectValue: string }
 >(
-  'projects/fetchAllProjects',
+  "projects/fetchAllProjects",
   async ({ admin_user_type, admin_user_id }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
       const response = await ngrokAxiosInstance.get<ProjectsResponse>(
@@ -138,7 +203,7 @@ export const fetchAllProjects = createAsyncThunk<
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch all projects'
+        error.response?.data?.message || "Failed to fetch all projects"
       );
     }
   }
@@ -150,11 +215,14 @@ export const fetchProjectById = createAsyncThunk<
   { property_id: number; admin_user_type: number; admin_user_id: number },
   { rejectValue: string }
 >(
-  'projects/fetchProjectById',
-  async ({ property_id, admin_user_type, admin_user_id }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+  "projects/fetchProjectById",
+  async (
+    { property_id, admin_user_type, admin_user_id },
+    { rejectWithValue }
+  ) => {
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
       const response = await ngrokAxiosInstance.get<Project>(
@@ -168,7 +236,7 @@ export const fetchProjectById = createAsyncThunk<
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch project by ID'
+        error.response?.data?.message || "Failed to fetch project by ID"
       );
     }
   }
@@ -180,27 +248,33 @@ export const stopPropertyLeads = createAsyncThunk<
   { property_id: number; admin_user_id: number; admin_user_type: number },
   { rejectValue: string }
 >(
-  'projects/stopPropertyLeads',
-  async ({ property_id, admin_user_id, admin_user_type }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+  "projects/stopPropertyLeads",
+  async (
+    { property_id, admin_user_id, admin_user_type },
+    { rejectWithValue }
+  ) => {
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
-      const response = await ngrokAxiosInstance.post<{ status: string; message: string }>(
-        '/api/v1/properties/stop_leads',
+      const response = await ngrokAxiosInstance.post<{
+        status: string;
+        message: string;
+      }>(
+        "/api/v1/properties/stop_leads",
         { property_id, admin_user_id, admin_user_type },
         {
           headers: {
             Authorization: `Bearer ${token}`,
-            'Content-Type': 'application/json',
+            "Content-Type": "application/json",
           },
         }
       );
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.error || 'Failed to stop property leads'
+        error.response?.data?.error || "Failed to stop property leads"
       );
     }
   }
@@ -212,11 +286,11 @@ export const getStoppedProperties = createAsyncThunk<
   { admin_user_type: number; admin_user_id: number },
   { rejectValue: string }
 >(
-  'projects/getStoppedProperties',
+  "projects/getStoppedProperties",
   async ({ admin_user_type, admin_user_id }, { rejectWithValue }) => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
-      return rejectWithValue('No authentication token found. Please log in.');
+      return rejectWithValue("No authentication token found. Please log in.");
     }
     try {
       const response = await ngrokAxiosInstance.get<ProjectsResponse>(
@@ -230,14 +304,14 @@ export const getStoppedProperties = createAsyncThunk<
       return response.data;
     } catch (error: any) {
       return rejectWithValue(
-        error.response?.data?.message || 'Failed to fetch stopped properties'
+        error.response?.data?.message || "Failed to fetch stopped properties"
       );
     }
   }
 );
 
 const projectSlice = createSlice({
-  name: 'projects',
+  name: "projects",
   initialState,
   reducers: {
     clearProjects(state) {
@@ -260,55 +334,124 @@ const projectSlice = createSlice({
       })
       .addCase(insertProperty.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
+
+      .addCase(updateProperty.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(
+        updateProperty.fulfilled,
+        (state, action: PayloadAction<InsertPropertyResponse>) => {
+          state.loading = false;
+          // Update the project in allProjects
+          const index = state.allProjects.findIndex(
+            (project) => project.property_id === action.payload.property_id
+          );
+          if (index !== -1) {
+            state.allProjects[index] = {
+              ...state.allProjects[index],
+              ...action.payload.data, // Adjust based on response structure
+            };
+          }
+          // Update selectedProject if it matches
+          if (
+            state.selectedProject?.property_id === action.payload.property_id
+          ) {
+            state.selectedProject = {
+              ...state.selectedProject,
+              ...action.payload.data,
+            };
+          }
+        }
+      )
+      .addCase(updateProperty.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Something went wrong";
+      })
+
+      .addCase(deleteProperty.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(deleteProperty.fulfilled, (state, action) => {
+        state.loading = false;
+        // Remove the deleted project from allProjects
+        state.allProjects = state.allProjects.filter(
+          (project) => project.property_id !== action.meta.arg.property_id
+        );
+        // Clear selectedProject if it was deleted
+        if (
+          state.selectedProject?.property_id === action.meta.arg.property_id
+        ) {
+          state.selectedProject = null;
+        }
+      })
+      .addCase(deleteProperty.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload || "Something went wrong";
+      })
+
       .addCase(fetchOngoingProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchOngoingProjects.fulfilled, (state, action: PayloadAction<ProjectsResponse>) => {
-        state.loading = false;
-        state.ongoingProjects = action.payload.data;
-      })
+      .addCase(
+        fetchOngoingProjects.fulfilled,
+        (state, action: PayloadAction<ProjectsResponse>) => {
+          state.loading = false;
+          state.ongoingProjects = action.payload.data;
+        }
+      )
       .addCase(fetchOngoingProjects.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
       .addCase(fetchUpcomingProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchUpcomingProjects.fulfilled, (state, action: PayloadAction<ProjectsResponse>) => {
-        state.loading = false;
-        state.upcomingProjects = action.payload.data;
-      })
+      .addCase(
+        fetchUpcomingProjects.fulfilled,
+        (state, action: PayloadAction<ProjectsResponse>) => {
+          state.loading = false;
+          state.upcomingProjects = action.payload.data;
+        }
+      )
       .addCase(fetchUpcomingProjects.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
       .addCase(fetchAllProjects.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchAllProjects.fulfilled, (state, action: PayloadAction<ProjectsResponse>) => {
-        state.loading = false;
-        state.allProjects = action.payload.data;
-      })
+      .addCase(
+        fetchAllProjects.fulfilled,
+        (state, action: PayloadAction<ProjectsResponse>) => {
+          state.loading = false;
+          state.allProjects = action.payload.data;
+        }
+      )
       .addCase(fetchAllProjects.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
       .addCase(fetchProjectById.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(fetchProjectById.fulfilled, (state, action: PayloadAction<Project>) => {
-        state.loading = false;
-        state.selectedProject = action.payload;
-      })
+      .addCase(
+        fetchProjectById.fulfilled,
+        (state, action: PayloadAction<Project>) => {
+          state.loading = false;
+          state.selectedProject = action.payload;
+        }
+      )
       .addCase(fetchProjectById.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
       // New Cases for stopPropertyLeads
       .addCase(stopPropertyLeads.pending, (state) => {
@@ -318,30 +461,32 @@ const projectSlice = createSlice({
       .addCase(stopPropertyLeads.fulfilled, (state) => {
         state.loading = false;
         // Optionally update state (e.g., remove from ongoingProjects)
-        state.ongoingProjects = state.ongoingProjects.filter(project => project.stop_leads !== 'Yes');
+        state.ongoingProjects = state.ongoingProjects.filter(
+          (project) => project.stop_leads !== "Yes"
+        );
       })
       .addCase(stopPropertyLeads.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       })
       // New Cases for getStoppedProperties
       .addCase(getStoppedProperties.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(getStoppedProperties.fulfilled, (state, action: PayloadAction<ProjectsResponse>) => {
-        state.loading = false;
-        state.stoppedProjects = action.payload.data;
-      })
+      .addCase(
+        getStoppedProperties.fulfilled,
+        (state, action: PayloadAction<ProjectsResponse>) => {
+          state.loading = false;
+          state.stoppedProjects = action.payload.data;
+        }
+      )
       .addCase(getStoppedProperties.rejected, (state, action) => {
         state.loading = false;
-        state.error = action.payload || 'Something went wrong';
+        state.error = action.payload || "Something went wrong";
       });
   },
 });
 
 export const { clearProjects } = projectSlice.actions;
 export default projectSlice.reducer;
-
-
-
