@@ -43,7 +43,6 @@ import ForgotPassword from "./pages/AuthPages/ForgotPassword";
 import ChannelPartnerLink from "./pages/Channel Partners/ChannelPartnerLink";
 import EditEmployee from "./pages/Employee Management/EditEmployee";
 import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
-import EditProject from "./pages/Project/EditProject";
 import EditBuilder from "./pages/Builders/EditBuilders";
 export default function App() {
   const { isAuthenticated, token } = useSelector(
@@ -114,7 +113,6 @@ export default function App() {
                 path="/projects/details/:id"
                 element={<ProjectDetailsPage />}
               />
-              <Route path = "/projects/edit/:property_id" element ={<EditProject/>} />
               <Route
                 path="/projects/upcoming-projects"
                 element={<UpcomingProjects />}
