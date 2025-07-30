@@ -44,6 +44,7 @@ import ChannelPartnerLink from "./pages/Channel Partners/ChannelPartnerLink";
 import EditEmployee from "./pages/Employee Management/EditEmployee";
 import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
 import EditBuilder from "./pages/Builders/EditBuilders";
+import EditProject from "./pages/Project/EditProject";
 export default function App() {
   const { isAuthenticated, token } = useSelector(
     (state: RootState) => state.auth
@@ -103,9 +104,9 @@ export default function App() {
 
               <Route path="/profile" element={<UserProfiles />} />
               <Route path="/support" element={<Support />} />
-
+              <Route path='/projects/edit/:property_id' element = {<EditProject/>}/>
               <Route
-                path="/projects/add-projects"
+                path="/projects/add-projects" 
                 element={<CreateProperty />}
               />
               <Route path="/projects/allprojects" element={<AllProjects />} />
