@@ -114,6 +114,7 @@ export interface LeadState {
   leadSources: LeadSource[] | null;
   loading: boolean;
   error: string | null;
+  totalLeads: number;
 }
 
 export interface InsertLeadResponse {

@@ -10,6 +10,7 @@ const initialState: LeadState = {
   leadStatuses: null, 
   leadSources: null, 
   loading: false,
+  totalLeads: 0,
   error: null,
 };
 export const getLeadsByUser = createAsyncThunk<
@@ -72,6 +73,59 @@ export const getLeadsByUser = createAsyncThunk<
     }
   }
 );
+
+export const getTotalLeads = createAsyncThunk<
+  number,
+  { lead_added_user_id: number; lead_added_user_type: number },
+  { rejectValue: string }
+>(
+  "lead/getTotalLeads",
+  async ({ lead_added_user_id, lead_added_user_type }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+
+      const response = await ngrokAxiosInstance.get<{ status: string; total: number }>(
+        `api/v1/leads/totalLeadsCount`,
+        {
+          params: {
+            lead_added_user_id,
+            lead_added_user_type,
+          },
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      return response.data.total;
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Get total leads error:", axiosError);
+      if (axiosError.response) {
+        const status = axiosError.response.status;
+        switch (status) {
+          case 400:
+            return rejectWithValue("Invalid user data provided");
+          case 401:
+            return rejectWithValue("Unauthorized: Invalid or expired token");
+          case 500:
+            return rejectWithValue("Server error. Please try again later.");
+          default:
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to fetch total leads"
+            );
+        }
+      }
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
+    }
+  }
+);
+
 export const getLeadsByID = createAsyncThunk<
   Lead[],
   {
@@ -664,6 +718,21 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+
+      .addCase(getTotalLeads.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(getTotalLeads.fulfilled, (state, action) => {
+        state.loading = false;
+        state.totalLeads = action.payload;
+      })
+      .addCase(getTotalLeads.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+ 
+      })
+
       .addCase(getLeadUpdatesByLeadId.pending, (state) => {
         state.loading = true;
         state.error = null;

@@ -1,11 +1,9 @@
-
 import { useEffect, useMemo } from "react";
 import { useSelector, useDispatch } from "react-redux";
 import { Link } from "react-router";
 import {
   Users,
   FolderKanban,
-  UserPlus,
   Clock,
   MapPin,
   Headset,
@@ -16,11 +14,11 @@ import {
 } from "lucide-react";
 import { AppDispatch, RootState } from "../../store/store";
 import { getTypesCount } from "../../store/slices/userslice";
+import { getTotalLeads } from "../../store/slices/leadslice";
 import toast from "react-hot-toast";
 
-
 const userTypeMap: { [key: string]: string } = {
-  today_leads: "Total Leads",
+  total_leads: "Total Leads", // Using total unbooked leads
   today_follow_ups: "Today Follow-Ups",
   site_visit_done: "Site Visits Done",
   booked: "Bookings",
@@ -33,7 +31,7 @@ const userTypeMap: { [key: string]: string } = {
 };
 
 const userTypeRoutes: { [key: string]: string } = {
-  today_leads: "/leads/new/0",
+  total_leads: "/leads/new/0", // Link to leads page
   today_follow_ups: "/leads/today/2",
   site_visit_done: "/leads/SiteVisitDone/5",
   booked: "/bookings/bookings-done",
@@ -46,8 +44,7 @@ const userTypeRoutes: { [key: string]: string } = {
 };
 
 const iconMap: { [key: string]: any } = {
-  new_leads: UserPlus,
-  today_leads: Clock,
+  total_leads: Clock,
   today_follow_ups: Clock,
   site_visit_done: MapPin,
   booked: BookCheck,
@@ -74,14 +71,26 @@ const iconBgColors = [
   "bg-gradient-to-br from-orange-500 to-red-600",
   "bg-gradient-to-br from-indigo-500 to-blue-600",
 ];
+
 const BUILDER_USER_TYPE = 2;
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { userCounts, loading, error } = useSelector((state: RootState) => state.user);
-  
- const typesCountParams = useMemo(() => {
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const {
+    userCounts,
+    loading: userLoading,
+    error: userError,
+  } = useSelector((state: RootState) => state.user);
+  const {
+    totalLeads,
+    loading: leadLoading,
+    error: leadError,
+  } = useSelector((state: RootState) => state.lead);
+
+  const typesCountParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
     }
@@ -90,8 +99,7 @@ export default function Home() {
         admin_user_id: user.id,
         admin_user_type: user.user_type,
       };
-    }
-    else {
+    } else {
       return {
         admin_user_id: user.created_user_id,
         admin_user_type: BUILDER_USER_TYPE,
@@ -99,25 +107,63 @@ export default function Home() {
         emp_user_type: user.user_type,
       };
     }
-    return null;
   }, [isAuthenticated, user]);
-  
-useEffect(() => {
-  if (typesCountParams && user?.user_type !== 1) {
-    dispatch(getTypesCount(typesCountParams))
-      .unwrap()
-      .catch((err) => {
-        toast.error(err || "Failed to fetch counts");
+
+  useEffect(() => {
+    if (typesCountParams && user?.user_type !== 1) {
+      // Fetch user counts
+      dispatch(getTypesCount(typesCountParams))
+        .unwrap()
+        .catch((err) => {
+          toast.error(err || "Failed to fetch counts");
+        });
+
+      // Fetch total leads
+      const leadParams =
+        user.user_type === BUILDER_USER_TYPE
+          ? {
+              lead_added_user_id: typesCountParams.admin_user_id,
+              lead_added_user_type: typesCountParams.admin_user_type,
+            }
+          : {
+              lead_added_user_id: typesCountParams.admin_user_id,
+              lead_added_user_type: typesCountParams.admin_user_type,
+              emp_id: typesCountParams.emp_id,
+              emp_user_type: typesCountParams.emp_user_type,
+            };
+
+      dispatch(getTotalLeads(leadParams))
+        .unwrap()
+        .catch((err) => {
+          toast.error(err || "Failed to fetch total leads");
+        });
+    } else if (isAuthenticated && user) {
+      console.warn("Invalid user data:", {
+        id: user.id,
+        user_type: user.user_type,
+        created_user_id: user.created_user_id,
       });
-  } else if (isAuthenticated && user) {
-    
-    console.warn("Invalid user data:", { id: user.id, user_type: user.user_type, created_user_id: user.created_user_id });
-  }
-}, [typesCountParams, dispatch, user]);
+    }
+  }, [typesCountParams, dispatch, user]);
 
   // Separate project counts and employee counts
-  const projectCounts = userCounts?.filter(item => item.user_type === "projects") || [];
-  const employeeCounts = userCounts?.filter(item => item.user_type !== "projects") || [];
+  const projectCounts =
+    userCounts?.filter((item) => item.user_type === "projects") || [];
+  const employeeCounts = useMemo(() => {
+    const counts =
+      userCounts?.filter(
+        (item) =>
+          item.user_type !== "projects" && item.user_type !== "today_leads"
+      ) || [];
+
+    // Ensure "Total Leads" appears first
+    const totalLeadsCard = { user_type: "total_leads", count: totalLeads };
+
+    // Remove any existing duplicate of total_leads
+    const filtered = counts.filter((item) => item.user_type !== "total_leads");
+
+    return [totalLeadsCard, ...filtered];
+  }, [userCounts, totalLeads]);
 
   if (user?.user_type === 1) {
     return (
@@ -134,7 +180,6 @@ useEffect(() => {
     );
   }
 
-
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-6">
       <div className="mb-8">
@@ -149,16 +194,25 @@ useEffect(() => {
         </p>
       </div>
 
-      {loading && (
+      {(userLoading || leadLoading) && (
         <div className="text-center text-slate-600 dark:text-slate-400 mb-8">
           Loading counts...
         </div>
       )}
-      {error && (
+      {(userError || leadError) && (
         <div className="text-center text-red-500 mb-8">
-          {error}
+          {userError || leadError}
           <button
-            onClick={() => dispatch(getTypesCount({ admin_user_id: user!.id, admin_user_type: user!.user_type }))}
+            onClick={() => {
+              if (typesCountParams) dispatch(getTypesCount(typesCountParams));
+              if (typesCountParams)
+                dispatch(
+                  getTotalLeads({
+                    lead_added_user_id: typesCountParams.admin_user_id,
+                    lead_added_user_type: typesCountParams.admin_user_type,
+                  })
+                );
+            }}
             className="ml-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-md"
           >
             Retry
@@ -186,7 +240,7 @@ useEffect(() => {
                     </div>
                     <div>
                       <h3 className="text-white/80 text-lg font-medium mb-1">
-                        {userTypeMap[item.user_type] || "Total Projects"}
+                        {userTypeMap[item.user_type] || "Unknown"}
                       </h3>
                       <div className="text-4xl font-bold text-white mb-2">
                         {Number(item.count).toLocaleString()}
@@ -232,7 +286,8 @@ useEffect(() => {
                 <div className="space-y-3">
                   <div>
                     <h4 className="text-slate-600 text-sm font-medium mb-1">
-                      {userTypeMap[item.user_type] || `User Type ${item.user_type}`}
+                      {userTypeMap[item.user_type] ||
+                        `User Type ${item.user_type}`}
                     </h4>
                     <div className="text-2xl font-bold text-slate-800">
                       {Number(item.count).toLocaleString()}
