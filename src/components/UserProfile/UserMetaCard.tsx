@@ -12,7 +12,7 @@ const designationOptions: Option[] = [
   { value: 3, text: "Channel Partner" },
   { value: 4, text: "Sales Manager" },
   { value: 5, text: "Telecallers" },
-  { value: 6, text: "Marketing agent" },
+  { value: 6, text: "Marketing Executor" },
   { value: 7, text: "Receptionist" },
 ];
 

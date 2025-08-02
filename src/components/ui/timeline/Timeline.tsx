@@ -3,11 +3,11 @@ import { CheckCircle, Clock } from "lucide-react";
 
 const allDesignationOptions = [
   { value: "1", text: "Admin" }, 
-  { value: "2", text: "Builder" }, // Added for completeness
+  { value: "2", text: "Builder" }, 
   { value: "3", text: "Channel Partner" },
   { value: "4", text: "Sales Manager" },
   { value: "5", text: "Telecaller" },
-  { value: "6", text: "Marketing Agent" },
+  { value: "6", text: "Marketing Executors" },
   { value: "7", text: "Receptionists" },
 ];
 
@@ -22,6 +22,7 @@ export interface TimelineEvent {
   updatedEmpId?: string;
   updatedEmpPhone?: string;
   updatedEmpName?: string;
+  
 }
 
 const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {

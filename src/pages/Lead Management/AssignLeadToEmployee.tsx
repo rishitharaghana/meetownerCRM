@@ -2,7 +2,10 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
 import { AppDispatch, RootState } from "../../store/store";
-import { assignLeadToEmployee, getLeadStatuses } from "../../store/slices/leadslice";
+import {
+  assignLeadToEmployee,
+  getLeadStatuses,
+} from "../../store/slices/leadslice";
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
@@ -11,16 +14,21 @@ import { LeadStatus } from "../../types/LeadModel";
 import PageMeta from "../../components/common/PageMeta";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 import { getUsersByType } from "../../store/slices/userslice";
+import DatePicker from "../../components/form/date-picker";
 
 const AssignLeadEmployeePage: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
-  const { leadId } = useParams<{ leadId: string }>(); 
+  const { leadId } = useParams<{ leadId: string }>();
   const { user } = useSelector((state: RootState) => state.auth);
-  const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
-  const { leadStatuses, loading: statusesLoading, error: statusesError } = useSelector(
-    (state: RootState) => state.lead
+  const { users, loading: usersLoading } = useSelector(
+    (state: RootState) => state.user
   );
+  const {
+    leadStatuses,
+    loading: statusesLoading,
+    error: statusesError,
+  } = useSelector((state: RootState) => state.lead);
 
   const [formData, setFormData] = useState({
     assigned_user_type: "",
@@ -31,6 +39,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     status_id: "",
     followup_feedback: "",
     next_action: "",
+    site_visit_date: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -52,52 +61,69 @@ const AssignLeadEmployeePage: React.FC = () => {
     { value: "Low", label: "Low" },
   ];
 
-  const statusOptions = leadStatuses?.map((status: LeadStatus) => ({
-    value: status.status_id.toString(),
-    label: status.status_name,
-  })) || [];
+  const statusOptions =
+    leadStatuses?.map((status: LeadStatus) => ({
+      value: status.status_id.toString(),
+      label: status.status_name,
+    })) || [];
 
-  const userOptions = users?.map((user: UserType) => ({
-    value: user.id.toString(),
-    label: `${user.name} - ${user.mobile}`,
-  })) || [];
+  const userOptions =
+    users?.map((user: UserType) => ({
+      value: user.id.toString(),
+      label: `${user.name} - ${user.mobile}`,
+    })) || [];
 
   useEffect(() => {
     if (user?.id && formData.assigned_user_type) {
-      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: parseInt(formData.assigned_user_type) ,status:1}));
+      dispatch(
+        getUsersByType({
+          admin_user_id: user.id,
+          emp_user_type: parseInt(formData.assigned_user_type),
+          status: 1,
+        })
+      );
     }
     dispatch(getLeadStatuses());
   }, [formData.assigned_user_type, user?.id, dispatch]);
 
-  const handleInputChange = (field: keyof typeof formData) => (value: string) => {
-    setFormData((prev) => ({ ...prev, [field]: value }));
+  const handleInputChange =
+    (field: keyof typeof formData) => (value: string) => {
+      setFormData((prev) => ({ ...prev, [field]: value }));
 
-    if (field === "assigned_id") {
-      const selectedUser = users?.find((user: UserType) => user.id.toString() === value);
-      setFormData((prev) => ({
-        ...prev,
-        assigned_name: selectedUser ? selectedUser.name : "",
-        assigned_emp_number: selectedUser ? selectedUser.mobile : "",
-      }));
-    }
+      if (field === "assigned_id") {
+        const selectedUser = users?.find(
+          (user: UserType) => user.id.toString() === value
+        );
+        setFormData((prev) => ({
+          ...prev,
+          assigned_name: selectedUser ? selectedUser.name : "",
+          assigned_emp_number: selectedUser ? selectedUser.mobile : "",
+        }));
+      }
 
-    if (errors[field]) {
-      setErrors((prev) => {
-        const newErrors = { ...prev };
-        delete newErrors[field]; 
-        return newErrors;
-      });
-    }
-  };
+      if (errors[field]) {
+        setErrors((prev) => {
+          const newErrors = { ...prev };
+          delete newErrors[field];
+          return newErrors;
+        });
+      }
+    };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    if (!formData.assigned_user_type) newErrors.assigned_user_type = "Employee type is required";
+    if (!formData.assigned_user_type)
+      newErrors.assigned_user_type = "Employee type is required";
     if (!formData.assigned_id) newErrors.assigned_id = "Employee is required";
-    if (!formData.assigned_priority) newErrors.assigned_priority = "Priority is required";
-    if (!formData.followup_feedback.trim()) newErrors.followup_feedback = "Follow-up feedback is required";
-    if (!formData.next_action.trim()) newErrors.next_action = "Next action is required";
-
+    if (!formData.assigned_priority)
+      newErrors.assigned_priority = "Priority is required";
+    if (!formData.followup_feedback.trim())
+      newErrors.followup_feedback = "Follow-up feedback is required";
+    if (!formData.next_action.trim())
+      newErrors.next_action = "Next action is required";
+    if (formData.status_id === "4" && !formData.site_visit_date.trim()) {
+      newErrors.site_visit_date = "Site visit date is required";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -127,27 +153,35 @@ const AssignLeadEmployeePage: React.FC = () => {
         next_action: formData.next_action,
         lead_added_user_type: user.user_type,
         lead_added_user_id: user.id,
-        status_id: formData.status_id ? parseInt(formData.status_id) : undefined,
+        status_id: formData.status_id
+          ? parseInt(formData.status_id)
+          : undefined,
+        site_visit_date:
+          formData.status_id === "4" ? formData.site_visit_date : undefined,
       };
 
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
-      setSubmitSuccess(`Lead assigned successfully! Lead ID: ${submitData.lead_id}`);
-      navigate(-1); 
+      setSubmitSuccess(
+        `Lead assigned successfully! Lead ID: ${submitData.lead_id}`
+      );
+      navigate(-1);
     } catch (error: any) {
-      setSubmitError(error.message || "Failed to assign lead. Please try again.");
+      setSubmitError(
+        error.message || "Failed to assign lead. Please try again."
+      );
     } finally {
       setIsSubmitting(false);
     }
   };
 
   const handleCancel = () => {
-    navigate(-1); 
+    navigate(-1);
   };
 
   return (
     <div className="min-h-screen p-6">
       <PageMeta title="Assign Lead - Lead Management" />
-      <PageBreadcrumb pageTitle="Assign Lead" />
+      <PageBreadcrumb title="Assign Lead" />
       <div className="max-w-lg mx-auto bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg">
         <h2 className="text-xl font-semibold mb-4">Assign Lead</h2>
         {submitSuccess && (
@@ -171,7 +205,9 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={userTypeOptions}
             value={formData.assigned_user_type}
             onChange={handleInputChange("assigned_user_type")}
-            placeholder={usersLoading ? "Loading types..." : "Select employee type"}
+            placeholder={
+              usersLoading ? "Loading types..." : "Select employee type"
+            }
             error={errors.assigned_user_type}
           />
           <Select
@@ -179,7 +215,9 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={userOptions}
             value={formData.assigned_id}
             onChange={handleInputChange("assigned_id")}
-            placeholder={usersLoading ? "Loading employees..." : "Select employee"}
+            placeholder={
+              usersLoading ? "Loading employees..." : "Select employee"
+            }
             error={errors.assigned_id}
           />
           <Select
@@ -195,7 +233,11 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={statusOptions}
             value={formData.status_id}
             onChange={handleInputChange("status_id")}
-            placeholder={statusesLoading ? "Loading statuses..." : "Select status (optional)"}
+            placeholder={
+              statusesLoading
+                ? "Loading statuses..."
+                : "Select status (optional)"
+            }
             error={errors.status_id}
           />
           <div className="space-y-1">
@@ -205,14 +247,19 @@ const AssignLeadEmployeePage: React.FC = () => {
             <Input
               type="text"
               value={formData.followup_feedback}
-              onChange={(e) => handleInputChange("followup_feedback")(e.target.value)}
+              onChange={(e) =>
+                handleInputChange("followup_feedback")(e.target.value)
+              }
               placeholder="Enter follow-up feedback"
               className={errors.followup_feedback ? "border-red-500" : ""}
             />
             {errors.followup_feedback && (
-              <p className="text-red-500 text-sm mt-1">{errors.followup_feedback}</p>
+              <p className="text-red-500 text-sm mt-1">
+                {errors.followup_feedback}
+              </p>
             )}
           </div>
+
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Next Action
@@ -228,6 +275,31 @@ const AssignLeadEmployeePage: React.FC = () => {
               <p className="text-red-500 text-sm mt-1">{errors.next_action}</p>
             )}
           </div>
+          {formData.status_id === "4" && (
+            <div className="space-y-1">
+              <DatePicker
+                id="site_visit_date"
+                label="Site Visit Date"
+                placeholder="Select a date"
+                defaultDate={formData.site_visit_date}
+                onChange={(selectedDates: Date[]) => {
+                  if (selectedDates.length > 0) {
+                    handleInputChange("site_visit_date")(
+                      selectedDates[0].toISOString().split("T")[0]
+                    );
+                  } else {
+                    handleInputChange("site_visit_date")("");
+                  }
+                }}
+              />
+              {errors.site_visit_date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.site_visit_date}
+                </p>
+              )}
+            </div>
+          )}
+
           <div className="flex justify-end gap-4 mt-6">
             <Button variant="outline" onClick={handleCancel}>
               Cancel

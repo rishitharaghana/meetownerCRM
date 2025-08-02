@@ -125,7 +125,7 @@ const CreateEmployee = () => {
   const allDesignationOptions = [
     { value: "4", text: "Sales Manager" },
     { value: "5", text: "Telecallers" },
-    { value: "6", text: "Marketing Agent" },
+    { value: "6", text: "Marketing Executor" },
     { value: "7", text: "Receptionists" },
   ];
   const cityOptions =
@@ -170,9 +170,7 @@ const CreateEmployee = () => {
     }
     if (!formData.designation) {
       newErrors.designation = "Select a designation";
-    } else if (!/^[A-Za-z]+$/.test(formData.name.trim())) {
-      newErrors.designation = "Designation only contains Alphabets and Spaces";
-    }
+    } 
 
     if (!formData.password) {
       newErrors.password = "Password is required";
