@@ -19,8 +19,8 @@ import UpdateLeadModal from "./UpdateLeadModel";
 import FilterBar from "../../components/common/FilterBar";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-import { usePropertyQueries } from "../../hooks/PropertyQueries"; // Added for city queries
-import { setCityDetails } from "../../store/slices/propertyDetails"; // Added for city dispatch
+import { usePropertyQueries } from "../../hooks/PropertyQueries";
+import { setCityDetails } from "../../store/slices/propertyDetails";
 
 const userTypeMap: { [key: number]: string } = {
   3: "Channel Partner",
@@ -48,8 +48,8 @@ const LeadsType: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
-  const { states } = useSelector((state: RootState) => state.property); // Added for state data
-  const { citiesQuery } = usePropertyQueries(); // Added for city queries
+  const { states } = useSelector((state: RootState) => state.property);
+  const { citiesQuery } = usePropertyQueries();
 
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const itemsPerPage = 10;
@@ -115,6 +115,7 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     if (leadsParams) {
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
+        toast.error(`Failed to fetch leads: ${err.message || "Unknown error"}`);
       });
     } else if (isAuthenticated && user) {
       console.warn("Invalid user data:", {
@@ -124,6 +125,7 @@ const LeadsType: React.FC = () => {
         created_user_type: user.created_user_type,
         statusId,
       });
+      toast.error("Invalid user data. Please try again.");
     }
     return () => {
       dispatch(clearLeads());
@@ -133,14 +135,15 @@ const LeadsType: React.FC = () => {
   const filteredLeads = useMemo(() => {
     return (
       leads?.filter((item) => {
-        const matchesSearch = !searchQuery
+        const search = searchQuery.trim().toLowerCase();
+        const matchesSearch = !search
           ? true
-          : item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.customer_phone_number.includes(searchQuery) ||
-            item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            item.assigned_emp_number.includes(searchQuery);
+          : (item.customer_name?.toLowerCase()?.includes(search) || false) ||
+            (item.customer_phone_number?.includes(search) || false) ||
+            (item.customer_email?.toLowerCase()?.includes(search) || false) ||
+            (item.interested_project_name?.toLowerCase()?.includes(search) || false) ||
+            (item.assigned_name?.toLowerCase()?.includes(search) || false) ||
+            (item.assigned_emp_number?.includes(search) || false);
 
         const matchesUserType = !selectedUserType
           ? true
@@ -148,7 +151,7 @@ const LeadsType: React.FC = () => {
 
         const matchesCreatedDate = !createdDate
           ? true
-          : item.created_date.split("T")[0] === createdDate;
+          : item.created_date?.split("T")[0] === createdDate;
 
         const matchesUpdatedDate = !updatedDate
           ? true
@@ -199,6 +202,7 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
+      // Placeholder for click outside logic
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
@@ -343,12 +347,12 @@ const LeadsType: React.FC = () => {
   return (
     <div className="relative min-h-screen">
       <div className="flex justify-end items-end">
-          <PageBreadcrumb
-            items={[
-              { label: "Dashboard", link: "/" },
-              { label: getPageTitle(), link: `/leads/${lead_in}/${status}` },
-            ]}
-            /> 
+        <PageBreadcrumb
+          items={[
+            { label: "Dashboard", link: "/" },
+            { label: getPageTitle(), link: `/leads/${lead_in}/${status}` },
+          ]}
+        />
       </div>
       <PageMeta title={` ${getPageTitle()} - Lead Management `} />
       <FilterBar

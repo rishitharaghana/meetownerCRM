@@ -30,6 +30,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     error: statusesError,
   } = useSelector((state: RootState) => state.lead);
 
+  // Added followup_date to formData
   const [formData, setFormData] = useState({
     assigned_user_type: "",
     assigned_id: "",
@@ -40,6 +41,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     followup_feedback: "",
     next_action: "",
     site_visit_date: "",
+    followup_date: "", // New field for follow-up date
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -124,6 +126,10 @@ const AssignLeadEmployeePage: React.FC = () => {
     if (formData.status_id === "4" && !formData.site_visit_date.trim()) {
       newErrors.site_visit_date = "Site visit date is required";
     }
+    // Added validation for followup_date when status_id is "3" (Follow Up)
+    if (formData.status_id === "3" && !formData.followup_date.trim()) {
+      newErrors.followup_date = "Follow-up date is required";
+    }
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -158,6 +164,9 @@ const AssignLeadEmployeePage: React.FC = () => {
           : undefined,
         site_visit_date:
           formData.status_id === "4" ? formData.site_visit_date : undefined,
+        // Added followup_date to submitData when status_id is "3"
+        followup_date:
+          formData.status_id === "3" ? formData.followup_date : undefined,
       };
 
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
@@ -240,41 +249,6 @@ const AssignLeadEmployeePage: React.FC = () => {
             }
             error={errors.status_id}
           />
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Follow-up Feedback
-            </label>
-            <Input
-              type="text"
-              value={formData.followup_feedback}
-              onChange={(e) =>
-                handleInputChange("followup_feedback")(e.target.value)
-              }
-              placeholder="Enter follow-up feedback"
-              className={errors.followup_feedback ? "border-red-500" : ""}
-            />
-            {errors.followup_feedback && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.followup_feedback}
-              </p>
-            )}
-          </div>
-
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Next Action
-            </label>
-            <Input
-              type="text"
-              value={formData.next_action}
-              onChange={(e) => handleInputChange("next_action")(e.target.value)}
-              placeholder="Enter next action"
-              className={errors.next_action ? "border-red-500" : ""}
-            />
-            {errors.next_action && (
-              <p className="text-red-500 text-sm mt-1">{errors.next_action}</p>
-            )}
-          </div>
           {formData.status_id === "4" && (
             <div className="space-y-1">
               <DatePicker
@@ -299,7 +273,65 @@ const AssignLeadEmployeePage: React.FC = () => {
               )}
             </div>
           )}
-
+          {/* Added DatePicker for Follow Up when status_id is "3" */}
+          {formData.status_id === "2" && (
+            <div className="space-y-1">
+              <DatePicker
+                id="followup_date"
+                label="Follow Up Date"
+                placeholder="Select a date"
+                defaultDate={formData.followup_date}
+                onChange={(selectedDates: Date[]) => {
+                  if (selectedDates.length > 0) {
+                    handleInputChange("followup_date")(
+                      selectedDates[0].toISOString().split("T")[0]
+                    );
+                  } else {
+                    handleInputChange("followup_date")("");
+                  }
+                }}
+              />
+              {errors.followup_date && (
+                <p className="text-red-500 text-sm mt-1">
+                  {errors.followup_date}
+                </p>
+              )}
+            </div>
+          )}
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Follow-up Feedback
+            </label>
+            <Input
+              type="text"
+              value={formData.followup_feedback}
+              onChange={(e) =>
+                handleInputChange("followup_feedback")(e.target.value)
+              }
+              placeholder="Enter follow-up feedback"
+              className={errors.followup_feedback ? "border-red-500" : ""}
+            />
+            {errors.followup_feedback && (
+              <p className="text-red-500 text-sm mt-1">
+                {errors.followup_feedback}
+              </p>
+            )}
+          </div>
+          <div className="space-y-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+              Next Action
+            </label>
+            <Input
+              type="text"
+              value={formData.next_action}
+              onChange={(e) => handleInputChange("next_action")(e.target.value)}
+              placeholder="Enter next action"
+              className={errors.next_action ? "border-red-500" : ""}
+            />
+            {errors.next_action && (
+              <p className="text-red-500 text-sm mt-1">{errors.next_action}</p>
+            )}
+          </div>
           <div className="flex justify-end gap-4 mt-6">
             <Button variant="outline" onClick={handleCancel}>
               Cancel
