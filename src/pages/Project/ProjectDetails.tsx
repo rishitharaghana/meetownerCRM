@@ -5,7 +5,6 @@ import Button from "../../components/ui/button/Button";
 import { AppDispatch, RootState } from "../../store/store";
 import { fetchProjectById } from "../../store/slices/projectSlice";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-// import defaultImage from '/images/DefaultImage.jpeg'
 
 const ProjectDetailsPage = () => {
   const { id } = useParams<{ id: string }>();
@@ -20,12 +19,49 @@ const ProjectDetailsPage = () => {
   );
 
   const defaultFloorPlan = " ";
-  const defaultImage = "";
-  const { property_id, posted_by, user_id } = (location.state || {}) as {
-    property_id?: number;
-    posted_by?: string;
-    user_id?: string;
+  const defaultImage = "https://picsum.photos/seed/house1/1200/600";
+  // Real estate-themed dummy images
+  const dummyImages = [
+    "https://picsum.photos/seed/house1/1200/600",
+    "https://picsum.photos/seed/apartment2/1200/600",
+    "https://picsum.photos/seed/property3/1200/600",
+    "https://picsum.photos/seed/property3/1200/600",
+    "https://picsum.photos/seed/property3/1200/600",
+  ];
+
+  // State for carousel
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [isAutoSliding, setIsAutoSliding] = useState(true);
+  const images = selectedProject?.property_image
+    ? Array.isArray(selectedProject.property_image)
+      ? selectedProject.property_image
+      : [selectedProject.property_image]
+    : dummyImages;
+
+  // Handle carousel navigation
+  const handlePrevImage = () => {
+    setCurrentImageIndex((prev) => Math.max(prev - 1, 0));
+    setIsAutoSliding(false); // Pause auto-slide on user interaction
   };
+
+  const handleNextImage = () => {
+    setCurrentImageIndex((prev) => Math.min(prev + 1, images.length - 1));
+    setIsAutoSliding(false); // Pause auto-slide on user interaction
+  };
+
+  const handleThumbnailClick = (index: number) => {
+    setCurrentImageIndex(index);
+    setIsAutoSliding(false); // Pause auto-slide on user interaction
+  };
+
+  // Auto-slide effect
+  useEffect(() => {
+    if (images.length <= 1 || !isAutoSliding) return;
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % images.length);
+    }, 5000); // Slide every 5 seconds
+    return () => clearInterval(interval);
+  }, [images.length, isAutoSliding]);
 
   useEffect(() => {
     if (isAuthenticated && user && property_id && posted_by && user_id) {
@@ -39,12 +75,18 @@ const ProjectDetailsPage = () => {
         console.log("Project data:", response.payload);
       });
     }
-  }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);
+  }, [dispatch, isAuthenticated, user]);
 
   const formatValue = (value: string | undefined, unit?: string): string => {
     if (!value) return "N/A";
     const trimmed = value.trim();
     return unit ? `${trimmed} ${unit}` : trimmed;
+  };
+
+  const { property_id, posted_by, user_id } = (location.state || {}) as {
+    property_id?: number;
+    posted_by?: string;
+    user_id?: string;
   };
 
   if (!isAuthenticated || !user) {
@@ -116,17 +158,102 @@ const ProjectDetailsPage = () => {
           ]}
         />
       </div>
-      {/* Main Image Section */}
-      <div className="relative w-full h-70 mb-10 overflow-hidden rounded-2xl p-2 shadow-lg">
-        <img
-          src={selectedProject.property_image || defaultImage}
-          alt={selectedProject.project_name}
-          className="w-full rounded-2xl h-full object-cover transition-transform duration-500 hover:scale-105"
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = defaultImage;
-          }}
-        />
+      {/* Main Image Carousel Section */}
+      <div className="relative w-full h-[400px] mb-10 overflow-hidden rounded-2xl p-2 shadow-lg">
+        <div
+          className="flex transition-transform duration-500 ease-in-out"
+          style={{ transform: `translateX(-${currentImageIndex * 100}%)` }}
+        >
+          {images.map((image, index) => (
+            <img
+              key={index}
+              src={image || defaultImage}
+              alt={`${selectedProject.project_name} ${index + 1}`}
+              className="w-full h-full object-cover flex-shrink-0 rounded-2xl"
+              onError={(e) => {
+                (e.target as HTMLImageElement).src = defaultImage;
+              }}
+            />
+          ))}
+        </div>
+        {/* Navigation Arrows */}
+        {images.length > 1 && (
+          <>
+            <button
+              onClick={handlePrevImage}
+              className={`absolute left-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-opacity duration-300 ${
+                currentImageIndex === 0 ? "opacity-0 pointer-events-none" : ""
+              }`}
+              aria-label="Previous Image"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M15 19l-7-7 7-7"
+                />
+              </svg>
+            </button>
+            <button
+              onClick={handleNextImage}
+              className={`absolute right-4 top-1/2 transform -translate-y-1/2 bg-gray-800 bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-75 transition-opacity duration-300 ${
+                currentImageIndex === images.length - 1
+                  ? "opacity-0 pointer-events-none"
+                  : ""
+              }`}
+              aria-label="Next Image"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M9 5l7 7-7 7"
+                />
+              </svg>
+            </button>
+          </>
+        )}
       </div>
+      {/* Thumbnail Navigation */}
+      {images.length > 1 && (
+        <div className="flex justify-center gap-2 mb-10 overflow-hidden">
+          {images.slice(0, 3).map((image, index) => (
+            <button
+              key={index}
+              onClick={() => handleThumbnailClick(index)}
+              className={`w-[300px] h-[120px] flex-shrink-0 rounded-lg overflow-hidden border-2 transition-all duration-300 ${
+                currentImageIndex === index
+                  ? "border-blue-600 scale-105"
+                  : "border-gray-300 hover:border-blue-400"
+              }`}
+              aria-label={`Select Image ${index + 1}`}
+            >
+              <img
+                src={image || defaultImage}
+                alt={`Thumbnail ${index + 1}`}
+                className="w-full h-full object-cover"
+                onError={(e) => {
+                  (e.target as HTMLImageElement).src = defaultImage;
+                }}
+              />
+            </button>
+          ))}
+        </div>
+      )}
 
       {/* Header */}
       <div className="flex items-center justify-between mb-4">
@@ -237,8 +364,8 @@ const ProjectDetailsPage = () => {
         {/* Floor Plans Section */}
         <div className="w-full mb-10">
           <p className="mt-2 mb-2 text-left text-xl text-gray-700 dark:text-gray-300 font-medium">
-              Floor Plan
-            </p>
+            Floor Plan
+          </p>
           <div className="bg-white dark:bg-gray-800 rounded-2xl shadow-lg overflow-hidden p-2">
             <img
               src={
@@ -316,15 +443,15 @@ const ProjectDetailsPage = () => {
           </div>
         </div>
         <div className="flex justify-end">
-            <Button
-              variant="primary"
-              size="sm"
-              onClick={() => navigate(-1)}
-              className="bg-[#1D3A76] text-white dark:bg-blue-500 dark:hover:bg-blue-600 px-6 py-2 rounded-lg"
-            >
-              Back
-            </Button>
-          </div>
+          <Button
+            variant="primary"
+            size="sm"
+            onClick={() => navigate(-1)}
+            className="bg-[#1D3A76] text-white dark:bg-blue-500 dark:hover:bg-blue-600 px-6 py-2 rounded-lg"
+          >
+            Back
+          </Button>
+        </div>
       </div>
     </div>
   );

@@ -20,7 +20,7 @@ import toast from "react-hot-toast";
 
 
 const userTypeMap: { [key: string]: string } = {
-  today_leads: "Today Leads",
+  today_leads: "Total Leads",
   today_follow_ups: "Today Follow-Ups",
   site_visit_done: "Site Visits Done",
   booked: "Bookings",

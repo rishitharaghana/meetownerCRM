@@ -52,8 +52,8 @@ const ChannelPartnerLink = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { states } = useSelector((state: RootState) => state.property);
   const { loading } = useSelector((state: RootState) => state.user);
-const [searchParams] = useSearchParams();
-const builderId = searchParams.get("builderId");
+  const [searchParams] = useSearchParams();
+  const builderId = searchParams.get("builderId");
 
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -247,18 +247,19 @@ const builderId = searchParams.get("builderId");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-     if (!builderId) {
-    alert("Missing builderId in URL");
-    return;
-  }
+    if (!builderId) {
+      alert("Missing builderId in URL");
+      return;
+    }
 
     if (!validateForm()) {
       toast.error("Please fill correct details");
       return;
     }
- const createdBy = "Public Registration"
-   const createdUserId = parseInt(builderId, 10); 
-  const createdUserType = 2; 
+
+    const createdBy = "Public Registration";
+    const createdUserId = parseInt(builderId, 10);
+    const createdUserType = 2;
 
     const cityName =
       cityOptions.find((option) => option.value === formData.city)?.text ||
@@ -343,7 +344,7 @@ const builderId = searchParams.get("builderId");
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-blue-50 to-white py-10 px-4">
       <PageMeta title="Add Channel Partners - Channel Partners" />
-      <div className="max-w-2xl mx-auto">
+      <div className="max-w-4xl mx-auto">
         <div className="text-center mb-8">
           <h1 className="text-2xl font-bold text-gray-800 mb-1">
             Add Channel Partner
@@ -354,319 +355,321 @@ const builderId = searchParams.get("builderId");
         </div>
         <form
           onSubmit={handleSubmit}
-          className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30 space-y-6"
+          className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl p-8 border border-white/30"
           encType="multipart/form-data"
         >
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <User size={16} /> Name
-            </label>
-            <Input
-              value={formData.name}
-              onChange={(e) => handleChange("name")(e.target.value)}
-              placeholder="Enter name"
-            />
-            {errors.name && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>
-            )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <User size={16} /> Name
+              </label>
+              <Input
+                value={formData.name}
+                onChange={(e) => handleChange("name")(e.target.value)}
+                placeholder="Enter name"
+              />
+              {errors.name && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.name}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Mobile</label>
+              <PhoneInput
+                countries={[{ code: "IN", label: "+91" }]}
+                value={formData.mobile}
+                placeholder="Enter mobile"
+                onChange={handleChange("mobile")}
+              />
+              {errors.mobile && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Mail size={16} /> Email
+              </label>
+              <Input
+                type="email"
+                value={formData.email}
+                onChange={(e) => handleChange("email")(e.target.value)}
+                placeholder="email@example.com"
+              />
+              {errors.email && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>
+              )}
+            </div>
+
+            <div className="relative">
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <KeyRound size={16} /> Password
+              </label>
+              <Input
+                type={showPassword ? "text" : "password"}
+                value={formData.password}
+                onChange={(e) => handleChange("password")(e.target.value)}
+                placeholder="Enter password"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-9"
+              >
+                {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
+              </button>
+              {errors.password && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                <Landmark size={16} className="inline" /> Company Name
+              </label>
+              <Input
+                value={formData.companyName}
+                onChange={(e) => handleChange("companyName")(e.target.value)}
+                placeholder="Enter company name"
+              />
+              {errors.companyName && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.companyName}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Representative Name
+              </label>
+              <Input
+                value={formData.representativeName}
+                onChange={(e) =>
+                  handleChange("representativeName")(e.target.value)
+                }
+                placeholder="Enter representative name"
+              />
+              {errors.representativeName && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.representativeName}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Company Phone
+              </label>
+              <PhoneInput
+                countries={[{ code: "IN", label: "+91" }]}
+                value={formData.companyNumber}
+                placeholder="Enter company phone number"
+                onChange={handleChange("companyNumber")}
+              />
+              {errors.companyNumber && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.companyNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                GST Number
+              </label>
+              <Input
+                value={formData.gstNumber}
+                onChange={(e) => handleChange("gstNumber")(e.target.value)}
+                placeholder="Enter GST number (e.g., 22ABCDE1234F1Z5)"
+              />
+              {errors.gstNumber && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.gstNumber}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                RERA Number
+              </label>
+              <Input
+                value={formData.reraNumber}
+                onChange={(e) => handleChange("reraNumber")(e.target.value)}
+                placeholder="Enter RERA number (e.g., P51700012345)"
+              />
+              {errors.reraNumber && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.reraNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                PAN Card Number
+              </label>
+              <Input
+                value={formData.panCardNumber}
+                onChange={(e) => handleChange("panCardNumber")(e.target.value)}
+                placeholder="Enter PAN card number (e.g., ABCDE1234F)"
+              />
+              {errors.panCardNumber && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.panCardNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Aadhar Number
+              </label>
+              <Input
+                value={formData.aadharNumber}
+                onChange={(e) => handleChange("aadharNumber")(e.target.value)}
+                placeholder="Enter 12-digit Aadhar number"
+              />
+              {errors.aadharNumber && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.aadharNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                Account Number
+              </label>
+              <Input
+                value={formData.accountNumber}
+                onChange={(e) => handleChange("accountNumber")(e.target.value)}
+                placeholder="Enter account number"
+              />
+              {errors.accountNumber && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.accountNumber}
+                </p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">
+                IFSC Code
+              </label>
+              <Input
+                value={formData.ifscCode}
+                onChange={(e) => handleChange("ifscCode")(e.target.value)}
+                placeholder="Enter IFSC code (e.g., SBIN0001234)"
+              />
+              {errors.ifscCode && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.ifscCode}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <Image size={16} /> Photo
+              </label>
+              <input
+                type="file"
+                accept="image/*"
+                onChange={(e) =>
+                  handleChange("photo")(e.target.files?.[0] || null)
+                }
+                className="w-full p-3 border rounded-md dark:bg-gray-800"
+              />
+              {errors.photo && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
+                <MapPin size={16} /> Pincode
+              </label>
+              <Input
+                value={formData.pincode}
+                onChange={(e) => handleChange("pincode")(e.target.value)}
+                placeholder="Enter pincode"
+              />
+              {errors.pincode && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>
+              )}
+            </div>
+
+            <div>
+              <label className="text-sm font-medium text-gray-700">Locality</label>
+              <Input
+                value={formData.locality}
+                onChange={(e) => handleChange("locality")(e.target.value)}
+                placeholder="Enter locality"
+                className="w-full p-3 border rounded-md dark:bg-gray-800"
+              />
+              {errors.locality && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>
+              )}
+            </div>
+
+            <div className="min-h-[80px]">
+              <Dropdown
+                id="state"
+                label="Select State"
+                options={stateOptions}
+                value={formData.state}
+                onChange={handleDropdownChange("state")}
+                placeholder="Search for a state..."
+                error={errors.state}
+              />
+            </div>
+
+            <div className="min-h-[80px]">
+              <Dropdown
+                id="city"
+                label="Select City"
+                options={cityOptions}
+                value={formData.city}
+                onChange={handleDropdownChange("city")}
+                placeholder="Search for a city..."
+                disabled={!formData.state}
+                error={errors.city}
+              />
+            </div>
+
+            {/* Full-width fields for textareas */}
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">
+                Company Address
+              </label>
+              <textarea
+                value={formData.companyAddress}
+                onChange={(e) => handleChange("companyAddress")(e.target.value)}
+                rows={3}
+                className="w-full p-3 border rounded-md dark:bg-gray-800"
+                placeholder="Enter company address"
+              />
+              {errors.companyAddress && (
+                <p className="text-red-600 text-sm mt-1">
+                  ⚠️ {errors.companyAddress}
+                </p>
+              )}
+            </div>
+
+            <div className="md:col-span-2">
+              <label className="text-sm font-medium text-gray-700">Address</label>
+              <textarea
+                value={formData.address}
+                onChange={(e) => handleChange("address")(e.target.value)}
+                rows={3}
+                className="w-full p-3 border rounded-md dark:bg-gray-800"
+                placeholder="Enter address"
+              />
+              {errors.address && (
+                <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
+              )}
+            </div>
           </div>
 
-          <div>
-            <label className="text-sm font-medium text-gray-700">Mobile</label>
-            <PhoneInput
-              countries={[{ code: "IN", label: "+91" }]}
-              value={formData.mobile}
-              placeholder="Enter mobile"
-              onChange={handleChange("mobile")}
-            />
-            {errors.mobile && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.mobile}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Mail size={16} /> Email
-            </label>
-            <Input
-              type="email"
-              value={formData.email}
-              onChange={(e) => handleChange("email")(e.target.value)}
-              placeholder="email@example.com"
-            />
-            {errors.email && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.email}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              <Landmark size={16} className="inline" /> Company Name
-            </label>
-            <Input
-              value={formData.companyName}
-              onChange={(e) => handleChange("companyName")(e.target.value)}
-              placeholder="Enter company name"
-            />
-            {errors.companyName && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyName}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Representative Name
-            </label>
-            <Input
-              value={formData.representativeName}
-              onChange={(e) =>
-                handleChange("representativeName")(e.target.value)
-              }
-              placeholder="Enter representative name"
-            />
-            {errors.representativeName && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.representativeName}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Company Address
-            </label>
-            <textarea
-              value={formData.companyAddress}
-              onChange={(e) => handleChange("companyAddress")(e.target.value)}
-              rows={3}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-              placeholder="Enter company address"
-            />
-            {errors.companyAddress && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyAddress}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Company Phone
-            </label>
-            <PhoneInput
-              countries={[{ code: "IN", label: "+91" }]}
-              value={formData.companyNumber}
-              placeholder="Enter company phone number"
-              onChange={handleChange("companyNumber")}
-            />
-            {errors.companyNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.companyNumber}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              GST Number
-            </label>
-            <Input
-              value={formData.gstNumber}
-              onChange={(e) => handleChange("gstNumber")(e.target.value)}
-              placeholder="Enter GST number (e.g., 22ABCDE1234F1Z5)"
-            />
-            {errors.gstNumber && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.gstNumber}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              RERA Number
-            </label>
-            <Input
-              value={formData.reraNumber}
-              onChange={(e) => handleChange("reraNumber")(e.target.value)}
-              placeholder="Enter RERA number (e.g., P51700012345)"
-            />
-            {errors.reraNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.reraNumber}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">Address</label>
-            <textarea
-              value={formData.address}
-              onChange={(e) => handleChange("address")(e.target.value)}
-              rows={3}
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-              placeholder="Enter address"
-            />
-            {errors.address && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.address}</p>
-            )}
-          </div>
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Locality
-            </label>
-            <Input
-              value={formData.locality}
-              onChange={(e) => handleChange("locality")(e.target.value)}
-              placeholder="Enter locality"
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-            />
-            {errors.locality && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.locality}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              PAN Card Number
-            </label>
-            <Input
-              value={formData.panCardNumber}
-              onChange={(e) => handleChange("panCardNumber")(e.target.value)}
-              placeholder="Enter PAN card number (e.g., ABCDE1234F)"
-            />
-            {errors.panCardNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.panCardNumber}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Account Number
-            </label>
-            <Input
-              value={formData.accountNumber}
-              onChange={(e) => handleChange("accountNumber")(e.target.value)}
-              placeholder="Enter account number"
-            />
-            {errors.accountNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.accountNumber}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              IFSC Code
-            </label>
-            <Input
-              value={formData.ifscCode}
-              onChange={(e) => handleChange("ifscCode")(e.target.value)}
-              placeholder="Enter IFSC code (e.g., SBIN0001234)"
-            />
-            {errors.ifscCode && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.ifscCode}</p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700">
-              Aadhar Number
-            </label>
-            <Input
-              value={formData.aadharNumber}
-              onChange={(e) => handleChange("aadharNumber")(e.target.value)}
-              placeholder="Enter 12-digit Aadhar number"
-            />
-            {errors.aadharNumber && (
-              <p className="text-red-600 text-sm mt-1">
-                ⚠️ {errors.aadharNumber}
-              </p>
-            )}
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <Image size={16} /> Photo
-            </label>
-            <input
-              type="file"
-              accept="image/*"
-              onChange={(e) =>
-                handleChange("photo")(e.target.files?.[0] || null)
-              }
-              className="w-full p-3 border rounded-md dark:bg-gray-800"
-            />
-            {errors.photo && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
-            )}
-          </div>
-
-          <div className="relative">
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <KeyRound size={16} /> Password
-            </label>
-            <Input
-              type={showPassword ? "text" : "password"}
-              value={formData.password}
-              onChange={(e) => handleChange("password")(e.target.value)}
-              placeholder="Enter password"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9"
-            >
-              {showPassword ? <EyeOff size={18} /> : <EyeIcon size={18} />}
-            </button>
-            {errors.password && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.password}</p>
-            )}
-          </div>
-
-          <div className="min-h-[80px] w-full max-w-md">
-            <Dropdown
-              id="state"
-              label="Select State"
-              options={stateOptions}
-              value={formData.state}
-              onChange={handleDropdownChange("state")}
-              placeholder="Search for a state..."
-              error={errors.state}
-            />
-          </div>
-
-          <div className="min-h-[80px] w-full max-w-md">
-            <Dropdown
-              id="city"
-              label="Select City"
-              options={cityOptions}
-              value={formData.city}
-              onChange={handleDropdownChange("city")}
-              placeholder="Search for a city..."
-              disabled={!formData.state}
-              error={errors.city}
-            />
-          </div>
-
-          <div>
-            <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
-              <MapPin size={16} /> Pincode
-            </label>
-            <Input
-              value={formData.pincode}
-              onChange={(e) => handleChange("pincode")(e.target.value)}
-              placeholder="Enter pincode"
-            />
-            {errors.pincode && (
-              <p className="text-red-600 text-sm mt-1">⚠️ {errors.pincode}</p>
-            )}
-          </div>
-
-          <div className="pt-4">
+          <div className="pt-6">
             <button
               type="submit"
               className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl disabled:opacity-50"

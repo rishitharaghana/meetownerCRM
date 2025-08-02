@@ -28,10 +28,10 @@ const userTypeOptions = [
 ];
 const statusOptions = [
   { value: "", label: "All" },
-  { value: "0", label: "Today Leads" },
+  { value: "0", label: "Total Leads" },
   { value: "1", label: "Open Leads" },
-  { value: "2", label: "Today Follow" },
   { value: "3", label: "In Progress" },
+  { value: "2", label: "Today Follow" },
   { value: "4", label: "Site Visit Scheduled" },
   { value: "5", label: "Site Visit Done" },
   { value: "6", label: "Won" },
