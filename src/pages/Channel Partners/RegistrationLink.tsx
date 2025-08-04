@@ -6,8 +6,8 @@ import toast from "react-hot-toast";
 const SharePartnerLink: React.FC = () => {
   const { user } = useSelector((state: RootState) => state.auth);
   const builderId = user?.id; 
-  const registrationLink = `https://crm.mntechs.com/channelpartner-link?builderId=${builderId}`;
-// const registrationLink = `http://localhost:3001/channelpartner-link?builderId=${builderId}`;
+  // const registrationLink = `https://crm.mntechs.com/channelpartner-link?builderId=${builderId}`;
+const registrationLink = `http://localhost:3001/channelpartner-link?builderId=${builderId}`;
   const message = encodeURIComponent(
     `Join as a Channel Partner!\nBuilder Name: ${user?.name || "N/A"}\nCompany Name: ${user?.company_name || "N/A"}\nRegister now: ${registrationLink}`
   );

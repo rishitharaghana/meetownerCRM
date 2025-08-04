@@ -55,6 +55,7 @@ export interface Lead {
   status_name?: string; 
   state?:string | null;
   city?:string | null;
+   followup_date: string | null;
 }
 
 export interface LeadUpdate {
@@ -115,6 +116,7 @@ export interface LeadState {
   loading: boolean;
   error: string | null;
   totalLeads: number;
+  cpLeads: Lead[] | null;
 }
 
 export interface InsertLeadResponse {

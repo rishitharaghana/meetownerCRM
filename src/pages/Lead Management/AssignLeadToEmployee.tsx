@@ -274,7 +274,7 @@ const AssignLeadEmployeePage: React.FC = () => {
             </div>
           )}
           {/* Added DatePicker for Follow Up when status_id is "3" */}
-          {formData.status_id === "2" && (
+          {formData.status_id === "3" && (
             <div className="space-y-1">
               <DatePicker
                 id="followup_date"

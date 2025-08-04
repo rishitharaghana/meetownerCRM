@@ -1,14 +1,29 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import { AxiosError } from "axios";
 import ngrokAxiosInstance from "../../hooks/AxiosInstance";
-import { ErrorResponse, Lead, LeadsResponse, LeadUpdate, LeadUpdatesResponse, LeadState, LeadStatusResponse, LeadStatus, LeadSourceResponse, LeadSource, InsertLeadResponse, AssignLeadResponse, BookingDoneResponse, UpdateLeadByEmployeeResponse } from "../../types/LeadModel";
+import {
+  ErrorResponse,
+  Lead,
+  LeadsResponse,
+  LeadUpdate,
+  LeadUpdatesResponse,
+  LeadState,
+  LeadStatusResponse,
+  LeadStatus,
+  LeadSourceResponse,
+  LeadSource,
+  InsertLeadResponse,
+  AssignLeadResponse,
+  BookingDoneResponse,
+  UpdateLeadByEmployeeResponse,
+} from "../../types/LeadModel";
 const initialState: LeadState = {
   leads: null,
   cpLeads: null,
   leadUpdates: null,
   bookedLeads: null,
-  leadStatuses: null, 
-  leadSources: null, 
+  leadStatuses: null,
+  leadSources: null,
   loading: false,
   totalLeads: 0,
   error: null,
@@ -20,13 +35,19 @@ export const getLeadsByUser = createAsyncThunk<
     lead_added_user_id: number;
     assigned_user_type?: number;
     assigned_id?: number;
-    status_id?: number; 
+    status_id?: number;
   },
   { rejectValue: string }
 >(
   "lead/getLeadsByUser",
   async (
-    { lead_added_user_type, lead_added_user_id, assigned_user_type, assigned_id, status_id },
+    {
+      lead_added_user_type,
+      lead_added_user_id,
+      assigned_user_type,
+      assigned_id,
+      status_id,
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -37,7 +58,9 @@ export const getLeadsByUser = createAsyncThunk<
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
-        ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
+        ...(assigned_user_type && {
+          assigned_user_type: assigned_user_type.toString(),
+        }),
         ...(assigned_id && { assigned_id: assigned_id.toString() }),
         ...(status_id !== undefined && { status_id: status_id.toString() }),
       });
@@ -66,10 +89,14 @@ export const getLeadsByUser = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch leads");
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to fetch leads"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -87,18 +114,18 @@ export const getTotalLeads = createAsyncThunk<
         return rejectWithValue("No authentication token found. Please log in.");
       }
 
-      const response = await ngrokAxiosInstance.get<{ status: string; total: number }>(
-        `api/v1/leads/totalLeadsCount`,
-        {
-          params: {
-            lead_added_user_id,
-            lead_added_user_type,
-          },
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+      const response = await ngrokAxiosInstance.get<{
+        status: string;
+        total: number;
+      }>(`api/v1/leads/totalLeadsCount`, {
+        params: {
+          lead_added_user_id,
+          lead_added_user_type,
+        },
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       return response.data.total;
     } catch (error) {
@@ -131,16 +158,23 @@ export const getLeadsByID = createAsyncThunk<
   {
     lead_added_user_type: number;
     lead_added_user_id: number;
-    lead_source_user_id:number;
+    lead_source_user_id: number;
     assigned_user_type?: number;
     assigned_id?: number;
-    status_id?: number; 
+    status_id?: number;
   },
   { rejectValue: string }
 >(
   "lead/getLeadsByID",
   async (
-    { lead_added_user_type, lead_added_user_id, assigned_user_type, assigned_id, status_id },
+    {
+      lead_added_user_type,
+      lead_added_user_id,
+       lead_source_user_id,
+      assigned_user_type,
+      assigned_id,
+      status_id,
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -151,10 +185,12 @@ export const getLeadsByID = createAsyncThunk<
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
-        lead_source_user_id: assigned_id.toString(),
+         lead_source_user_id: lead_source_user_id.toString(), 
         assigned_id: assigned_id.toString(),
-        ...(assigned_user_type && { assigned_user_type: assigned_user_type.toString() }),
-        ...(status_id !== undefined && { status_id: status_id.toString() }), 
+        ...(assigned_user_type && {
+          assigned_user_type: assigned_user_type.toString(),
+        }),
+        ...(status_id !== undefined && { status_id: status_id.toString() }),
       });
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/leads/getLeadsChannelPartner?${queryParams}`,
@@ -181,13 +217,19 @@ export const getLeadsByID = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch leads");
+            return rejectWithValue(
+              axiosError.response.data?.message || "Failed to fetch leads"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
+
+
 export const getLeadUpdatesByLeadId = createAsyncThunk<
   LeadUpdate[],
   {
@@ -198,7 +240,10 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
   { rejectValue: string }
 >(
   "lead/getLeadUpdatesByLeadId",
-  async ({ lead_id, lead_added_user_type, lead_added_user_id }, { rejectWithValue }) => {
+  async (
+    { lead_id, lead_added_user_type, lead_added_user_id },
+    { rejectWithValue }
+  ) => {
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -234,10 +279,15 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch lead updates");
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Failed to fetch lead updates"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -253,7 +303,12 @@ export const getBookedLeads = createAsyncThunk<
 >(
   "lead/getBookedLeads",
   async (
-    { lead_added_user_id, lead_added_user_type, assigned_user_type, assigned_id },
+    {
+      lead_added_user_id,
+      lead_added_user_type,
+      assigned_user_type,
+      assigned_id,
+    },
     { rejectWithValue }
   ) => {
     try {
@@ -264,8 +319,12 @@ export const getBookedLeads = createAsyncThunk<
       const queryParams = new URLSearchParams({
         lead_added_user_id: lead_added_user_id.toString(),
         lead_added_user_type: lead_added_user_type.toString(),
-        ...(assigned_user_type !== undefined && { assigned_user_type: assigned_user_type.toString() }),
-        ...(assigned_id !== undefined && { assigned_id: assigned_id.toString() }),
+        ...(assigned_user_type !== undefined && {
+          assigned_user_type: assigned_user_type.toString(),
+        }),
+        ...(assigned_id !== undefined && {
+          assigned_id: assigned_id.toString(),
+        }),
       });
       const response = await ngrokAxiosInstance.get<LeadsResponse>(
         `/api/v1/leads/bookedleads?${queryParams}`,
@@ -292,10 +351,15 @@ export const getBookedLeads = createAsyncThunk<
           case 500:
             return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch booked leads");
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Failed to fetch booked leads"
+            );
         }
       }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -303,90 +367,92 @@ export const getLeadStatuses = createAsyncThunk<
   LeadStatus[],
   void,
   { rejectValue: string }
->(
-  "lead/getLeadStatuses",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-      const response = await ngrokAxiosInstance.get<LeadStatusResponse>(
-        `/api/v1/leads/leadstatus`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.data.results || response.data.results.length === 0) {
-        return rejectWithValue("No lead statuses found");
-      }
-      return response.data.results;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Get lead statuses error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 404:
-            return rejectWithValue("No lead statuses found");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch lead statuses");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("lead/getLeadStatuses", async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
     }
+    const response = await ngrokAxiosInstance.get<LeadStatusResponse>(
+      `/api/v1/leads/leadstatus`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.data.results || response.data.results.length === 0) {
+      return rejectWithValue("No lead statuses found");
+    }
+    return response.data.results;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Get lead statuses error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 404:
+          return rejectWithValue("No lead statuses found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to fetch lead statuses"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 export const getLeadSources = createAsyncThunk<
   LeadSource[],
   void,
   { rejectValue: string }
->(
-  "lead/getLeadSources",
-  async (_, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-      const response = await ngrokAxiosInstance.get<LeadSourceResponse>(
-        `/api/v1/leads/leadsource`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (!response.data.results || response.data.results.length === 0) {
-        return rejectWithValue("No lead sources found");
-      }
-      return response.data.results;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Get lead sources error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 404:
-            return rejectWithValue("No lead sources found");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to fetch lead sources");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("lead/getLeadSources", async (_, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
     }
+    const response = await ngrokAxiosInstance.get<LeadSourceResponse>(
+      `/api/v1/leads/leadsource`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (!response.data.results || response.data.results.length === 0) {
+      return rejectWithValue("No lead sources found");
+    }
+    return response.data.results;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Get lead sources error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 404:
+          return rejectWithValue("No lead sources found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to fetch lead sources"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 export const insertLead = createAsyncThunk<
   InsertLeadResponse,
   {
@@ -404,77 +470,82 @@ export const insertLead = createAsyncThunk<
     assigned_id?: number;
     assigned_name?: string;
     assigned_emp_number?: string;
-    lead_source_user_id?:number;
+    lead_source_user_id?: number;
   },
   { rejectValue: string }
->(
-  "lead/insertLead",
-  async (leadData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-      const payload: any = {
-        customer_name: leadData.customer_name,
-        customer_phone_number: leadData.customer_phone_number,
-        customer_email: leadData.customer_email,
-        interested_project_id: leadData.interested_project_id,
-        interested_project_name: leadData.interested_project_name,
-        lead_source_id: leadData.lead_source_id,
-        lead_source_user_id:leadData.lead_source_user_id,
-        sqft: leadData.sqft,
-        budget: leadData.budget,
-        lead_added_user_type: leadData.lead_added_user_type,
-        lead_added_user_id: leadData.lead_added_user_id,
-      };
-      if (leadData.lead_source_id === 6) {
-        if (
-          !leadData.assigned_user_type ||
-          !leadData.assigned_id ||
-          !leadData.assigned_name ||
-          !leadData.assigned_emp_number
-        ) {
-          return rejectWithValue("All assigned fields are required for lead source ID 6");
-        }
-        payload.assigned_user_type = leadData.assigned_user_type;
-        payload.assigned_id = leadData.assigned_id;
-        payload.assigned_name = leadData.assigned_name;
-        payload.assigned_emp_number = leadData.assigned_emp_number;
-      }
-      const response = await ngrokAxiosInstance.post<InsertLeadResponse>(
-        `/api/v1/insertLead`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.status !== "success") {
-        return rejectWithValue(response.data.message || "Failed to insert lead");
-      }
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Insert lead error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 400:
-            return rejectWithValue(axiosError.response.data?.message || "Invalid lead data provided");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to insert lead");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("lead/insertLead", async (leadData, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
     }
+    const payload: any = {
+      customer_name: leadData.customer_name,
+      customer_phone_number: leadData.customer_phone_number,
+      customer_email: leadData.customer_email,
+      interested_project_id: leadData.interested_project_id,
+      interested_project_name: leadData.interested_project_name,
+      lead_source_id: leadData.lead_source_id,
+      lead_source_user_id: leadData.lead_source_user_id,
+      sqft: leadData.sqft,
+      budget: leadData.budget,
+      lead_added_user_type: leadData.lead_added_user_type,
+      lead_added_user_id: leadData.lead_added_user_id,
+    };
+    if (leadData.lead_source_id === 6) {
+      if (
+        !leadData.assigned_user_type ||
+        !leadData.assigned_id ||
+        !leadData.assigned_name ||
+        !leadData.assigned_emp_number
+      ) {
+        return rejectWithValue(
+          "All assigned fields are required for lead source ID 6"
+        );
+      }
+      payload.assigned_user_type = leadData.assigned_user_type;
+      payload.assigned_id = leadData.assigned_id;
+      payload.assigned_name = leadData.assigned_name;
+      payload.assigned_emp_number = leadData.assigned_emp_number;
+    }
+    const response = await ngrokAxiosInstance.post<InsertLeadResponse>(
+      `/api/v1/insertLead`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.status !== "success") {
+      return rejectWithValue(response.data.message || "Failed to insert lead");
+    }
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Insert lead error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 400:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Invalid lead data provided"
+          );
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to insert lead"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 export const assignLeadToEmployee = createAsyncThunk<
   AssignLeadResponse,
   {
@@ -489,55 +560,62 @@ export const assignLeadToEmployee = createAsyncThunk<
     lead_added_user_type: number;
     lead_added_user_id: number;
     status_id?: number;
+    followup_date?: string; // Add followup_date
+    site_visit_date?: string;
   },
   { rejectValue: string }
->(
-  "lead/assignLeadToEmployee",
-  async (assignData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-      const payload = {
-        ...assignData,
-        status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
-      };
-      const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
-        `/api/v1/leads/assignLeadToEmployee`,
-        payload,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-      if (response.data.status !== "success") {
-        return rejectWithValue(response.data.message || "Failed to assign lead");
-      }
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Assign lead error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 400:
-            return rejectWithValue("Invalid lead data provided");
-          case 404:
-            return rejectWithValue("Lead not found");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to assign lead");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+>("lead/assignLeadToEmployee", async (assignData, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
     }
+    const payload = {
+      ...assignData,
+      status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
+      followup_date:
+        assignData.status_id === 3 ? assignData.followup_date : undefined, // Ensure followup_date is sent only for status_id: 3
+      site_visit_date:
+        assignData.status_id === 4 ? assignData.site_visit_date : undefined, // Handle site_visit_date for status_id: 4
+    };
+    const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
+      `/api/v1/leads/assignLeadToEmployee`,
+      payload,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    if (response.data.status !== "success") {
+      return rejectWithValue(response.data.message || "Failed to assign lead");
+    }
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Assign lead error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 400:
+          return rejectWithValue("Invalid lead data provided");
+        case 404:
+          return rejectWithValue("Lead not found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to assign lead"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 export const markLeadAsBooked = createAsyncThunk<
   BookingDoneResponse,
   {
@@ -554,7 +632,7 @@ export const markLeadAsBooked = createAsyncThunk<
   },
   { rejectValue: string }
 >(
-  'lead/markLeadAsBooked',
+  "lead/markLeadAsBooked",
   async (
     {
       lead_id,
@@ -571,9 +649,9 @@ export const markLeadAsBooked = createAsyncThunk<
     { rejectWithValue }
   ) => {
     try {
-      const token = localStorage.getItem('token');
+      const token = localStorage.getItem("token");
       if (!token) {
-        return rejectWithValue('No authentication token found. Please log in.');
+        return rejectWithValue("No authentication token found. Please log in.");
       }
       const payload = {
         lead_id,
@@ -588,7 +666,7 @@ export const markLeadAsBooked = createAsyncThunk<
         budget,
       };
       const response = await ngrokAxiosInstance.post<BookingDoneResponse>(
-        '/api/v1/leads/bookingdone',
+        "/api/v1/leads/bookingdone",
         payload,
         {
           headers: {
@@ -596,29 +674,41 @@ export const markLeadAsBooked = createAsyncThunk<
           },
         }
       );
-      if (response.data.status !== 'success') {
-        return rejectWithValue(response.data.message || 'Failed to mark lead as booked');
+      if (response.data.status !== "success") {
+        return rejectWithValue(
+          response.data.message || "Failed to mark lead as booked"
+        );
       }
       return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      console.error('Mark lead as booked error:', axiosError);
+      console.error("Mark lead as booked error:", axiosError);
       if (axiosError.response) {
         const status = axiosError.response.status;
         switch (status) {
           case 401:
-            return rejectWithValue('Unauthorized: Invalid or expired token');
+            return rejectWithValue("Unauthorized: Invalid or expired token");
           case 400:
-            return rejectWithValue(axiosError.response.data?.message || 'Invalid lead or booking data provided');
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Invalid lead or booking data provided"
+            );
           case 404:
-            return rejectWithValue(axiosError.response.data?.message || 'Lead not found');
+            return rejectWithValue(
+              axiosError.response.data?.message || "Lead not found"
+            );
           case 500:
-            return rejectWithValue('Server error. Please try again later.');
+            return rejectWithValue("Server error. Please try again later.");
           default:
-            return rejectWithValue(axiosError.response.data?.message || 'Failed to mark lead as booked');
+            return rejectWithValue(
+              axiosError.response.data?.message ||
+                "Failed to mark lead as booked"
+            );
         }
       }
-      return rejectWithValue('Network error. Please check your connection and try again.');
+      return rejectWithValue(
+        "Network error. Please check your connection and try again."
+      );
     }
   }
 );
@@ -637,15 +727,14 @@ export const updateLeadByEmployee = createAsyncThunk<
     lead_added_user_id: number;
   },
   { rejectValue: string }
->(
-  "lead/updateLeadByEmployee",
-  async (updateData, { rejectWithValue }) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        return rejectWithValue("No authentication token found. Please log in.");
-      }
-      const response = await ngrokAxiosInstance.post<UpdateLeadByEmployeeResponse>(
+>("lead/updateLeadByEmployee", async (updateData, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
+    }
+    const response =
+      await ngrokAxiosInstance.post<UpdateLeadByEmployeeResponse>(
         `/api/v1/leads/updateLeadByEmployee`,
         updateData,
         {
@@ -654,32 +743,35 @@ export const updateLeadByEmployee = createAsyncThunk<
           },
         }
       );
-      if (response.data.status !== "success") {
-        return rejectWithValue(response.data.message || "Failed to update lead");
-      }
-      return response.data;
-    } catch (error) {
-      const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Update lead by employee error:", axiosError);
-      if (axiosError.response) {
-        const status = axiosError.response.status;
-        switch (status) {
-          case 401:
-            return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 400:
-            return rejectWithValue("Invalid lead data provided");
-          case 404:
-            return rejectWithValue("Lead not found");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
-          default:
-            return rejectWithValue(axiosError.response.data?.message || "Failed to update lead");
-        }
-      }
-      return rejectWithValue("Network error. Please check your connection and try again.");
+    if (response.data.status !== "success") {
+      return rejectWithValue(response.data.message || "Failed to update lead");
     }
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Update lead by employee error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 400:
+          return rejectWithValue("Invalid lead data provided");
+        case 404:
+          return rejectWithValue("Lead not found");
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to update lead"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
   }
-);
+});
 const leadSlice = createSlice({
   name: "lead",
   initialState,
@@ -688,8 +780,8 @@ const leadSlice = createSlice({
       state.leads = null;
       state.leadUpdates = null;
       state.bookedLeads = null;
-      state.leadStatuses = null; 
-      state.leadSources = null; 
+      state.leadStatuses = null;
+      state.leadSources = null;
       state.error = null;
     },
   },
@@ -706,7 +798,8 @@ const leadSlice = createSlice({
       .addCase(getLeadsByUser.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
-      }) .addCase(getLeadsByID.pending, (state) => {
+      })
+      .addCase(getLeadsByID.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -730,7 +823,6 @@ const leadSlice = createSlice({
       .addCase(getTotalLeads.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
- 
       })
 
       .addCase(getLeadUpdatesByLeadId.pending, (state) => {
@@ -781,7 +873,7 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-       .addCase(insertLead.pending, (state) => {
+      .addCase(insertLead.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
@@ -800,7 +892,9 @@ const leadSlice = createSlice({
         state.loading = false;
         if (action.payload.data && state.leads) {
           state.leads = state.leads.map((lead) =>
-            lead.lead_id === action.payload.data.lead_id ? action.payload.data : lead
+            lead.lead_id === action.payload.data.lead_id
+              ? { ...lead, ...action.payload.data } 
+              : lead
           );
         }
       })
@@ -808,14 +902,16 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-       .addCase(markLeadAsBooked.pending, (state) => {
+      .addCase(markLeadAsBooked.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(markLeadAsBooked.fulfilled, (state, action) => {
         state.loading = false;
         if (state.leads) {
-          state.leads = state.leads.filter((lead) => lead.lead_id !== action.payload.lead_id);
+          state.leads = state.leads.filter(
+            (lead) => lead.lead_id !== action.payload.lead_id
+          );
         }
       })
       .addCase(markLeadAsBooked.rejected, (state, action) => {
