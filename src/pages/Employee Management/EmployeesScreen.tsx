@@ -30,7 +30,7 @@ import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 const userTypeMap: { [key: number]: string } = {
   4: "Sales Manager",
   5: "Telecallers",
-  6: "Marketing Executors",
+  6: "Marketing Executive",
   7: "Receptionists",
 };
 

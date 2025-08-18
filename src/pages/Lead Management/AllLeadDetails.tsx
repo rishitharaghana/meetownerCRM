@@ -19,7 +19,7 @@ import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },
   { value: "5", label: "Telecallers" },
-  { value: "6", label: "Marketing Executors" },
+  { value: "6", label: "Marketing Executive" },
   { value: "7", label: "Receptionists" },
 ];
 const statusOptions = [

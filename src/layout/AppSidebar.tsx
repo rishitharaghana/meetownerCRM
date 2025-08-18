@@ -8,9 +8,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { filterNavItemsByUserType, NavItem } from "../hooks/NavFilter";
 
-
-
-
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,
@@ -86,7 +83,7 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Sales Manager", path: "/employee/4", pro: false },
       { name: "Telecallers", path: "/employee/5", pro: false },
-      { name: "Marketing Executors", path: "/employee/6", pro: false },
+      { name: "Marketing Executives", path: "/employee/6", pro: false },
       { name: "Receptionists", path: "/employee/7", pro: false },
       {name:"Add Employee",path:"/create-employee"}
     ],

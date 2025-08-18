@@ -17,11 +17,11 @@ interface Option {
 }
 
 const allDesignationOptions: Option[] = [
-  { value: "7", text: "Manager" },
+  { value: "7", text: "Sales Manager" },
   { value: "8", text: "TeleCaller" },
   { value: "9", text: "Marketing Executive" },
-  { value: "10", text: "Customer Support" },
-  { value: "11", text: "Customer Service" },
+  { value: "10", text: "Receptionist" },
+
 ];
 
 const statusOptions: Option[] = [
