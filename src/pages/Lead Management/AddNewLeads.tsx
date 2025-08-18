@@ -10,7 +10,6 @@ import { getLeadSources, insertLead } from "../../store/slices/leadslice";
 import { LeadSource } from "../../types/LeadModel";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
-import UpComingProjects from "../Project/UpComingProjects";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface FormData {
@@ -24,7 +23,9 @@ interface FormData {
   propertyType: string;
   squareFeet: string;
   budget: string;
+  duplex: string; // New field for duplex selection
 }
+
 interface Errors {
   name?: string;
   mobile?: string;
@@ -36,35 +37,33 @@ interface Errors {
   propertyType?: string;
   squareFeet?: string;
   budget?: string;
+  duplex?: string; // New field for duplex validation
 }
+
 interface Project {
   property_id: string | number;
   project_name: string;
   property_type: string;
 }
+
 interface ChannelPartner {
   id: string | number;
   name: string;
   mobile: string;
 }
+
 const LeadForm: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector(
-    (state: RootState) => state.auth
-  );
+  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { ongoingProjects, upcomingProjects, loading: projectsLoading } = useSelector(
     (state: RootState) => state.projects
   );
- 
-  const { users, loading: usersLoading } = useSelector(
-    (state: RootState) => state.user
+  const { users, loading: usersLoading } = useSelector((state: RootState) => state.user);
+  const { leadSources, loading: leadsLoading, error: leadsError } = useSelector(
+    (state: RootState) => state.lead
   );
-  const {
-    leadSources,
-    loading: leadsLoading,
-    error: leadsError,
-  } = useSelector((state: RootState) => state.lead);
   const isBuilder = user?.user_type === 2;
+
   const [formData, setFormData] = useState<FormData>({
     name: "",
     mobile: "",
@@ -76,11 +75,14 @@ const LeadForm: React.FC = () => {
     propertyType: "",
     squareFeet: "",
     budget: "",
+    duplex: "", // Initialize duplex field
   });
+
   const [errors, setErrors] = useState<Errors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
   useEffect(() => {
     if (isAuthenticated && user?.id) {
       if (isBuilder) {
@@ -96,7 +98,6 @@ const LeadForm: React.FC = () => {
           fetchOngoingProjects({
             admin_user_type: user.created_user_type,
             admin_user_id: user.created_user_id,
-            
           })
         );
       }
@@ -105,9 +106,9 @@ const LeadForm: React.FC = () => {
       dispatch(clearUsers());
     };
   }, [isAuthenticated, user, dispatch, isBuilder]);
- 
-  useEffect(()=> {
-    if(isBuilder){
+
+  useEffect(() => {
+    if (isBuilder) {
       dispatch(
         fetchUpcomingProjects({
           admin_user_type: user.user_type,
@@ -119,61 +120,66 @@ const LeadForm: React.FC = () => {
       dispatch(
         fetchUpcomingProjects({
           admin_user_type: user.created_user_type,
-          admin_user_id:user.created_user_id,
-      
+          admin_user_id: user.created_user_id,
         })
-      )
+      );
     }
-     return() =>{
+    return () => {
       dispatch(clearUsers());
-  } 
- 
-  },[isAuthenticated, user, dispatch, isBuilder]);
+    };
+  }, [isAuthenticated, user, dispatch, isBuilder]);
 
   useEffect(() => {
-    if (
-      isAuthenticated &&
-      user?.id &&
-      isBuilder &&
-      formData.leadSource === "6"
-    ) {
-     
-     dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3,status:1 }));
+    if (isAuthenticated && user?.id && isBuilder && formData.leadSource === "6") {
+      dispatch(getUsersByType({ admin_user_id: user.id, emp_user_type: 3, status: 1 }));
     }
   }, [formData.leadSource, isAuthenticated, user, dispatch, isBuilder]);
-  const projectOptions =
-  [...ongoingProjects, ...upcomingProjects]?.map((project: Project) => ({
+
+  const projectOptions = [...ongoingProjects, ...upcomingProjects]?.map((project: Project) => ({
     value: project.property_id.toString(),
     label: `${project.project_name} - ${project.property_type}`,
   })) || [];
 
-  const channelPartnerOptions =
-    users?.map((partner: ChannelPartner) => ({
-      value: partner.id.toString(),
-      label: `${partner.name} - ${partner.mobile}`,
-    })) || [];
-  const campaignOptions =
-    leadSources
-      ?.filter(
-        (source: LeadSource) => source.lead_source_name !== "Channel Partner"
-      )
-      ?.map((source: LeadSource) => ({
-        value: source.lead_source_id.toString(),
-        label: source.lead_source_name,
-      })) || [];
-  const leadSourceOptions =
-    leadSources?.map((source: LeadSource) => ({
+  const channelPartnerOptions = users?.map((partner: ChannelPartner) => ({
+    value: partner.id.toString(),
+    label: `${partner.name} - ${partner.mobile}`,
+  })) || [];
+
+  const campaignOptions = leadSources
+    ?.filter((source: LeadSource) => source.lead_source_name !== "Channel Partner")
+    ?.map((source: LeadSource) => ({
       value: source.lead_source_id.toString(),
       label: source.lead_source_name,
     })) || [];
+
+  const leadSourceOptions = leadSources?.map((source: LeadSource) => ({
+    value: source.lead_source_id.toString(),
+    label: source.lead_source_name,
+  })) || [];
+
   const propertyTypeOptions = [
     { value: "1bhk", label: "1 BHK" },
+    { value: "1.5bhk", label: "1.5 BHK" },
     { value: "2bhk", label: "2 BHK" },
+    { value: "2.5bhk", label: "2.5 BHK" },
     { value: "3bhk", label: "3 BHK" },
+    { value: "3.5bhk", label: "3.5 BHK" },
     { value: "4bhk", label: "4 BHK" },
+    { value: "4.5bhk", label: "4.5 BHK" },
     { value: "5bhk", label: "5 BHK" },
+    { value: "5.5bhk", label: "5.5 BHK" },
     { value: "6bhk", label: "6 BHK" },
+    { value: "7bhk", label: "7 BHK" },
+    { value: "8bhk", label: "8 BHK" },
+    { value: "9bhk", label: "9 BHK" },
+    { value: "10bhk", label: "10 BHK" },
   ];
+
+  const duplexOptions = [
+    { value: "Yes", label: "Yes" },
+    { value: "No", label: "No" },
+  ];
+
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => {
       if (field === "leadSource") {
@@ -190,12 +196,13 @@ const LeadForm: React.FC = () => {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
   };
+
   const validateForm = (): boolean => {
     const newErrors: Errors = {};
     if (!formData.name.trim()) {
       newErrors.name = "Name is required";
     } else if (!/^[A-Za-z\s]+$/.test(formData.name.trim())) {
-      newErrors.name = "Name can only contain alphabets and Spaces";
+      newErrors.name = "Name can only contain alphabets and spaces";
     }
     if (!formData.mobile.trim()) {
       newErrors.mobile = "Mobile number is required";
@@ -233,95 +240,94 @@ const LeadForm: React.FC = () => {
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
-  e.preventDefault();
-  if (!validateForm()) {
-    toast.error("Please fill correct details");
-    return;
-  }
-  setIsSubmitting(true);
-  setSubmitError(null);
-  setSubmitSuccess(null);
-  try {
-    const selectedProject = projectOptions.find(
-      (opt) => opt.value === formData.interestedProject
-    );
-    const selectedChannelPartner = channelPartnerOptions.find(
-      (opt) => opt.value === formData.channelPartner
-    );
-    const leadData: any = {
-      customer_name: formData.name,
-      customer_phone_number: formData.mobile,
-      customer_email: formData.email,
-      interested_project_id: Number(formData.interestedProject),
-      interested_project_name: selectedProject?.label.split(" - ")[0],
-      lead_source_id: isBuilder ? Number(formData.leadSource) : 6,
-      lead_source_user_id: Number(formData.channelPartner),
-      sqft: formData.squareFeet,
-      budget: formData.budget,
-      ...(isBuilder
-        ? {
-            lead_added_user_type: user?.user_type,
-            lead_added_user_id: user?.id,
-          }
-        : {
-            lead_added_user_type: user?.created_user_type,
-            lead_added_user_id: user?.created_user_id,
-          }),
-      ...(isBuilder && formData.leadSource === "6"
-        ? {
-            assigned_user_type: 3,
-            assigned_id: Number(formData.channelPartner),
-            assigned_name:
-              selectedChannelPartner?.label.split(" - ")[0] || "",
-            assigned_emp_number:
-              selectedChannelPartner?.label.split(" - ")[1] || "",
-          }
-        : !isBuilder
-        ? {
-            assigned_user_type: 3,
-            assigned_id: user?.id,
-            assigned_name: user?.name || "",
-            assigned_emp_number: user?.mobile || "",
-          }
-        : {}),
-    };
-    const result = await dispatch(insertLead(leadData)).unwrap();
-    setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
-    setFormData({
-      name: "",
-      mobile: "",
-      email: "",
-      interestedProject: "",
-      leadSource: isBuilder ? "" : "6",
-      channelPartner: "",
-      campaign: "",
-      propertyType: "",
-      squareFeet: "",
-      budget: "",
-    });
-  } catch (error: any) {
-    setSubmitError(
-      error.message || "Failed to create lead. Please try again."
-    );
-  } finally {
-    setIsSubmitting(false);
-  }
-};
+    e.preventDefault();
+    if (!validateForm()) {
+      toast.error("Please fill correct details");
+      return;
+    }
+    setIsSubmitting(true);
+    setSubmitError(null);
+    setSubmitSuccess(null);
+    try {
+      const selectedProject = projectOptions.find(
+        (opt) => opt.value === formData.interestedProject
+      );
+      const selectedChannelPartner = channelPartnerOptions.find(
+        (opt) => opt.value === formData.channelPartner
+      );
+      const leadData: any = {
+        customer_name: formData.name,
+        customer_phone_number: formData.mobile,
+        customer_email: formData.email,
+        interested_project_id: Number(formData.interestedProject),
+        interested_project_name: selectedProject?.label.split(" - ")[0],
+        lead_source_id: isBuilder ? Number(formData.leadSource) : 6,
+        lead_source_user_id: Number(formData.channelPartner),
+        sqft: formData.squareFeet,
+        budget: formData.budget,
+        duplex: formData.duplex, // Include duplex in leadData
+        ...(isBuilder
+          ? {
+              lead_added_user_type: user?.user_type,
+              lead_added_user_id: user?.id,
+            }
+          : {
+              lead_added_user_type: user?.created_user_type,
+              lead_added_user_id: user?.created_user_id,
+            }),
+        ...(isBuilder && formData.leadSource === "6"
+          ? {
+              assigned_user_type: 3,
+              assigned_id: Number(formData.channelPartner),
+              assigned_name: selectedChannelPartner?.label.split(" - ")[0] || "",
+              assigned_emp_number: selectedChannelPartner?.label.split(" - ")[1] || "",
+            }
+          : !isBuilder
+          ? {
+              assigned_user_type: 3,
+              assigned_id: user?.id,
+              assigned_name: user?.name || "",
+              assigned_emp_number: user?.mobile || "",
+            }
+          : {}),
+      };
+      const result = await dispatch(insertLead(leadData)).unwrap();
+      setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
+      setFormData({
+        name: "",
+        mobile: "",
+        email: "",
+        interestedProject: "",
+        leadSource: isBuilder ? "" : "6",
+        channelPartner: "",
+        campaign: "",
+        propertyType: "",
+        squareFeet: "",
+        budget: "",
+        duplex: "", // Reset duplex field
+      });
+    } catch (error: any) {
+      setSubmitError(error.message || "Failed to create lead. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-realty-50 via-white to-realty-100 py-8 px-4">
       <div className="flex justify-end">
         <PageBreadcrumb
-          items={[  
+          items={[
             { label: "Dashboard", link: "/" },
             { label: "Add New Lead", link: "/add-leads" },
           ]}
-          />
+        />
       </div>
       <PageMeta title="Add New Leads - Lead Management" />
 
       <div className="max-w-2xl mx-auto">
-        {}
         {submitSuccess && (
           <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">
             {submitSuccess}
@@ -353,7 +359,6 @@ const LeadForm: React.FC = () => {
         </div>
         <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8 animate-fade-in">
           <form onSubmit={handleSubmit} className="space-y-6">
-            {}
             <div className="space-y-6">
               <h2 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
                 <User className="w-5 h-5 text-[#1D3A76]" />
@@ -406,7 +411,6 @@ const LeadForm: React.FC = () => {
                 )}
               </div>
             </div>
-            {}
             <div className="space-y-6 pt-6 border-t border-realty-200">
               <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
                 <Building className="w-5 h-5" />
@@ -425,7 +429,6 @@ const LeadForm: React.FC = () => {
                 error={errors.interestedProject}
               />
             </div>
-            {}
             {isBuilder && (
               <div className="space-y-6 pt-6 border-t border-realty-200">
                 <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
@@ -472,7 +475,6 @@ const LeadForm: React.FC = () => {
                 )}
               </div>
             )}
-            {}
             <div className="space-y-6 pt-6 border-t border-realty-200">
               <h2 className="text-lg font-semibold text-realty-700 flex items-center gap-2">
                 <Building className="w-5 h-5" />
@@ -504,6 +506,30 @@ const LeadForm: React.FC = () => {
                   <p className="text-red-500 text-sm mt-1">
                     {errors.propertyType}
                   </p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Duplex (Optional)
+                </label>
+                <div className="flex gap-3 flex-wrap">
+                  {duplexOptions.map((option) => (
+                    <button
+                      type="button"
+                      key={option.value}
+                      onClick={() => handleInputChange("duplex")(option.value)}
+                      className={`px-4 py-2 rounded-md border transition-all ${
+                        formData.duplex === option.value
+                          ? "bg-blue-900 text-white border-blue-900"
+                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
+                      }`}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+                {errors.duplex && (
+                  <p className="text-red-500 text-sm mt-1">{errors.duplex}</p>
                 )}
               </div>
             </div>
@@ -539,7 +565,6 @@ const LeadForm: React.FC = () => {
                 <p className="text-red-500 text-sm mt-1">{errors.budget}</p>
               )}
             </div>
-            {}
             <div className="pt-6">
               <button
                 type="submit"
@@ -576,4 +601,5 @@ const LeadForm: React.FC = () => {
     </div>
   );
 };
+
 export default LeadForm;
