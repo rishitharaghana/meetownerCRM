@@ -1,4 +1,3 @@
-// AppLayout.tsx
 import { useSelector } from "react-redux";
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { Outlet } from "react-router";
@@ -9,9 +8,7 @@ import { RootState } from "../store/store";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
-  // Get userType from Redux
   const userType = useSelector((state: RootState) => state.auth.user?.user_type ?? null);
-  // Debugging logs
   console.log("userType in AppLayout:", userType);
   console.log("Full auth state:", useSelector((state: RootState) => state.auth));
 
