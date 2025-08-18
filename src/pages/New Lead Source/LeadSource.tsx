@@ -12,7 +12,6 @@ function LeadSource() {
   const [leadSources, setLeadSources] = useState<LeadSource[]>([]);
   const [editingSource, setEditingSource] = useState<LeadSource | null>(null);
 
-  // Load sources from localStorage on component mount
   useEffect(() => {
     const savedSources = localStorage.getItem('leadSources');
     if (savedSources) {
@@ -20,7 +19,6 @@ function LeadSource() {
     }
   }, []);
 
-  // Save sources to localStorage whenever leadSources changes
   useEffect(() => {
     localStorage.setItem('leadSources', JSON.stringify(leadSources));
   }, [leadSources]);
@@ -70,7 +68,7 @@ function LeadSource() {
             onClick={() => setCurrentPage('list')}
             className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
               currentPage === 'list'
-                ? 'bg-blue-500 text-white shadow-sm'
+                ? 'bg-blue-900 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -81,7 +79,7 @@ function LeadSource() {
             onClick={handleAddNew}
             className={`flex items-center px-4 py-2 rounded-md font-medium transition-all duration-200 ${
               currentPage === 'add'
-                ? 'bg-blue-500 text-white shadow-sm'
+                ? 'bg-blue-900 text-white shadow-sm'
                 : 'text-gray-600 hover:text-gray-900 hover:bg-gray-100'
             }`}
           >
@@ -200,7 +198,7 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
       <form onSubmit={handleSubmit} className="px-8 py-6">
         {/* Show existing lead sources */}
         {!editingSource && existingSources.length > 0 && (
-          <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+          <div className="mb-8 p-4 bg-blue-900 border border-blue-900 rounded-lg">
             <h3 className="text-sm font-semibold text-blue-900 mb-3">Existing Lead Sources ({existingSources.length})</h3>
             <div className="flex flex-wrap gap-2">
               {existingSources.map((source) => (
@@ -248,7 +246,7 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
           <button
             type="submit"
             disabled={isSubmitting}
-            className="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
+            className="px-6 py-3 bg-blue-900 text-white rounded-lg hover:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed transition-colors font-medium"
           >
             {isSubmitting ? 'Saving...' : editingSource ? 'Update Source' : 'Add Source'}
           </button>

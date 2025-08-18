@@ -1,24 +1,54 @@
 import { useEffect, useRef, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
+import { RootState } from "../store/store";
+import { fetchLeadNotifications, clearNotification } from '../store/slices/notificationSlice'
 
+interface AppHeaderProps {
+  userType: number | null;
+}
 
-const AppHeader: React.FC = () => {
-  const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
+  const dispatch = useDispatch();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
+  const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
+  const [isNotificationMenuOpen, setNotificationMenuOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const notificationRef = useRef<HTMLDivElement>(null);
 
+  const notifications = useSelector((state: RootState) => state.notification.notifications);
+  const notificationCount = useSelector((state: RootState) => state.notification.notificationCount);
+  const userId = useSelector((state: RootState) => state.auth.user?.id);
+
+  useEffect(() => {
+    if (userType && userId && [3, 4, 5, 6, 7].includes(userType)) {
+      dispatch(fetchLeadNotifications({ assigned_user_type: userType, assigned_id: userId }));
+      const interval = setInterval(() => {
+        dispatch(fetchLeadNotifications({ assigned_user_type: userType, assigned_id: userId }));
+      }, 60000);
+      return () => clearInterval(interval);
+    }
+  }, [dispatch, userType, userId]);
 
   const handleToggle = () => {
     if (window.innerWidth >= 1024) {
-      toggleSidebar(); 
+      toggleSidebar();
     } else {
-      toggleMobileSidebar(); 
+      toggleMobileSidebar();
     }
   };
 
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen((prev) => !prev);
+  };
+
+  const toggleNotificationMenu = () => {
+    setNotificationMenuOpen((prev) => !prev);
+  };
+
+  const handleClearNotification = (lead_id: number) => {
+    dispatch(clearNotification({ lead_id }));
   };
 
   useEffect(() => {
@@ -28,25 +58,32 @@ const AppHeader: React.FC = () => {
         inputRef.current?.focus();
       }
     };
-
     document.addEventListener("keydown", handleKeyDown);
-    return () => {
-      document.removeEventListener("keydown", handleKeyDown);
-    };
+    return () => document.removeEventListener("keydown", handleKeyDown);
   }, []);
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      if (isApplicationMenuOpen && !(event.target as HTMLElement).closest(".application-menu")) {
+      if (
+        isApplicationMenuOpen &&
+        !(event.target as HTMLElement).closest(".application-menu")
+      ) {
         setApplicationMenuOpen(false);
       }
+      if (
+        isNotificationMenuOpen &&
+        notificationRef.current &&
+        !(event.target as HTMLElement).closest(".notification-menu")
+      ) {
+        setNotificationMenuOpen(false);
+      }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
-  }, [isApplicationMenuOpen]);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, [isApplicationMenuOpen, isNotificationMenuOpen]);
+
+  const allowedUserTypes = [3, 4, 5, 6, 7];
+  const canViewNotifications = userType !== null && allowedUserTypes.includes(userType);
 
   return (
     <header className="sticky top-0 flex w-full bg-white border-b border-gray-200 z-99999 dark:border-gray-800 dark:bg-gray-900">
@@ -112,18 +149,72 @@ const AppHeader: React.FC = () => {
           </button>
         </div>
 
-       
         <div
-  className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
-    isApplicationMenuOpen ? "block" : "hidden"
-  } lg:block shadow-theme-md`}
->
-  <div className="flex items-center gap-3">
-    
-    <UserDropdown />
-  </div>
-</div>
-
+          className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
+            isApplicationMenuOpen ? "block" : "hidden"
+          } lg:block shadow-theme-md`}
+        >
+          <div className="flex items-center gap-3">
+            {canViewNotifications && (
+              <div className="relative notification-menu" ref={notificationRef}>
+                <button
+                  onClick={toggleNotificationMenu}
+                  className="flex items-center justify-center w-10 h-10 text-gray-700 rounded-lg hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-800"
+                  aria-label="Toggle Notifications"
+                >
+                  <svg
+                    width="24"
+                    height="24"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    xmlns="http://www.w3.org/2000/svg"
+                  >
+                    <path
+                      d="M12 22C13.1 22 14 21.1 14 20H10C10 21.1 10.9 22 12 22ZM18 16V11C18 7.93 16.37 5.36 13.5 4.68V4C13.5 3.17 12.83 2.5 12 2.5C11.17 2.5 10.5 3.17 10.5 4V4.68C7.63 5.36 6 7.92 6 11V16L4 18V19H20V18L18 16ZM16 17H8V11C8 8.52 9.52 6.5 12 6.5C14.48 6.5 16 8.52 16 11V17Z"
+                      fill="currentColor"
+                    />
+                  </svg>
+                  {notificationCount > 0 && (
+                    <span className="absolute top-0 right-0 inline-flex items-center justify-center w-5 h-5 text-xs font-bold text-white bg-red-500 rounded-full">
+                      {notificationCount}
+                    </span>
+                  )}
+                </button>
+                {isNotificationMenuOpen && (
+                  <div className="absolute right-0 mt-2 w-80 bg-white border border-gray-200 rounded-lg shadow-lg dark:bg-gray-800 dark:border-gray-700 z-10">
+                    <div className="p-4 text-gray-700 dark:text-gray-200">
+                      <p className="font-semibold">{notificationCount} New Notifications</p>
+                      <ul>
+                        {notifications && notifications.length > 0 ? (
+                          notifications.map((notification) => (
+                            <li key={notification.lead_id} className="py-2">
+                              <p>
+                                <strong>{notification.customer_name}</strong> - Site Visit Scheduled for{" "}
+                                <strong>{notification.project_name}</strong> ({notification.city}, {notification.state})
+                              </p>
+                              <p className="text-sm text-gray-500">
+                                Assigned on {notification.assigned_date} at {notification.assigned_time}
+                              </p>
+                              <button
+                                onClick={() => handleClearNotification(notification.lead_id)}
+                                className="text-sm text-blue-500 hover:underline"
+                              >
+                                Mark as Done
+                              </button>
+                            </li>
+                          ))
+                        ) : (
+                          <li className="py-2">No new notifications</li>
+                        )}
+                      </ul>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+            <UserDropdown />
+          </div>
+        </div>
       </div>
     </header>
   );
