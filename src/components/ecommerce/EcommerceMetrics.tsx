@@ -18,7 +18,7 @@ import { getTotalLeads } from "../../store/slices/leadslice";
 import toast from "react-hot-toast";
 
 const userTypeMap: { [key: string]: string } = {
-  total_leads: "Total Leads", // Using total unbooked leads
+  total_leads: "Total Leads", 
   today_follow_ups: "Today Follow-Ups",
   site_visit_done: "Site Visits Done",
   booked: "Bookings",
@@ -31,7 +31,7 @@ const userTypeMap: { [key: string]: string } = {
 };
 
 const userTypeRoutes: { [key: string]: string } = {
-  total_leads: "/leads/new/0", // Link to leads page
+  total_leads: "/leads/new/0", 
   today_follow_ups: "/leads/today/2",
   site_visit_done: "/leads/SiteVisitDone/5",
   booked: "/bookings/bookings-done",
@@ -146,7 +146,6 @@ export default function Home() {
     }
   }, [typesCountParams, dispatch, user]);
 
-  // Separate project counts and employee counts
   const projectCounts =
     userCounts?.filter((item) => item.user_type === "projects") || [];
   const employeeCounts = useMemo(() => {
@@ -156,10 +155,8 @@ export default function Home() {
           item.user_type !== "projects" && item.user_type !== "today_leads"
       ) || [];
 
-    // Ensure "Total Leads" appears first
     const totalLeadsCard = { user_type: "total_leads", count: totalLeads };
 
-    // Remove any existing duplicate of total_leads
     const filtered = counts.filter((item) => item.user_type !== "total_leads");
 
     return [totalLeadsCard, ...filtered];

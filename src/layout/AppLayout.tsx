@@ -1,13 +1,19 @@
+// AppLayout.tsx
+import { useSelector } from "react-redux";
 import { SidebarProvider, useSidebar } from "../context/SidebarContext";
 import { Outlet } from "react-router";
 import AppHeader from "./AppHeader";
 import Backdrop from "./Backdrop";
 import AppSidebar from "./AppSidebar";
-
-
+import { RootState } from "../store/store";
 
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
+  // Get userType from Redux
+  const userType = useSelector((state: RootState) => state.auth.user?.user_type ?? null);
+  // Debugging logs
+  console.log("userType in AppLayout:", userType);
+  console.log("Full auth state:", useSelector((state: RootState) => state.auth));
 
   return (
     <div className="min-h-screen">
@@ -20,7 +26,7 @@ const LayoutContent: React.FC = () => {
           isExpanded || isHovered ? "lg:ml-[290px]" : "lg:ml-[90px]"
         } ${isMobileOpen ? "ml-0" : ""}`}
       >
-        <AppHeader />
+        <AppHeader userType={userType} />
         <div className="p-4 mx-auto max-w-(--breakpoint-2xl) md:p-6">
           <Outlet />
         </div>

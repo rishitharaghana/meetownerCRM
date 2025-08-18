@@ -98,7 +98,6 @@ export const checkMobileExists = createAsyncThunk(
   }
 );
 
-// Async thunk to reset password
 export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ mobile, newPassword }: { mobile: string; newPassword: string }, { rejectWithValue }) => {
