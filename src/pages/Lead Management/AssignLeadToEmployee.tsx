@@ -249,36 +249,11 @@ const AssignLeadEmployeePage: React.FC = () => {
             }
             error={errors.status_id}
           />
-          {formData.status_id === "4" && (
-            <div className="space-y-1">
-              <DatePicker
-                id="site_visit_date"
-                label="Site Visit Date"
-                placeholder="Select a date"
-                defaultDate={formData.site_visit_date}
-                onChange={(selectedDates: Date[]) => {
-                  if (selectedDates.length > 0) {
-                    handleInputChange("site_visit_date")(
-                      selectedDates[0].toISOString().split("T")[0]
-                    );
-                  } else {
-                    handleInputChange("site_visit_date")("");
-                  }
-                }}
-              />
-              {errors.site_visit_date && (
-                <p className="text-red-500 text-sm mt-1">
-                  {errors.site_visit_date}
-                </p>
-              )}
-            </div>
-          )}
           {/* Added DatePicker for Follow Up when status_id is "3" */}
-          {formData.status_id === "3" && (
             <div className="space-y-1">
               <DatePicker
                 id="followup_date"
-                label="Follow Up Date"
+                label="Select a date"
                 placeholder="Select a date"
                 defaultDate={formData.followup_date}
                 onChange={(selectedDates: Date[]) => {
@@ -297,7 +272,6 @@ const AssignLeadEmployeePage: React.FC = () => {
                 </p>
               )}
             </div>
-          )}
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Follow-up Feedback

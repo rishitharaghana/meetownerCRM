@@ -45,6 +45,7 @@ import EditEmployee from "./pages/Employee Management/EditEmployee";
 import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
 import EditBuilder from "./pages/Builders/EditBuilders";
 import EditProject from "./pages/Project/EditProject";
+import LeadSource from "./pages/New Lead Source/LeadSource";
 export default function App() {
   const { isAuthenticated, token } = useSelector(
     (state: RootState) => state.auth
@@ -78,6 +79,7 @@ export default function App() {
                 path="/partners/addpartners"
                 element={<AddChannelPartner />}
               />
+              <Route path="lead-source" element={<LeadSource />} />
               <Route path="edit-channelpartners/:id" element= {<EditChannelPartner/>} />
 
               <Route path="/builders" element={<AllBuildersScreen />} />

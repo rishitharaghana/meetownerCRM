@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
-import { Building2, ChevronDown, ChevronRight, GridIcon } from "lucide-react";
+import { Building2, ChevronDown, ChevronRight, GridIcon, Magnet } from "lucide-react";
 import { FaFileInvoice,  FaUser, FaUserTie,  FaSwatchbook } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
@@ -86,11 +86,19 @@ const navItems: NavItem[] = [
     subItems: [
       { name: "Sales Manager", path: "/employee/4", pro: false },
       { name: "Telecallers", path: "/employee/5", pro: false },
-      { name: "Marketing Executors", path: "/employee/6", pro: false },
+      { name: "Marketing Executives", path: "/employee/6", pro: false },
       { name: "Receptionists", path: "/employee/7", pro: false },
       {name:"Add Employee",path:"/create-employee"}
     ],
   },
+  
+  {
+    name :"Lead Source Management",
+    icon: <Magnet size={17} />,
+    subItems: [
+      { name: "New Lead Source", path: "/lead-source" },
+    ],
+  }
   
 ];
 
