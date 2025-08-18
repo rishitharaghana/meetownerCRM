@@ -53,7 +53,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     { value: "3", label: "Channel Partner" },
     { value: "4", label: "Sales Manager" },
     { value: "5", label: "Telecallers" },
-    { value: "6", label: "Marketing Executors" },
+    { value: "6", label: "Marketing Executive" },
     { value: "7", label: "Receptionists" },
   ];
 

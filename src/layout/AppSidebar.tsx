@@ -8,9 +8,6 @@ import { useSelector } from "react-redux";
 import { RootState } from "../store/store";
 import { filterNavItemsByUserType, NavItem } from "../hooks/NavFilter";
 
-
-
-
 const navItems: NavItem[] = [
   {
     icon: <GridIcon />,

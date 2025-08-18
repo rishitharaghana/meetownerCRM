@@ -7,7 +7,7 @@ const allDesignationOptions = [
   { value: "3", text: "Channel Partner" },
   { value: "4", text: "Sales Manager" },
   { value: "5", text: "Telecaller" },
-  { value: "6", text: "Marketing Executors" },
+  { value: "6", text: "Marketing Executive" },
   { value: "7", text: "Receptionists" },
 ];
 
