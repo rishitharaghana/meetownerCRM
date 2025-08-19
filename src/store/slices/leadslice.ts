@@ -17,6 +17,7 @@ import {
   BookingDoneResponse,
   UpdateLeadByEmployeeResponse,
 } from "../../types/LeadModel";
+
 const initialState: LeadState = {
   leads: null,
   cpLeads: null,
@@ -28,6 +29,8 @@ const initialState: LeadState = {
   totalLeads: 0,
   error: null,
 };
+
+// Existing thunks (unchanged)
 export const getLeadsByUser = createAsyncThunk<
   Lead[],
   {
@@ -170,7 +173,7 @@ export const getLeadsByID = createAsyncThunk<
     {
       lead_added_user_type,
       lead_added_user_id,
-       lead_source_user_id,
+      lead_source_user_id,
       assigned_user_type,
       assigned_id,
       status_id,
@@ -185,7 +188,7 @@ export const getLeadsByID = createAsyncThunk<
       const queryParams = new URLSearchParams({
         lead_added_user_type: lead_added_user_type.toString(),
         lead_added_user_id: lead_added_user_id.toString(),
-         lead_source_user_id: lead_source_user_id.toString(), 
+        lead_source_user_id: lead_source_user_id.toString(),
         assigned_id: assigned_id.toString(),
         ...(assigned_user_type && {
           assigned_user_type: assigned_user_type.toString(),
@@ -228,7 +231,6 @@ export const getLeadsByID = createAsyncThunk<
     }
   }
 );
-
 
 export const getLeadUpdatesByLeadId = createAsyncThunk<
   LeadUpdate[],
@@ -291,6 +293,7 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
     }
   }
 );
+
 export const getBookedLeads = createAsyncThunk<
   Lead[],
   {
@@ -363,6 +366,7 @@ export const getBookedLeads = createAsyncThunk<
     }
   }
 );
+
 export const getLeadStatuses = createAsyncThunk<
   LeadStatus[],
   void,
@@ -408,6 +412,7 @@ export const getLeadStatuses = createAsyncThunk<
     );
   }
 });
+
 export const getLeadSources = createAsyncThunk<
   LeadSource[],
   void,
@@ -453,6 +458,63 @@ export const getLeadSources = createAsyncThunk<
     );
   }
 });
+
+export const addLeadSource = createAsyncThunk<
+  LeadSource,
+  { lead_source_name: string },
+  { rejectValue: string }
+>("lead/addLeadSource", async (data, { rejectWithValue }) => {
+  try {
+    const token = localStorage.getItem("token");
+    if (!token) {
+      return rejectWithValue("No authentication token found. Please log in.");
+    }
+    const response = await ngrokAxiosInstance.post<{
+      status: string;
+      message: string;
+      lead_source_id: number;
+      lead_source_name: string;
+      date_added: string;
+    }>("/api/v1/lead-sources", data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    if (response.data.status !== "success") {
+      return rejectWithValue(response.data.message || "Failed to add lead source");
+    }
+    return {
+      lead_source_id: response.data.lead_source_id,
+      lead_source_name: response.data.lead_source_name,
+      date_added: response.data.date_added,
+    };
+  } catch (error) {
+    const axiosError = error as AxiosError<ErrorResponse>;
+    console.error("Add lead source error:", axiosError);
+    if (axiosError.response) {
+      const status = axiosError.response.status;
+      switch (status) {
+        case 401:
+          return rejectWithValue("Unauthorized: Invalid or expired token");
+        case 400:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Invalid lead source data provided"
+          );
+        case 500:
+          return rejectWithValue("Server error. Please try again later.");
+        default:
+          return rejectWithValue(
+            axiosError.response.data?.message || "Failed to add lead source"
+          );
+      }
+    }
+    return rejectWithValue(
+      "Network error. Please check your connection and try again."
+    );
+  }
+});
+
+
 export const insertLead = createAsyncThunk<
   InsertLeadResponse,
   {
@@ -546,6 +608,7 @@ export const insertLead = createAsyncThunk<
     );
   }
 });
+
 export const assignLeadToEmployee = createAsyncThunk<
   AssignLeadResponse,
   {
@@ -560,7 +623,7 @@ export const assignLeadToEmployee = createAsyncThunk<
     lead_added_user_type: number;
     lead_added_user_id: number;
     status_id?: number;
-    followup_date?: string; // Add followup_date
+    followup_date?: string;
     site_visit_date?: string;
   },
   { rejectValue: string }
@@ -574,9 +637,9 @@ export const assignLeadToEmployee = createAsyncThunk<
       ...assignData,
       status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
       followup_date:
-        assignData.status_id === 3 ? assignData.followup_date : undefined, // Ensure followup_date is sent only for status_id: 3
+        assignData.status_id === 3 ? assignData.followup_date : undefined,
       site_visit_date:
-        assignData.status_id === 4 ? assignData.site_visit_date : undefined, // Handle site_visit_date for status_id: 4
+        assignData.status_id === 4 ? assignData.site_visit_date : undefined,
     };
     const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
       `/api/v1/leads/assignLeadToEmployee`,
@@ -616,6 +679,7 @@ export const assignLeadToEmployee = createAsyncThunk<
     );
   }
 });
+
 export const markLeadAsBooked = createAsyncThunk<
   BookingDoneResponse,
   {
@@ -712,6 +776,7 @@ export const markLeadAsBooked = createAsyncThunk<
     }
   }
 );
+
 export const updateLeadByEmployee = createAsyncThunk<
   UpdateLeadByEmployeeResponse,
   {
@@ -772,6 +837,7 @@ export const updateLeadByEmployee = createAsyncThunk<
     );
   }
 });
+
 const leadSlice = createSlice({
   name: "lead",
   initialState,
@@ -811,7 +877,6 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
       .addCase(getTotalLeads.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -824,7 +889,6 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-
       .addCase(getLeadUpdatesByLeadId.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -873,6 +937,20 @@ const leadSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
+      .addCase(addLeadSource.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(addLeadSource.fulfilled, (state, action) => {
+        state.loading = false;
+        state.leadSources = state.leadSources
+          ? [...state.leadSources, action.payload]
+          : [action.payload];
+      })
+      .addCase(addLeadSource.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
       .addCase(insertLead.pending, (state) => {
         state.loading = true;
         state.error = null;
@@ -893,7 +971,7 @@ const leadSlice = createSlice({
         if (action.payload.data && state.leads) {
           state.leads = state.leads.map((lead) =>
             lead.lead_id === action.payload.data.lead_id
-              ? { ...lead, ...action.payload.data } 
+              ? { ...lead, ...action.payload.data }
               : lead
           );
         }
@@ -931,5 +1009,6 @@ const leadSlice = createSlice({
       });
   },
 });
+
 export const { clearLeads } = leadSlice.actions;
 export default leadSlice.reducer;

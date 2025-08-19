@@ -4,6 +4,16 @@ export interface ErrorResponse {
   message: string;
 }
 
+export interface LeadSource {
+  lead_source_id: number;
+  lead_source_name: string;
+  date_added: string;
+}
+
+export interface LeadSourceResponse {
+  status: string;
+  results: LeadSource[];
+}
 export interface Property {
   property_id: number | null;
   project_name: string | null;

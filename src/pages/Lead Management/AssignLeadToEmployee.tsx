@@ -49,10 +49,10 @@ const AssignLeadEmployeePage: React.FC = () => {
     status_id: "",
     followup_feedback: "",
     next_action: "",
-    site_visit_date: "",
-    followup_date: "",
-    interested_project_id: "", // New field
-    interested_project_name: "", // New field
+    followup_date: "", // For In Progress (status_id: "3")
+    action_date: "", // For all other statuses
+    interested_project_id: "",
+    interested_project_name: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -94,7 +94,6 @@ const AssignLeadEmployeePage: React.FC = () => {
 
   useEffect(() => {
     if (user?.id) {
-      // Fetch ongoing and upcoming projects
       dispatch(
         fetchOngoingProjects({
           admin_user_type: user.user_type,
@@ -167,11 +166,11 @@ const AssignLeadEmployeePage: React.FC = () => {
       newErrors.followup_feedback = "Follow-up feedback is required";
     if (!formData.next_action.trim())
       newErrors.next_action = "Next action is required";
-    if (formData.status_id === "4" && !formData.site_visit_date.trim()) {
-      newErrors.site_visit_date = "Site visit date is required";
-    }
     if (formData.status_id === "3" && !formData.followup_date.trim()) {
-      newErrors.followup_date = "Follow-up date is required";
+      newErrors.followup_date = "Follow-up date is required for In Progress status";
+    }
+    if (formData.status_id !== "3" && !formData.action_date.trim()) {
+      newErrors.action_date = "Action date is required";
     }
     if (!formData.interested_project_id) {
       newErrors.interested_project_id = "Suggestion project is required";
@@ -205,26 +204,18 @@ const AssignLeadEmployeePage: React.FC = () => {
         next_action: formData.next_action,
         lead_added_user_type: user.user_type,
         lead_added_user_id: user.id,
-        status_id: formData.status_id
-          ? parseInt(formData.status_id)
-          : undefined,
-        site_visit_date:
-          formData.status_id === "4" ? formData.site_visit_date : undefined,
-        followup_date:
-          formData.status_id === "3" ? formData.followup_date : undefined,
-        interested_project_id: parseInt(formData.interested_project_id), // New field
-        interested_project_name: formData.interested_project_name, // New field
+        status_id: formData.status_id ? parseInt(formData.status_id) : undefined,
+        followup_date: formData.status_id === "3" ? formData.followup_date : undefined,
+        action_date: formData.status_id !== "3" ? formData.action_date : undefined,
+        interested_project_id: parseInt(formData.interested_project_id),
+        interested_project_name: formData.interested_project_name,
       };
 
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
-      setSubmitSuccess(
-        `Lead assigned successfully! Lead ID: ${submitData.lead_id}`
-      );
+      setSubmitSuccess(`Lead assigned successfully! Lead ID: ${submitData.lead_id}`);
       navigate(-1);
     } catch (error: any) {
-      setSubmitError(
-        error.message || "Failed to assign lead. Please try again."
-      );
+      setSubmitError(error.message || "Failed to assign lead. Please try again.");
     } finally {
       setIsSubmitting(false);
     }
@@ -255,15 +246,18 @@ const AssignLeadEmployeePage: React.FC = () => {
             {statusesError}
           </div>
         )}
+        {Object.keys(errors).length > 0 && (
+          <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
+            Please fix the errors in the form before submitting.
+          </div>
+        )}
         <form onSubmit={handleSubmit} className="space-y-4">
           <Select
             label="Employee Type"
             options={userTypeOptions}
             value={formData.assigned_user_type}
             onChange={handleInputChange("assigned_user_type")}
-            placeholder={
-              usersLoading ? "Loading types..." : "Select employee type"
-            }
+            placeholder={usersLoading ? "Loading types..." : "Select employee type"}
             error={errors.assigned_user_type}
           />
           <Select
@@ -271,9 +265,7 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={userOptions}
             value={formData.assigned_id}
             onChange={handleInputChange("assigned_id")}
-            placeholder={
-              usersLoading ? "Loading employees..." : "Select employee"
-            }
+            placeholder={usersLoading ? "Loading employees..." : "Select employee"}
             error={errors.assigned_id}
           />
           <Select
@@ -289,11 +281,7 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={statusOptions}
             value={formData.status_id}
             onChange={handleInputChange("status_id")}
-            placeholder={
-              statusesLoading
-                ? "Loading statuses..."
-                : "Select status (optional)"
-            }
+            placeholder={statusesLoading ? "Loading statuses..." : "Select status (optional)"}
             error={errors.status_id}
           />
           <Select
@@ -301,35 +289,53 @@ const AssignLeadEmployeePage: React.FC = () => {
             options={projectOptions}
             value={formData.interested_project_id}
             onChange={handleInputChange("interested_project_id")}
-            placeholder={
-              projectsLoading
-                ? "Loading projects..."
-                : "Select Suggestion project"
-            }
+            placeholder={projectsLoading ? "Loading projects..." : "Select Suggestion project"}
             error={errors.interested_project_id}
           />
-          <div className="space-y-1">
-            <DatePicker
-              id="followup_date"
-              label="Select a date"
-              placeholder="Select a date"
-              defaultDate={formData.followup_date}
-              onChange={(selectedDates: Date[]) => {
-                if (selectedDates.length > 0) {
-                  handleInputChange("followup_date")(
-                    selectedDates[0].toISOString().split("T")[0]
-                  );
-                } else {
-                  handleInputChange("followup_date")("");
-                }
-              }}
-            />
-            {errors.followup_date && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.followup_date}
-              </p>
-            )}
-          </div>
+          {formData.status_id === "3" && (
+            <div className="space-y-1">
+              <DatePicker
+                id="followup_date"
+                label="Follow-up Date (for Today Follow-ups)"
+                placeholder="Select follow-up date"
+                defaultDate={formData.followup_date}
+                onChange={(selectedDates: Date[]) => {
+                  if (selectedDates.length > 0) {
+                    handleInputChange("followup_date")(
+                      selectedDates[0].toISOString().split("T")[0]
+                    );
+                  } else {
+                    handleInputChange("followup_date")("");
+                  }
+                }}
+              />
+              {errors.followup_date && (
+                <p className="text-red-500 text-sm mt-1">{errors.followup_date}</p>
+              )}
+            </div>
+          )}
+          {formData.status_id !== "3" && formData.status_id && (
+            <div className="space-y-1">
+              <DatePicker
+                id="action_date"
+                label="Action Date"
+                placeholder="Select action date"
+                defaultDate={formData.action_date}
+                onChange={(selectedDates: Date[]) => {
+                  if (selectedDates.length > 0) {
+                    handleInputChange("action_date")(
+                      selectedDates[0].toISOString().split("T")[0]
+                    );
+                  } else {
+                    handleInputChange("action_date")("");
+                  }
+                }}
+              />
+              {errors.action_date && (
+                <p className="text-red-500 text-sm mt-1">{errors.action_date}</p>
+              )}
+            </div>
+          )}
           <div className="space-y-1">
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
               Follow-up Feedback
@@ -337,16 +343,12 @@ const AssignLeadEmployeePage: React.FC = () => {
             <Input
               type="text"
               value={formData.followup_feedback}
-              onChange={(e) =>
-                handleInputChange("followup_feedback")(e.target.value)
-              }
+              onChange={(e) => handleInputChange("followup_feedback")(e.target.value)}
               placeholder="Enter follow-up feedback"
               className={errors.followup_feedback ? "border-red-500" : ""}
             />
             {errors.followup_feedback && (
-              <p className="text-red-500 text-sm mt-1">
-                {errors.followup_feedback}
-              </p>
+              <p className="text-red-500 text-sm mt-1">{errors.followup_feedback}</p>
             )}
           </div>
           <div className="space-y-1">

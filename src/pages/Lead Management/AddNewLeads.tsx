@@ -23,7 +23,6 @@ interface FormData {
   propertyType: string;
   squareFeet: string;
   budget: string;
-  duplex: string; // New field for duplex selection
 }
 
 interface Errors {
@@ -37,7 +36,6 @@ interface Errors {
   propertyType?: string;
   squareFeet?: string;
   budget?: string;
-  duplex?: string; // New field for duplex validation
 }
 
 interface Project {
@@ -75,7 +73,6 @@ const LeadForm: React.FC = () => {
     propertyType: "",
     squareFeet: "",
     budget: "",
-    duplex: "", // Initialize duplex field
   });
 
   const [errors, setErrors] = useState<Errors>({});
@@ -85,44 +82,14 @@ const LeadForm: React.FC = () => {
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
+      const projectPayload = isBuilder
+        ? { admin_user_type: user.user_type, admin_user_id: user.id }
+        : { admin_user_type: user.created_user_type, admin_user_id: user.created_user_id };
+      dispatch(fetchOngoingProjects(projectPayload));
+      dispatch(fetchUpcomingProjects(projectPayload));
       if (isBuilder) {
-        dispatch(
-          fetchOngoingProjects({
-            admin_user_type: user.user_type,
-            admin_user_id: user.id,
-          })
-        );
         dispatch(getLeadSources());
-      } else {
-        dispatch(
-          fetchOngoingProjects({
-            admin_user_type: user.created_user_type,
-            admin_user_id: user.created_user_id,
-          })
-        );
       }
-    }
-    return () => {
-      dispatch(clearUsers());
-    };
-  }, [isAuthenticated, user, dispatch, isBuilder]);
-
-  useEffect(() => {
-    if (isBuilder) {
-      dispatch(
-        fetchUpcomingProjects({
-          admin_user_type: user.user_type,
-          admin_user_id: user.id,
-        })
-      );
-      dispatch(getLeadSources());
-    } else {
-      dispatch(
-        fetchUpcomingProjects({
-          admin_user_type: user.created_user_type,
-          admin_user_id: user.created_user_id,
-        })
-      );
     }
     return () => {
       dispatch(clearUsers());
@@ -175,23 +142,12 @@ const LeadForm: React.FC = () => {
     { value: "10bhk", label: "10 BHK" },
   ];
 
-  const duplexOptions = [
-    { value: "Yes", label: "Yes" },
-    { value: "No", label: "No" },
-  ];
-
   const handleInputChange = (field: keyof FormData) => (value: string) => {
-    setFormData((prev) => {
-      if (field === "leadSource") {
-        return {
-          ...prev,
-          [field]: value,
-          channelPartner: "",
-          campaign: "",
-        };
-      }
-      return { ...prev, [field]: value };
-    });
+    setFormData((prev) => ({
+      ...prev,
+      [field]: value,
+      ...(field === "leadSource" ? { channelPartner: "", campaign: "" } : {}),
+    }));
     if (errors[field]) {
       setErrors((prev) => ({ ...prev, [field]: undefined }));
     }
@@ -267,16 +223,9 @@ const LeadForm: React.FC = () => {
         lead_source_user_id: Number(formData.channelPartner),
         sqft: formData.squareFeet,
         budget: formData.budget,
-        duplex: formData.duplex, // Include duplex in leadData
         ...(isBuilder
-          ? {
-              lead_added_user_type: user?.user_type,
-              lead_added_user_id: user?.id,
-            }
-          : {
-              lead_added_user_type: user?.created_user_type,
-              lead_added_user_id: user?.created_user_id,
-            }),
+          ? { lead_added_user_type: user?.user_type, lead_added_user_id: user?.id }
+          : { lead_added_user_type: user?.created_user_type, lead_added_user_id: user?.created_user_id }),
         ...(isBuilder && formData.leadSource === "6"
           ? {
               assigned_user_type: 3,
@@ -306,10 +255,11 @@ const LeadForm: React.FC = () => {
         propertyType: "",
         squareFeet: "",
         budget: "",
-        duplex: "", // Reset duplex field
       });
+      toast.success("Lead created successfully!");
     } catch (error: any) {
       setSubmitError(error.message || "Failed to create lead. Please try again.");
+      toast.error(error.message || "Failed to create lead");
     } finally {
       setIsSubmitting(false);
     }
@@ -329,31 +279,20 @@ const LeadForm: React.FC = () => {
 
       <div className="max-w-2xl mx-auto">
         {submitSuccess && (
-          <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">
-            {submitSuccess}
-          </div>
+          <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">{submitSuccess}</div>
         )}
         {submitError && (
-          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">
-            {submitError}
-          </div>
+          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">{submitError}</div>
         )}
         {leadsError && (
-          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">
-            {leadsError}
-          </div>
+          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">{leadsError}</div>
         )}
         <div className="text-center mb-6 animate-fade-in">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">
-            Add New Lead
-          </h1>
-          <p className="text-gray-600 text-sm">
-            Capture potential client information for your real estate projects
-          </p>
+          <h1 className="text-2xl font-bold text-gray-800 mb-2">Add New Lead</h1>
+          <p className="text-gray-600 text-sm">Capture potential client information for your real estate projects</p>
           {!isBuilder && (
             <p className="text-sm text-gray-600">
-              This lead will be automatically assigned to you as the channel
-              partner.
+              This lead will be automatically assigned to you as the channel partner.
             </p>
           )}
         </div>
@@ -365,24 +304,19 @@ const LeadForm: React.FC = () => {
                 Personal Information
               </h2>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Name
-                </label>
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Name</label>
                 <Input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleInputChange("name")(e.target.value)}
                   placeholder="Enter customer's full name"
                   className={errors.name ? "border-red-500" : ""}
+                  disabled={isSubmitting}
                 />
-                {errors.name && (
-                  <p className="text-red-500 text-sm mt-1">{errors.name}</p>
-                )}
+                {errors.name && <p className="text-red-500 text-sm mt-1">{errors.name}</p>}
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Mobile Number
-                </label>
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Mobile Number</label>
                 <Input
                   type="number"
                   value={formData.mobile}
@@ -390,25 +324,21 @@ const LeadForm: React.FC = () => {
                   placeholder="Enter 10-digit mobile number"
                   className={errors.mobile ? "border-red-500" : ""}
                   maxLength={10}
+                  disabled={isSubmitting}
                 />
-                {errors.mobile && (
-                  <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>
-                )}
+                {errors.mobile && <p className="text-red-500 text-sm mt-1">{errors.mobile}</p>}
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Email
-                </label>
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Email</label>
                 <Input
                   type="email"
                   value={formData.email}
                   onChange={(e) => handleInputChange("email")(e.target.value)}
                   placeholder="Enter email address"
                   className={errors.email ? "border-red-500" : ""}
+                  disabled={isSubmitting}
                 />
-                {errors.email && (
-                  <p className="text-red-500 text-sm mt-1">{errors.email}</p>
-                )}
+                {errors.email && <p className="text-red-500 text-sm mt-1">{errors.email}</p>}
               </div>
             </div>
             <div className="space-y-6 pt-6 border-t border-realty-200">
@@ -421,12 +351,9 @@ const LeadForm: React.FC = () => {
                 options={projectOptions}
                 value={formData.interestedProject}
                 onChange={handleInputChange("interestedProject")}
-                placeholder={
-                  projectsLoading
-                    ? "Loading projects..."
-                    : "Search or select a project"
-                }
+                placeholder={projectsLoading ? "Loading projects..." : "Search or select a project"}
                 error={errors.interestedProject}
+                disabled={isSubmitting || projectsLoading}
               />
             </div>
             {isBuilder && (
@@ -440,12 +367,9 @@ const LeadForm: React.FC = () => {
                   options={leadSourceOptions}
                   value={formData.leadSource}
                   onChange={handleInputChange("leadSource")}
-                  placeholder={
-                    leadsLoading
-                      ? "Loading lead sources..."
-                      : "Select lead source"
-                  }
+                  placeholder={leadsLoading ? "Loading lead sources..." : "Select lead source"}
                   error={errors.leadSource}
+                  disabled={isSubmitting || leadsLoading}
                 />
                 {formData.leadSource === "6" && (
                   <Select
@@ -453,12 +377,9 @@ const LeadForm: React.FC = () => {
                     options={channelPartnerOptions}
                     value={formData.channelPartner}
                     onChange={handleInputChange("channelPartner")}
-                    placeholder={
-                      usersLoading
-                        ? "Loading partners..."
-                        : "Select channel partner"
-                    }
+                    placeholder={usersLoading ? "Loading partners..." : "Select channel partner"}
                     error={errors.channelPartner}
+                    disabled={isSubmitting || usersLoading}
                   />
                 )}
                 {formData.leadSource === "4" && (
@@ -467,10 +388,9 @@ const LeadForm: React.FC = () => {
                     options={campaignOptions}
                     value={formData.campaign}
                     onChange={handleInputChange("campaign")}
-                    placeholder={
-                      leadsLoading ? "Loading campaigns..." : "Select campaign"
-                    }
+                    placeholder={leadsLoading ? "Loading campaigns..." : "Select campaign"}
                     error={errors.campaign}
+                    disabled={isSubmitting || leadsLoading}
                   />
                 )}
               </div>
@@ -481,102 +401,58 @@ const LeadForm: React.FC = () => {
                 Property
               </h2>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Select BHK Type
-                </label>
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Select BHK Type</label>
                 <div className="flex gap-3 flex-wrap">
                   {propertyTypeOptions.map((option) => (
                     <button
                       type="button"
                       key={option.value}
-                      onClick={() =>
-                        handleInputChange("propertyType")(option.value)
-                      }
+                      onClick={() => handleInputChange("propertyType")(option.value)}
                       className={`px-4 py-2 rounded-md border transition-all ${
                         formData.propertyType === option.value
                           ? "bg-blue-900 text-white border-blue-900"
                           : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
                       }`}
+                      disabled={isSubmitting}
                     >
                       {option.label}
                     </button>
                   ))}
                 </div>
-                {errors.propertyType && (
-                  <p className="text-red-500 text-sm mt-1">
-                    {errors.propertyType}
-                  </p>
-                )}
+                {errors.propertyType && <p className="text-red-500 text-sm mt-1">{errors.propertyType}</p>}
               </div>
               <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Duplex (Optional)
-                </label>
-                <div className="flex gap-3 flex-wrap">
-                  {duplexOptions.map((option) => (
-                    <button
-                      type="button"
-                      key={option.value}
-                      onClick={() => handleInputChange("duplex")(option.value)}
-                      className={`px-4 py-2 rounded-md border transition-all ${
-                        formData.duplex === option.value
-                          ? "bg-blue-900 text-white border-blue-900"
-                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                {errors.duplex && (
-                  <p className="text-red-500 text-sm mt-1">{errors.duplex}</p>
-                )}
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Square Feet</label>
+                <Input
+                  type="number"
+                  value={formData.squareFeet}
+                  onChange={(e) => handleInputChange("squareFeet")(e.target.value)}
+                  placeholder="Enter square feet area"
+                  className={errors.squareFeet ? "border-red-500" : ""}
+                  disabled={isSubmitting}
+                />
+                {errors.squareFeet && <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>}
               </div>
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                Square Feet
-              </label>
-              <Input
-                type="number"
-                value={formData.squareFeet}
-                onChange={(e) =>
-                  handleInputChange("squareFeet")(e.target.value)
-                }
-                placeholder="Enter square feet area"
-                className={errors.squareFeet ? "border-red-500" : ""}
-              />
-              {errors.squareFeet && (
-                <p className="text-red-500 text-sm mt-1">{errors.squareFeet}</p>
-              )}
-            </div>
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                Budget
-              </label>
-              <Input
-                type="number"
-                value={formData.budget}
-                onChange={(e) => handleInputChange("budget")(e.target.value)}
-                placeholder="Enter your budget"
-                className={errors.budget ? "border-red-500" : ""}
-              />
-              {errors.budget && (
-                <p className="text-red-500 text-sm mt-1">{errors.budget}</p>
-              )}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Budget</label>
+                <Input
+                  type="number"
+                  value={formData.budget}
+                  onChange={(e) => handleInputChange("budget")(e.target.value)}
+                  placeholder="Enter your budget"
+                  className={errors.budget ? "border-red-500" : ""}
+                  disabled={isSubmitting}
+                />
+                {errors.budget && <p className="text-red-500 text-sm mt-1">{errors.budget}</p>}
+              </div>
             </div>
             <div className="pt-6">
               <button
                 type="submit"
-                disabled={
-                  isSubmitting ||
-                  projectsLoading ||
-                  (isBuilder && (usersLoading || leadsLoading))
-                }
+                disabled={isSubmitting || projectsLoading || (isBuilder && (usersLoading || leadsLoading))}
                 className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50"
               >
-                {isSubmitting ||
-                (isBuilder && (usersLoading || leadsLoading)) ? (
+                {isSubmitting || (isBuilder && (usersLoading || leadsLoading)) ? (
                   <div className="flex items-center justify-center gap-2">
                     <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
                     Creating Lead...
@@ -592,10 +468,7 @@ const LeadForm: React.FC = () => {
           </form>
         </div>
         <div className="text-center mt-8 text-realty-600">
-          <p className="text-sm">
-            All lead information is securely stored and processed according to
-            our privacy policy.
-          </p>
+          <p className="text-sm">All lead information is securely stored and processed according to our privacy policy.</p>
         </div>
       </div>
     </div>
