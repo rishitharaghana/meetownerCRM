@@ -317,7 +317,7 @@ const AssignLeadEmployeePage: React.FC = () => {
             <div className="space-y-1">
               <DatePicker
                 id="followup_date"
-                label="Follow-up Date (for Today Follow-ups if status is Follow-up)"
+                label="Follow-up Date"
                 placeholder="Select follow-up date"
                 defaultDate={formData.followup_date}
                 minDate={new Date()} // Restrict to today or future dates
