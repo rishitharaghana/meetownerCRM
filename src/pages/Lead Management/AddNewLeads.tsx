@@ -23,7 +23,6 @@ interface FormData {
   propertyType: string;
   squareFeet: string;
   budget: string;
-  duplex: string; // New field for duplex selection
 }
 
 interface Errors {
@@ -37,7 +36,6 @@ interface Errors {
   propertyType?: string;
   squareFeet?: string;
   budget?: string;
-  duplex?: string; // New field for duplex validation
 }
 
 interface Project {
@@ -75,7 +73,6 @@ const LeadForm: React.FC = () => {
     propertyType: "",
     squareFeet: "",
     budget: "",
-    duplex: "", // Initialize duplex field
   });
 
   const [errors, setErrors] = useState<Errors>({});
@@ -174,12 +171,6 @@ const LeadForm: React.FC = () => {
     { value: "9bhk", label: "9 BHK" },
     { value: "10bhk", label: "10 BHK" },
   ];
-
-  const duplexOptions = [
-    { value: "Yes", label: "Yes" },
-    { value: "No", label: "No" },
-  ];
-
   const handleInputChange = (field: keyof FormData) => (value: string) => {
     setFormData((prev) => {
       if (field === "leadSource") {
@@ -267,7 +258,6 @@ const LeadForm: React.FC = () => {
         lead_source_user_id: Number(formData.channelPartner),
         sqft: formData.squareFeet,
         budget: formData.budget,
-        duplex: formData.duplex, // Include duplex in leadData
         ...(isBuilder
           ? {
               lead_added_user_type: user?.user_type,
@@ -306,7 +296,6 @@ const LeadForm: React.FC = () => {
         propertyType: "",
         squareFeet: "",
         budget: "",
-        duplex: "", // Reset duplex field
       });
     } catch (error: any) {
       setSubmitError(error.message || "Failed to create lead. Please try again.");
@@ -506,30 +495,6 @@ const LeadForm: React.FC = () => {
                   <p className="text-red-500 text-sm mt-1">
                     {errors.propertyType}
                   </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
-                  Duplex (Optional)
-                </label>
-                <div className="flex gap-3 flex-wrap">
-                  {duplexOptions.map((option) => (
-                    <button
-                      type="button"
-                      key={option.value}
-                      onClick={() => handleInputChange("duplex")(option.value)}
-                      className={`px-4 py-2 rounded-md border transition-all ${
-                        formData.duplex === option.value
-                          ? "bg-blue-900 text-white border-blue-900"
-                          : "bg-white text-gray-700 border-gray-300 hover:border-blue-900"
-                      }`}
-                    >
-                      {option.label}
-                    </button>
-                  ))}
-                </div>
-                {errors.duplex && (
-                  <p className="text-red-500 text-sm mt-1">{errors.duplex}</p>
                 )}
               </div>
             </div>
