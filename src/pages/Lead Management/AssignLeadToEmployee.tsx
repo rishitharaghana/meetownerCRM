@@ -5,6 +5,7 @@ import { AppDispatch, RootState } from "../../store/store";
 import {
   assignLeadToEmployee,
   getLeadStatuses,
+  fetchTodayFollowUps,
 } from "../../store/slices/leadslice";
 import { fetchOngoingProjects, fetchUpcomingProjects } from "../../store/slices/projectSlice";
 import Button from "../../components/ui/button/Button";
@@ -49,7 +50,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     status_id: "",
     followup_feedback: "",
     next_action: "",
-    followup_date: "", // For In Progress (status_id: "3")
+    followup_date: "", // For Follow-up (status_id: "2") and In Progress (status_id: "3")
     action_date: "", // For all other statuses
     interested_project_id: "",
     interested_project_name: "",
@@ -157,6 +158,8 @@ const AssignLeadEmployeePage: React.FC = () => {
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const today = new Date().toISOString().split("T")[0]; // e.g., "2025-08-19"
+
     if (!formData.assigned_user_type)
       newErrors.assigned_user_type = "Employee type is required";
     if (!formData.assigned_id) newErrors.assigned_id = "Employee is required";
@@ -166,16 +169,23 @@ const AssignLeadEmployeePage: React.FC = () => {
       newErrors.followup_feedback = "Follow-up feedback is required";
     if (!formData.next_action.trim())
       newErrors.next_action = "Next action is required";
-    if (formData.status_id === "3" && !formData.followup_date.trim()) {
-      newErrors.followup_date = "Follow-up date is required for In Progress status";
+    if ((formData.status_id === "2" || formData.status_id === "3") && !formData.followup_date.trim()) {
+      newErrors.followup_date = "Follow-up date is required for Follow-up or In Progress status";
     }
-    if (formData.status_id !== "3" && !formData.action_date.trim()) {
+    if ((formData.status_id === "2" || formData.status_id === "3") && formData.followup_date < today) {
+      newErrors.followup_date = "Follow-up date cannot be in the past";
+    }
+    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
       newErrors.action_date = "Action date is required";
+    }
+    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date < today) {
+      newErrors.action_date = "Action date cannot be in the past";
     }
     if (!formData.interested_project_id) {
       newErrors.interested_project_id = "Suggestion project is required";
     }
     setErrors(newErrors);
+    console.log("Validation errors:", newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
@@ -205,17 +215,28 @@ const AssignLeadEmployeePage: React.FC = () => {
         lead_added_user_type: user.user_type,
         lead_added_user_id: user.id,
         status_id: formData.status_id ? parseInt(formData.status_id) : undefined,
-        followup_date: formData.status_id === "3" ? formData.followup_date : undefined,
-        action_date: formData.status_id !== "3" ? formData.action_date : undefined,
+        followup_date: (formData.status_id === "2" || formData.status_id === "3") ? formData.followup_date : undefined,
+        action_date: (formData.status_id !== "2" && formData.status_id !== "3") ? formData.action_date : undefined,
         interested_project_id: parseInt(formData.interested_project_id),
         interested_project_name: formData.interested_project_name,
       };
 
+      console.log("Submitting to backend:", submitData);
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
       setSubmitSuccess(`Lead assigned successfully! Lead ID: ${submitData.lead_id}`);
+      if (formData.status_id === "2" && formData.followup_date === new Date().toISOString().split("T")[0]) {
+        dispatch(
+          fetchTodayFollowUps({
+            admin_user_id: user.id,
+            lead_added_user_type: user.user_type,
+            status_id: "2",
+          })
+        );
+      }
       navigate(-1);
     } catch (error: any) {
       setSubmitError(error.message || "Failed to assign lead. Please try again.");
+      console.error("Submission error:", error);
     } finally {
       setIsSubmitting(false);
     }
@@ -292,20 +313,22 @@ const AssignLeadEmployeePage: React.FC = () => {
             placeholder={projectsLoading ? "Loading projects..." : "Select Suggestion project"}
             error={errors.interested_project_id}
           />
-          {formData.status_id === "3" && (
+          {(formData.status_id === "2" || formData.status_id === "3") && (
             <div className="space-y-1">
               <DatePicker
                 id="followup_date"
-                label="Follow-up Date (for Today Follow-ups)"
+                label="Follow-up Date (for Today Follow-ups if status is Follow-up)"
                 placeholder="Select follow-up date"
                 defaultDate={formData.followup_date}
+                minDate={new Date()} // Restrict to today or future dates
                 onChange={(selectedDates: Date[]) => {
                   if (selectedDates.length > 0) {
-                    handleInputChange("followup_date")(
-                      selectedDates[0].toISOString().split("T")[0]
-                    );
+                    const date = selectedDates[0].toISOString().split("T")[0];
+                    handleInputChange("followup_date")(date);
+                    console.log("Follow-up Date Set:", date);
                   } else {
                     handleInputChange("followup_date")("");
+                    console.log("Follow-up Date Cleared");
                   }
                 }}
               />
@@ -314,20 +337,22 @@ const AssignLeadEmployeePage: React.FC = () => {
               )}
             </div>
           )}
-          {formData.status_id !== "3" && formData.status_id && (
+          {formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && (
             <div className="space-y-1">
               <DatePicker
                 id="action_date"
                 label="Action Date"
                 placeholder="Select action date"
                 defaultDate={formData.action_date}
+                minDate={new Date()} // Restrict to today or future dates
                 onChange={(selectedDates: Date[]) => {
                   if (selectedDates.length > 0) {
-                    handleInputChange("action_date")(
-                      selectedDates[0].toISOString().split("T")[0]
-                    );
+                    const date = selectedDates[0].toISOString().split("T")[0];
+                    handleInputChange("action_date")(date);
+                    console.log("Action Date Set:", date);
                   } else {
                     handleInputChange("action_date")("");
+                    console.log("Action Date Cleared");
                   }
                 }}
               />

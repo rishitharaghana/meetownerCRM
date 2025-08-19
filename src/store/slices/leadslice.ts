@@ -30,7 +30,49 @@ const initialState: LeadState = {
   error: null,
 };
 
-// Existing thunks (unchanged)
+export const fetchTodayFollowUps = createAsyncThunk<
+  Lead[],
+  {
+    admin_user_id: number;
+    lead_added_user_type: number;
+    status_id: string;
+    lead_source_user_id?: number;
+  },
+  { rejectValue: string }
+>(
+  "lead/fetchTodayFollowUps",
+  async ({ admin_user_id, lead_added_user_type, status_id, lead_source_user_id }, { rejectWithValue }) => {
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        return rejectWithValue("No authentication token found. Please log in.");
+      }
+      const queryParams = new URLSearchParams({
+        lead_added_user_id: admin_user_id.toString(),
+        lead_added_user_type: lead_added_user_type.toString(),
+        status_id,
+        ...(lead_source_user_id && { lead_source_user_id: lead_source_user_id.toString() }),
+      });
+      const endpoint = lead_source_user_id
+        ? `/api/v1/leads/getLeadsChannelPartner?${queryParams}`
+        : `/api/v1/getLeadsByUser?${queryParams}`;
+      console.log("Fetching today follow-ups from:", endpoint);
+      const response = await ngrokAxiosInstance.get<LeadsResponse>(endpoint, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      console.log("fetchTodayFollowUps response:", response.data);
+      return response.data.results || [];
+    } catch (error) {
+      const axiosError = error as AxiosError<ErrorResponse>;
+      console.error("Fetch today follow-ups error:", axiosError.response?.data);
+      return rejectWithValue(axiosError.response?.data.message || "No follow-up leads found for today");
+    }
+  }
+);
+
+
 export const getLeadsByUser = createAsyncThunk<
   Lead[],
   {
@@ -75,35 +117,26 @@ export const getLeadsByUser = createAsyncThunk<
           },
         }
       );
-      if (!response.data.results || response.data.results.length === 0) {
-        return rejectWithValue("No leads found");
-      }
-      return response.data.results;
+      console.log("getLeadsByUser response:", response.data);
+      return response.data.results || [];
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
-      console.error("Get leads by user error:", axiosError);
+      console.error("Get leads by user error:", axiosError.response?.data);
       if (axiosError.response) {
         const status = axiosError.response.status;
         switch (status) {
           case 401:
             return rejectWithValue("Unauthorized: Invalid or expired token");
-          case 404:
-            return rejectWithValue("No leads found for this user");
-          case 500:
-            return rejectWithValue("Server error. Please try again later.");
+          case 400:
+            return rejectWithValue(axiosError.response.data.message || "Invalid request parameters");
           default:
-            return rejectWithValue(
-              axiosError.response.data?.message || "Failed to fetch leads"
-            );
+            return rejectWithValue("No leads found for this user");
         }
       }
-      return rejectWithValue(
-        "Network error. Please check your connection and try again."
-      );
+      return rejectWithValue("Network error. Please check your connection and try again.");
     }
   }
 );
-
 export const getTotalLeads = createAsyncThunk<
   number,
   { lead_added_user_id: number; lead_added_user_type: number },
@@ -514,7 +547,6 @@ export const addLeadSource = createAsyncThunk<
   }
 });
 
-
 export const insertLead = createAsyncThunk<
   InsertLeadResponse,
   {
@@ -624,7 +656,9 @@ export const assignLeadToEmployee = createAsyncThunk<
     lead_added_user_id: number;
     status_id?: number;
     followup_date?: string;
-    site_visit_date?: string;
+    action_date?: string; // Changed from site_visit_date to action_date to match frontend
+    interested_project_id?: number;
+    interested_project_name?: string;
   },
   { rejectValue: string }
 >("lead/assignLeadToEmployee", async (assignData, { rejectWithValue }) => {
@@ -637,9 +671,13 @@ export const assignLeadToEmployee = createAsyncThunk<
       ...assignData,
       status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
       followup_date:
-        assignData.status_id === 3 ? assignData.followup_date : undefined,
-      site_visit_date:
-        assignData.status_id === 4 ? assignData.site_visit_date : undefined,
+        assignData.status_id === 2 || assignData.status_id === 3
+          ? assignData.followup_date
+          : undefined,
+      action_date:
+        assignData.status_id !== 2 && assignData.status_id !== 3 && assignData.status_id
+          ? assignData.action_date
+          : undefined,
     };
     const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
       `/api/v1/leads/assignLeadToEmployee`,
@@ -790,6 +828,7 @@ export const updateLeadByEmployee = createAsyncThunk<
     updated_emp_phone: string;
     lead_added_user_type: number;
     lead_added_user_id: number;
+    followup_date?: string; // Added followup_date
   },
   { rejectValue: string }
 >("lead/updateLeadByEmployee", async (updateData, { rejectWithValue }) => {
@@ -853,13 +892,46 @@ const leadSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      .addCase(getLeadsByUser.pending, (state) => {
+      .addCase(fetchTodayFollowUps.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(fetchTodayFollowUps.fulfilled, (state, action) => {
+        state.loading = false;
+        const today = new Date().toISOString().split("T")[0];
+        const newLeads = action.payload.filter(
+          (lead) => lead.status_id === 2 && lead.followup_date === today
+        );
+        console.log("New today follow-ups:", newLeads);
+        state.leads = state.leads
+          ? [
+              ...state.leads.filter(
+                (lead) => lead.status_id !== 2 || lead.followup_date !== today
+              ),
+              ...newLeads,
+            ]
+          : newLeads;
+      })
+      .addCase(fetchTodayFollowUps.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action.payload as string;
+      })
+       .addCase(getLeadsByUser.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(getLeadsByUser.fulfilled, (state, action) => {
         state.loading = false;
-        state.leads = action.payload;
+        const today = new Date().toISOString().split("T")[0];
+        const newLeads = action.payload;
+        state.leads = state.leads
+          ? [
+              ...state.leads.filter(
+                (lead) => lead.status_id === 2 && lead.followup_date === today
+              ),
+              ...newLeads,
+            ]
+          : newLeads;
       })
       .addCase(getLeadsByUser.rejected, (state, action) => {
         state.loading = false;
