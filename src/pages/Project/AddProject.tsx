@@ -86,6 +86,7 @@ const RESIDENTIAL_SUBTYPES: SelectOption[] = [
   { value: "Apartment", label: "Apartment" },
   { value: "Independent House", label: "Independent House" },
   { value: "Independent Villa", label: "Independent Villa" },
+  { value: "Duplex", label: "Duplex" },
   { value: "Plot", label: "Plot" },
   { value: "Land", label: "Land" },
 ];
