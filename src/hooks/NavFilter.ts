@@ -37,7 +37,10 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
 
   return navItems
     .filter((item) => {
-      if (userType == 1) return !["Employee Management", "Bookings", "Partners","Lead Management","Project Management","Dashboard"].includes(item.name); // admin
+        if (item.name === "Lead Source Management") {
+        return userType === 1; 
+      }
+      if (userType == 1) return !["Employee Management", "Bookings", "Partners","Lead Management","Project Management","Dashboard", "Lead Source Management"].includes(item.name); // admin
       if(userType == 2) return !["Builders","Queries"].includes(item.name); // builders
       if (userType === 3) return !["Employee Management", "Partners","Builders","Queries"].includes(item.name); // channel partner
       if (userType === 4) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // sales Manager
