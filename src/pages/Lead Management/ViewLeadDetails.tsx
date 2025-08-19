@@ -1,44 +1,50 @@
-import { useLocation, useNavigate } from 'react-router';
-import { useEffect } from 'react';
-import { useDispatch, useSelector } from 'react-redux';
-import Button from '../../components/ui/button/Button';
-import Timeline, { TimelineEvent } from '../../components/ui/timeline/Timeline';
-import { AppDispatch, RootState } from '../../store/store';
-import { getLeadSources, getLeadUpdatesByLeadId } from '../../store/slices/leadslice';
-import { Lead, LeadUpdate } from '../../types/LeadModel';
-import { BUILDER_USER_TYPE } from './CustomComponents';
-import toast from 'react-hot-toast';
-import PageBreadcrumb from '../../components/common/PageBreadCrumb';
+import { useLocation, useNavigate } from "react-router";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import Button from "../../components/ui/button/Button";
+import Timeline, { TimelineEvent } from "../../components/ui/timeline/Timeline";
+import { AppDispatch, RootState } from "../../store/store";
+import {
+  getLeadSources,
+  getLeadUpdatesByLeadId,
+} from "../../store/slices/leadslice";
+import { Lead, LeadUpdate } from "../../types/LeadModel";
+import { BUILDER_USER_TYPE } from "./CustomComponents";
+import toast from "react-hot-toast";
+import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 const ViewLeadDetails = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { leads, leadUpdates, loading, error } = useSelector((state: RootState) => state.lead);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const { leads, leadUpdates, loading, error } = useSelector(
+    (state: RootState) => state.lead
+  );
+  console.log("Lead Updates:", leadUpdates);
   const property = location.state?.property as Lead;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const leadSources = useSelector((state: RootState) => state.lead.leadSources);
 
-
   useEffect(() => {
     if (!isAuthenticated || !user) {
-      navigate('/login');
-      toast.error('Please log in to view lead details');
+      navigate("/login");
+      toast.error("Please log in to view lead details");
       return;
     }
 
-
     if (!property) {
-      navigate('/leads');
-      toast.error('No lead data provided');
+      navigate("/leads");
+      toast.error("No lead data provided");
       return;
     }
 
     if (isBuilder) {
       if (!user.user_type || !user.id) {
-        navigate('/login');
-        toast.error('User data incomplete. Please log in again.');
+        navigate("/login");
+        toast.error("User data incomplete. Please log in again.");
         return;
       }
       dispatch(
@@ -50,8 +56,10 @@ const ViewLeadDetails = () => {
       );
     } else {
       if (!user.created_user_type || !user.created_user_id) {
-        navigate('/login');
-        toast.error('User data incomplete for non-builder user. Please log in again.');
+        navigate("/login");
+        toast.error(
+          "User data incomplete for non-builder user. Please log in again."
+        );
         return;
       }
       dispatch(
@@ -65,10 +73,13 @@ const ViewLeadDetails = () => {
   }, [property, navigate, dispatch, isAuthenticated, user]);
 
   useEffect(() => {
-  dispatch(getLeadSources());
-}, [dispatch]);
+    dispatch(getLeadSources());
+  }, [dispatch]);
 
-  const lead = typeof property === 'number' ? leads?.find((l) => l.lead_id === property) : property;
+  const lead =
+    typeof property === "number"
+      ? leads?.find((l) => l.lead_id === property)
+      : property;
 
   if (!lead) {
     return (
@@ -84,7 +95,7 @@ const ViewLeadDetails = () => {
             <Button
               variant="primary"
               size="sm"
-              onClick={() => navigate('/leads')}
+              onClick={() => navigate("/leads")}
               className="ml-4"
             >
               Go Back
@@ -98,8 +109,15 @@ const ViewLeadDetails = () => {
   const timeline: TimelineEvent[] = leadUpdates?.length
     ? leadUpdates.map((update: LeadUpdate, index: number) => ({
         label: update.status_name || `Update ${index + 1}`,
-        timestamp: `${update.update_date} ${update.update_time}`,
-        status: update.status_id && lead.status_id && update.status_id <= lead.status_id ? 'completed' : 'pending',
+        timestamp: new Date(
+          `${update.update_date.split("T")[0]}T${update.update_time}Z`
+        ).toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
+        status:
+          update.status_id &&
+          lead.status_id &&
+          update.status_id <= lead.status_id
+            ? "completed"
+            : "pending",
         description: update.feedback,
         nextAction: update.next_action,
         current: update.status_id === lead.status_id,
@@ -115,8 +133,8 @@ const ViewLeadDetails = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: 'Leads', link: '/leads' },
-            { label: lead.interested_project_name || 'Lead Details' },
+            { label: "Leads", link: "/leads" },
+            { label: lead.interested_project_name || "Lead Details" },
           ]}
         />
       </div>
@@ -129,9 +147,7 @@ const ViewLeadDetails = () => {
           Loading lead updates...
         </div>
       )}
-      {error && (
-        <div className="text-center text-red-500 py-4">{error}</div>
-      )}
+      {error && <div className="text-center text-red-500 py-4">{error}</div>}
 
       <div className="bg-white dark:bg-dark-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
@@ -143,29 +159,28 @@ const ViewLeadDetails = () => {
               <strong>Mobile:</strong> {lead.customer_phone_number}
             </p>
             <p>
-              <strong>Email:</strong> {lead.customer_email || 'N/A'}
+              <strong>Email:</strong> {lead.customer_email || "N/A"}
             </p>
             <p>
               <strong>Project:</strong> {lead.interested_project_name}
             </p>
             <p>
-              <strong>Budget:</strong> {lead.budget || 'N/A'}
+              <strong>Budget:</strong> {lead.budget || "N/A"}
             </p>
-        <p>
-  <strong>Lead Source:</strong>{" "}
-  {
-    leadSources?.find(
-      (source) => String(source.lead_source_id) === String(lead.lead_source_id)
-    )?.lead_source_name || lead.lead_source_id
-  }
-</p>   
-
+            <p>
+              <strong>Lead Source:</strong>{" "}
+              {leadSources?.find(
+                (source) =>
+                  String(source.lead_source_id) === String(lead.lead_source_id)
+              )?.lead_source_name || lead.lead_source_id}
+            </p>
 
             <p>
               <strong>Created:</strong> {lead.created_date} {lead.created_time}
             </p>
             <p>
-              <strong>Assigned:</strong> {lead.assigned_name} ({lead.assigned_emp_number})
+              <strong>Assigned:</strong> {lead.assigned_name} (
+              {lead.assigned_emp_number})
             </p>
             <p>
               <strong>Status:</strong> {lead.status_name}
@@ -173,14 +188,16 @@ const ViewLeadDetails = () => {
             <p>
               <strong>city:</strong> {lead.city}
             </p>
-             <p>
+            <p>
               <strong>state:</strong> {lead.state}
             </p>
           </div>
         </div>
 
         <div>
-          <h2 className="text-xl font-semibold mb-4 text-blue-900">Lead Timeline</h2>
+          <h2 className="text-xl font-semibold mb-4 text-blue-900">
+            Lead Timeline
+          </h2>
           <Timeline data={timeline} />
         </div>
       </div>
