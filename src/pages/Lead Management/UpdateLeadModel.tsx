@@ -5,6 +5,7 @@ import { getLeadStatuses, updateLeadByEmployee } from "../../store/slices/leadsl
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
+import DatePicker from "../../components/form/date-picker"; // Add DatePicker import
 import { LeadStatus } from "../../types/LeadModel";
 
 interface UpdateLeadModalProps {
@@ -24,6 +25,8 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
     follow_up_feedback: "",
     next_action: "",
     status_id: "",
+    followup_date: "", // Added for Follow-up and In Progress statuses
+    action_date: "", // Added for other statuses
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -44,15 +47,33 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
     setFormData((prev) => ({ ...prev, [field]: value }));
 
     if (errors[field]) {
-      setErrors((prev) => ({ ...prev, [field]: undefined }));
+      setErrors((prev) => {
+        const newErrors = { ...prev };
+        delete newErrors[field];
+        return newErrors;
+      });
     }
   };
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
+    const today = new Date().toISOString().split("T")[0]; // e.g., "2025-08-19"
+
     if (!formData.status_id) newErrors.status_id = "Status is required";
     if (!formData.follow_up_feedback.trim()) newErrors.follow_up_feedback = "Follow-up feedback is required";
     if (!formData.next_action.trim()) newErrors.next_action = "Next action is required";
+    if ((formData.status_id === "2" || formData.status_id === "3") && !formData.followup_date.trim()) {
+      newErrors.followup_date = "Follow-up date is required for Follow-up or In Progress status";
+    }
+    if ((formData.status_id === "2" || formData.status_id === "3") && formData.followup_date < today) {
+      newErrors.followup_date = "Follow-up date cannot be in the past";
+    }
+    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
+      newErrors.action_date = "Action date is required";
+    }
+    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date < today) {
+      newErrors.action_date = "Action date cannot be in the past";
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -83,8 +104,9 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
         updated_emp_phone: user.mobile,
         lead_added_user_type: user.created_user_type,
         lead_added_user_id: user.created_user_id,
+        followup_date: (formData.status_id === "2" || formData.status_id === "3") ? formData.followup_date : undefined,
+        action_date: (formData.status_id !== "2" && formData.status_id !== "3") ? formData.action_date : undefined,
       };
-      console.log(submitData);
 
       const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
       setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
@@ -99,86 +121,135 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
 
   return (
     <div className="fixed inset-0 z-[9999999] pointer-events-auto">
-      <div className=" absolute inset-0 bg-white/30 backdrop-blur-sm">
-<div className="relative flex items-center justify-center h-full">
-    <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
-        <h2 className="text-xl font-semibold mb-4">Update Lead</h2>
-        {submitSuccess && (
-          <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-md">
-            {submitSuccess}
-          </div>
-        )}
-        {submitError && (
-          <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
-            {submitError}
-          </div>
-        )}
-        {statusesError && (
-          <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
-            {statusesError}
-          </div>
-        )}
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <Select
-            label="Status"
-            options={statusOptions}
-            value={formData.status_id}
-            onChange={handleInputChange("status_id")}
-            placeholder={statusesLoading ? "Loading statuses..." : "Select status"}
-            error={errors.status_id}
-          />
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Follow-up Feedback
-            </label>
-            <Input
-              type="text"
-              value={formData.follow_up_feedback}
-              onChange={(e) => handleInputChange("follow_up_feedback")(e.target.value)}
-              placeholder="Enter follow-up feedback"
-              className={errors.follow_up_feedback ? "border-red-500" : ""}
-            />
-            {errors.follow_up_feedback && (
-              <p className="text-red-500 text-sm mt-1">{errors.follow_up_feedback}</p>
+      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm">
+        <div className="relative flex items-center justify-center h-full">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+            <h2 className="text-xl font-semibold mb-4">Update Lead</h2>
+            {submitSuccess && (
+              <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-md">
+                {submitSuccess}
+              </div>
             )}
-          </div>
-          <div className="space-y-1">
-            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-              Next Action
-            </label>
-            <Input
-              type="text"
-              value={formData.next_action}
-              onChange={(e) => handleInputChange("next_action")(e.target.value)}
-              placeholder="Enter next action"
-              className={errors.next_action ? "border-red-500" : ""}
-            />
-            {errors.next_action && (
-              <p className="text-red-500 text-sm mt-1">{errors.next_action}</p>
+            {submitError && (
+              <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
+                {submitError}
+              </div>
             )}
-          </div>
-          <div className="flex justify-end gap-4 mt-6">
-            <Button variant="outline" onClick={onClose}>
-              Cancel
-            </Button>
-            <Button
-              variant="primary"
-              type="submit"
-              disabled={isSubmitting || statusesLoading}
-            >
-              {isSubmitting || statusesLoading ? (
-                <div className="flex items-center justify-center gap-2">
-                  <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                  Updating Lead...
+            {statusesError && (
+              <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
+                {statusesError}
+              </div>
+            )}
+            {Object.keys(errors).length > 0 && (
+              <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
+                Please fix the errors in the form before submitting.
+              </div>
+            )}
+            <form onSubmit={handleSubmit} className="space-y-4">
+              <Select
+                label="Status"
+                options={statusOptions}
+                value={formData.status_id}
+                onChange={handleInputChange("status_id")}
+                placeholder={statusesLoading ? "Loading statuses..." : "Select status"}
+                error={errors.status_id}
+              />
+              {(formData.status_id === "2" || formData.status_id === "3") && (
+                <div className="space-y-1">
+                  <DatePicker
+                    id="followup_date"
+                    label="Follow-up Date"
+                    placeholder="Select follow-up date"
+                    defaultDate={formData.followup_date}
+                    minDate={new Date()} // Restrict to today or future dates
+                    onChange={(selectedDates: Date[]) => {
+                      if (selectedDates.length > 0) {
+                        const date = selectedDates[0].toISOString().split("T")[0];
+                        handleInputChange("followup_date")(date);
+                      } else {
+                        handleInputChange("followup_date")("");
+                      }
+                    }}
+                  />
+                  {errors.followup_date && (
+                    <p className="text-red-500 text-sm mt-1">{errors.followup_date}</p>
+                  )}
                 </div>
-              ) : (
-                "Submit"
               )}
-            </Button>
+              {formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && (
+                <div className="space-y-1">
+                  <DatePicker
+                    id="action_date"
+                    label="Action Date"
+                    placeholder="Select action date"
+                    defaultDate={formData.action_date}
+                    minDate={new Date()} // Restrict to today or future dates
+                    onChange={(selectedDates: Date[]) => {
+                      if (selectedDates.length > 0) {
+                        const date = selectedDates[0].toISOString().split("T")[0];
+                        handleInputChange("action_date")(date);
+                      } else {
+                        handleInputChange("action_date")("");
+                      }
+                    }}
+                  />
+                  {errors.action_date && (
+                    <p className="text-red-500 text-sm mt-1">{errors.action_date}</p>
+                  )}
+                </div>
+              )}
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Follow-up Feedback
+                </label>
+                <Input
+                  type="text"
+                  value={formData.follow_up_feedback}
+                  onChange={(e) => handleInputChange("follow_up_feedback")(e.target.value)}
+                  placeholder="Enter follow-up feedback"
+                  className={errors.follow_up_feedback ? "border-red-500" : ""}
+                />
+                {errors.follow_up_feedback && (
+                  <p className="text-red-500 text-sm mt-1">{errors.follow_up_feedback}</p>
+                )}
+              </div>
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Next Action
+                </label>
+                <Input
+                  type="text"
+                  value={formData.next_action}
+                  onChange={(e) => handleInputChange("next_action")(e.target.value)}
+                  placeholder="Enter next action"
+                  className={errors.next_action ? "border-red-500" : ""}
+                />
+                {errors.next_action && (
+                  <p className="text-red-500 text-sm mt-1">{errors.next_action}</p>
+                )}
+              </div>
+              <div className="flex justify-end gap-4 mt-6">
+                <Button variant="outline" onClick={onClose}>
+                  Cancel
+                </Button>
+                <Button
+                  variant="primary"
+                  type="submit"
+                  disabled={isSubmitting || statusesLoading}
+                >
+                  {isSubmitting || statusesLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Updating Lead...
+                    </div>
+                  ) : (
+                    "Submit"
+                  )}
+                </Button>
+              </div>
+            </form>
           </div>
-        </form>
-      </div>
-      </div>
+        </div>
       </div>
     </div>
   );
