@@ -38,7 +38,7 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
   return navItems
     .filter((item) => {
         if (item.name === "Lead Source Management") {
-        return userType === 1; 
+        return userType === 2; 
       }
       if (userType == 1) return !["Employee Management", "Bookings", "Partners","Lead Management","Project Management","Dashboard", "Lead Source Management"].includes(item.name); // admin
       if(userType == 2) return !["Builders","Queries"].includes(item.name); // builders
