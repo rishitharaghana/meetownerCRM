@@ -397,7 +397,8 @@ const AssignLeadEmployeePage: React.FC = () => {
                   minDate={new Date()}
                   onChange={(selectedDates: Date[]) => {
                     if (selectedDates.length > 0) {
-                      const date = selectedDates[0].toISOString().split("T")[0];
+                      const selected = selectedDates[0];
+                      const date = selected.toLocaleDateString("en-CA");
                       handleInputChange("action_date")(date);
                     } else {
                       handleInputChange("action_date")("");
