@@ -25,15 +25,13 @@ export default function UserAddressCard() {
       label: "City / State",
       value: `${selectedUser?.city || "Unknown City"}, ${selectedUser?.state || "Unknown State"}`,
     },
-    
-    {
-      label: "Country",
-      value: "India",
-    },
-   
     {
       label: "Pincode",
       value: selectedUser?.pincode || "N/A",
+    },    
+    {
+      label: "Country",
+      value: "India",
     },
     
   ];
