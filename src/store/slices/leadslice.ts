@@ -656,7 +656,7 @@ export const assignLeadToEmployee = createAsyncThunk<
     lead_added_user_id: number;
     status_id?: number;
     followup_date?: string;
-    action_date?: string; // Changed from site_visit_date to action_date to match frontend
+    action_date?: string;
     interested_project_id?: number;
     interested_project_name?: string;
   },
@@ -667,6 +667,7 @@ export const assignLeadToEmployee = createAsyncThunk<
     if (!token) {
       return rejectWithValue("No authentication token found. Please log in.");
     }
+
     const payload = {
       ...assignData,
       status_id: assignData.status_id !== undefined ? assignData.status_id : 1,
@@ -678,7 +679,11 @@ export const assignLeadToEmployee = createAsyncThunk<
         assignData.status_id !== 2 && assignData.status_id !== 3 && assignData.status_id
           ? assignData.action_date
           : undefined,
+      // Explicitly handle optional fields to ensure they are undefined if not provided
+      interested_project_id: assignData.interested_project_id || undefined,
+      interested_project_name: assignData.interested_project_name || undefined,
     };
+
     const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
       `/api/v1/leads/assignLeadToEmployee`,
       payload,
@@ -688,9 +693,11 @@ export const assignLeadToEmployee = createAsyncThunk<
         },
       }
     );
+
     if (response.data.status !== "success") {
       return rejectWithValue(response.data.message || "Failed to assign lead");
     }
+
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ErrorResponse>;

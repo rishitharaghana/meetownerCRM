@@ -204,9 +204,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     ) {
       newErrors.action_date = "Action date cannot be in the past";
     }
-    if (!formData.interested_project_id) {
-      newErrors.interested_project_id = "Suggestion project is required";
-    }
+    // Removed validation for interested_project_id to make it optional
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
@@ -225,7 +223,7 @@ const AssignLeadEmployeePage: React.FC = () => {
     setSubmitSuccess(null);
 
     try {
-      const submitData = {
+      const submitData: any = {
         lead_id: parseInt(leadId || "0"),
         assigned_user_type: parseInt(formData.assigned_user_type),
         assigned_id: parseInt(formData.assigned_id),
@@ -247,9 +245,13 @@ const AssignLeadEmployeePage: React.FC = () => {
           formData.status_id !== "2" && formData.status_id !== "3"
             ? formData.action_date
             : undefined,
-        interested_project_id: parseInt(formData.interested_project_id),
-        interested_project_name: formData.interested_project_name,
       };
+
+      // Include interested_project_id and interested_project_name only if they are provided
+      if (formData.interested_project_id) {
+        submitData.interested_project_id = parseInt(formData.interested_project_id);
+        submitData.interested_project_name = formData.interested_project_name;
+      }
 
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
       setSubmitSuccess(
@@ -349,14 +351,14 @@ const AssignLeadEmployeePage: React.FC = () => {
             error={errors.status_id}
           />
           <Select
-            label="Suggestion Project"
+            label="Suggestion Project (Optional)"
             options={projectOptions}
             value={formData.interested_project_id}
             onChange={handleInputChange("interested_project_id")}
             placeholder={
               projectsLoading
                 ? "Loading projects..."
-                : "Select Suggestion project"
+                : "Select suggestion project (optional)"
             }
             error={errors.interested_project_id}
           />
