@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
 import { Link, useLocation } from "react-router";
 import { Building2, ChevronDown, ChevronRight, GridIcon, Magnet } from "lucide-react";
-import { FaFileInvoice,  FaUser, FaUserTie,  FaSwatchbook } from "react-icons/fa";
+import { FaFileInvoice, FaUser, FaUserTie, FaSwatchbook } from "react-icons/fa";
 import { CalenderIcon } from "../icons";
 import { useSidebar } from "../context/SidebarContext";
 import { useSelector } from "react-redux";
@@ -18,16 +18,15 @@ const navItems: NavItem[] = [
     icon: <CalenderIcon />,
     name: "Lead Management",
     subItems: [
-      { name: "Total Leads", path: "/leads/new/0", data: { "lead_in": "Today", "status": 0} },
-      { name: "Open Leads", path: "/leads/open/1", data: { "lead_in": "Open", "status": 1} },
-      { name: "In Progress", path: "/leads/InProgress/3", data: { "lead_in": "In Progress",  "status": 3} },
-      { name: "Today Folow Ups", path: "/leads/today/2", data: { "lead_in": "Today",  "status": 2} },
-      { name: "Site Visit Scheduled", path: "/leads/SiteVisitScheduled/4", data: { "lead_in": "Site Visit Scheduled",  "status": 4} },
-      { name: "Site Visit Done", path: "/leads/SiteVisitDone/5", data: { "lead_in": "Site Visit done","status": 5 } },
-      { name: "Won Leads", path: "/leads/WonLeads/6", data: { "lead_in": "Won Leads","status": 6 } },
-      { name: "Lost Leads", path: "/leads/LostLeads/7", data: { "lead_in": "Lost Leads","status": 7 } },
-      { name: "Add New Lead", path: "/leads/addlead", },
-     
+      { name: "Total Leads", path: "/leads/new/0", data: { lead_in: "Today", status: 0 } },
+      { name: "Open Leads", path: "/leads/open/1", data: { lead_in: "Open", status: 1 } },
+      { name: "In Progress", path: "/leads/InProgress/3", data: { lead_in: "In Progress", status: 3 } },
+      { name: "Today Folow Ups", path: "/leads/today/2", data: { lead_in: "Today", status: 2 } },
+      { name: "Site Visit Scheduled", path: "/leads/SiteVisitScheduled/4", data: { lead_in: "Site Visit Scheduled", status: 4 } },
+      { name: "Site Visit Done", path: "/leads/SiteVisitDone/5", data: { lead_in: "Site Visit done", status: 5 } },
+      { name: "Won Leads", path: "/leads/WonLeads/6", data: { lead_in: "Won Leads", status: 6 } },
+      { name: "Lost Leads", path: "/leads/LostLeads/7", data: { lead_in: "Lost Leads", status: 7 } },
+      { name: "Add New Lead", path: "/leads/addlead" },
     ],
   },
   {
@@ -41,42 +40,36 @@ const navItems: NavItem[] = [
       { name: "Stopped Projects", path: "/projects/stopped-projects", pro: false },
     ],
   },
-   {
+  {
     icon: <FaUser />,
     name: "Builders",
     subItems: [
       { name: "All Builders", path: "/builders" },
       { name: "Add Builders", path: "/builders/addbuilders" },
-     
     ],
-  }, 
+  },
   {
     icon: <FaSwatchbook />,
     name: "Queries",
     subItems: [
       { name: "All Queries", path: "/builder/queries" },
     ],
-  }, 
+  },
   {
     icon: <FaUser />,
     name: "Partners",
     subItems: [
-      { name: "All channel Partners", path: "/partners" },
+      { name: "All Channel Partners", path: "/partners" },
       { name: "Add Channel Partners", path: "/partners/addpartners" },
-     
     ],
   },
-  
-   {
+  {
     name: "Bookings",
     icon: <FaSwatchbook />,
     subItems: [
       { name: "Bookings Done", path: "/bookings/bookings-done", pro: false },
-     
     ],
   },
-
-
   {
     name: "Employee Management",
     icon: <FaUserTie />,
@@ -85,84 +78,93 @@ const navItems: NavItem[] = [
       { name: "Telecallers", path: "/employee/5", pro: false },
       { name: "Marketing Executives", path: "/employee/6", pro: false },
       { name: "Receptionists", path: "/employee/7", pro: false },
-      {name:"Add Employee",path:"/create-employee"}
+      { name: "Add Employee", path: "/create-employee" },
     ],
   },
-  
   {
-    name :"Lead Source Management",
+    name: "Lead Source Management",
     icon: <Magnet size={17} />,
     subItems: [
       { name: "New Lead Source", path: "/lead-source" },
     ],
-  }
-  
+  },
 ];
-
 
 const AppSidebar: React.FC = () => {
   const { isExpanded, isMobileOpen, isHovered, setIsHovered } = useSidebar();
   const location = useLocation();
   const userType = useSelector((state: RootState) => state.auth.user?.user_type);
-  const {user} = useSelector((state:RootState) => state.auth);
-  
+  const { user } = useSelector((state: RootState) => state.auth);
+  const [isLoading, setIsLoading] = useState(true); // Loading state for user data
+  const [logoUrl, setLogoUrl] = useState<string | null>(null); // Cache logo URL
+
   const [openSubmenu, setOpenSubmenu] = useState<{ type: "main"; index: number } | null>(null);
   const [openNestedSubmenu, setOpenNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number } | null>(null);
-  const [openDeepNestedSubmenu, setOpenDeepNestedSubmenu] = useState<{ type: "main"; index: number; subIndex: number; nestedIndex: number } | null>(null);
+  const [openDeepNestedSubmenu, setOpenDeepNestedSubmenu] = useState<{
+    type: "main";
+    index: number;
+    subIndex: number;
+    nestedIndex: number;
+  } | null>(null);
 
   const subMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const nestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const deepNestedSubMenuRefs = useRef<Record<string, HTMLDivElement | null>>({});
   const [subMenuHeight, setSubMenuHeight] = useState<Record<string, number>>({});
-   const [deepNestedSubMenuHeight, setDeepNestedSubMenuHeight] = useState<Record<string, number>>({});
+  const [deepNestedSubMenuHeight, setDeepNestedSubMenuHeight] = useState<Record<string, number>>({});
 
-   const filteredNavItems = filterNavItemsByUserType(navItems, userType);
-
+  const filteredNavItems = filterNavItemsByUserType(navItems, userType);
 
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
   useEffect(() => {
-  let matched = false;
-
-  filteredNavItems.forEach((nav, index) => {
-    if (nav.subItems) {
-      nav.subItems.forEach((subItem, subIndex) => {
-        if (subItem.path && isActive(subItem.path)) {
-          setOpenSubmenu({ type: "main", index });
-          matched = true;
-        }
-
-        if (subItem.nestedItems) {
-          subItem.nestedItems.forEach((nestedItem, nestedIndex) => {
-            if (nestedItem.path && isActive(nestedItem.path)) {
-              setOpenSubmenu({ type: "main", index });
-              setOpenNestedSubmenu({ type: "main", index, subIndex });
-              matched = true;
-            }
-
-            if (nestedItem.nestedItems) {
-              nestedItem.nestedItems.forEach((deepNestedItem) => {
-                if (deepNestedItem.path && isActive(deepNestedItem.path)) {
-                  setOpenSubmenu({ type: "main", index });
-                  setOpenNestedSubmenu({ type: "main", index, subIndex });
-                  setOpenDeepNestedSubmenu({ type: "main", index, subIndex, nestedIndex });
-                  matched = true;
-                }
-              });
-            }
-          });
-        }
-      });
+    // Set loading state to false and cache logo URL once user data is available
+    if (user) {
+      setIsLoading(false);
+      setLogoUrl(user.company_logo || null);
     }
-  });
+  }, [user]);
 
-  if (!matched) {
-    // Keep main submenu open if one was toggled manually
-    setOpenNestedSubmenu(null);
-    setOpenDeepNestedSubmenu(null);
-  }
-}, [location.pathname]);
+  useEffect(() => {
+    let matched = false;
 
+    filteredNavItems.forEach((nav, index) => {
+      if (nav.subItems) {
+        nav.subItems.forEach((subItem, subIndex) => {
+          if (subItem.path && isActive(subItem.path)) {
+            setOpenSubmenu({ type: "main", index });
+            matched = true;
+          }
+
+          if (subItem.nestedItems) {
+            subItem.nestedItems.forEach((nestedItem, nestedIndex) => {
+              if (nestedItem.path && isActive(nestedItem.path)) {
+                setOpenSubmenu({ type: "main", index });
+                setOpenNestedSubmenu({ type: "main", index, subIndex });
+                matched = true;
+              }
+
+              if (nestedItem.nestedItems) {
+                nestedItem.nestedItems.forEach((deepNestedItem) => {
+                  if (deepNestedItem.path && isActive(deepNestedItem.path)) {
+                    setOpenSubmenu({ type: "main", index });
+                    setOpenNestedSubmenu({ type: "main", index, subIndex });
+                    setOpenDeepNestedSubmenu({ type: "main", index, subIndex, nestedIndex });
+                    matched = true;
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+    });
+
+    if (!matched) {
+      setOpenNestedSubmenu(null);
+      setOpenDeepNestedSubmenu(null);
+    }
+  }, [location.pathname]);
 
   useLayoutEffect(() => {
     if (openSubmenu) {
@@ -210,7 +212,7 @@ const AppSidebar: React.FC = () => {
       {items.map((nav, index) => {
         const isItemActive = nav.path && isActive(nav.path);
         const isSubmenuOpen = openSubmenu?.type === "main" && openSubmenu?.index === index;
-        const hasActiveChild = nav.subItems?.some(subItem => subItem.path && isActive(subItem.path));
+        const hasActiveChild = nav.subItems?.some((subItem) => subItem.path && isActive(subItem.path));
 
         return (
           <div key={nav.name} className="group">
@@ -301,7 +303,7 @@ const AppSidebar: React.FC = () => {
                               className={`flex items-center justify-between px-3 py-2 rounded-lg text-sm transition-all duration-200 group ${
                                 isSubItemActive
                                   ? "bg-blue-50 text-blue-700 font-medium"
-                                  : "text-gray-600 hover:bg-gray-50 hover:text-gray-900"
+                                  : "text-gray-600 hover:bg-blue-50 hover:text-gray-900"
                               }`}
                             >
                               <span className="font-medium">{subItem.name}</span>
@@ -349,16 +351,18 @@ const AppSidebar: React.FC = () => {
         <Link to="/" className="flex items-center">
           {shouldShowText ? (
             <div className="flex items-center">
-             <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
-                  {user?.company_logo ? (
-                <img
-                  src={user.company_logo}
-                  alt={`${user.company_name} logo`}
-                  className="w-full h-full object-contain"
-                  onError={(e) => {
-                    e.currentTarget.src = "https://via.placeholder.com/32";
-                  }}
-                />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center mr-3 overflow-hidden">
+                {isLoading ? (
+                  <div className="w-full h-full bg-gray-200 animate-pulse flex items-center justify-center">
+                    <span className="text-gray-500 text-sm font-bold">C</span>
+                  </div>
+                ) : logoUrl ? (
+                  <img
+                    src={logoUrl}
+                    alt={`${user?.company_name || "Company"} logo`}
+                    className="w-full h-full object-contain"
+                    onError={() => setLogoUrl(null)} // Clear logo URL on persistent failure
+                  />
                 ) : (
                   <div className="w-full h-full bg-gradient-to-r from-blue-500 to-blue-600 flex items-center justify-center">
                     <span className="text-white text-sm font-bold">
@@ -368,7 +372,7 @@ const AppSidebar: React.FC = () => {
                 )}
               </div>
               <div className="flex flex-col">
-                <span className="text-xl font-bold text-gray-900">{user?.company_name} </span>
+                <span className="text-xl font-bold text-gray-900">{user?.company_name || "Company"}</span>
                 <span className="text-xs text-gray-500">Real Estate CRM</span>
               </div>
             </div>
