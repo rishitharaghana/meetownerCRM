@@ -46,6 +46,8 @@ import EditChannelPartner from "./pages/Channel Partners/EditChannelPartner";
 import EditBuilder from "./pages/Builders/EditBuilders";
 import EditProject from "./pages/Project/EditProject";
 import LeadSource from "./pages/New Lead Source/LeadSource";
+import UpdateLeadModal from "./pages/Lead Management/UpdateLeadModel";
+
 export default function App() {
   const { isAuthenticated, token } = useSelector(
     (state: RootState) => state.auth
@@ -72,6 +74,10 @@ export default function App() {
                 path="/leads/assign/:leadId"
                 element={<AssignLeadEmployeePage />}
               />
+              <Route
+                path="/leads/update-lead/:leadId"
+                element={<UpdateLeadModal />}
+              />  
 
               <Route path="/partners" element={<PartnerScreen />} />
               <Route path="/partner/:id" element={<PartnerProfile />} />
