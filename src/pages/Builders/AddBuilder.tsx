@@ -69,7 +69,6 @@ const AddBuilder = () => {
   const [showPassword, setShowPassword] = useState(false);
   const citiesResult = citiesQuery(formData.state ? parseInt(formData.state) : undefined);
 
-  // Redirect if not authenticated
   useEffect(() => {
     if (!isAuthenticated || !user) {
       navigate("/login");
@@ -77,14 +76,12 @@ const AddBuilder = () => {
     }
   }, [isAuthenticated, user, navigate]);
 
-  // Dispatch cities to Redux store
   useEffect(() => {
     if (citiesResult.data) {
       dispatch(setCityDetails(citiesResult.data));
     }
   }, [citiesResult.data, dispatch]);
 
-  // Handle city fetch errors
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
@@ -135,21 +132,17 @@ const AddBuilder = () => {
     if (!formData.locality.trim()) newErrors.locality = "Locality is required";
     if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
     else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits";
-    if (!formData.panCardNumber.trim()) newErrors.panCardNumber = "PAN Card is required";
-    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber))
+    if (formData.panCardNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber))
       newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
-    if (!formData.aadharNumber.trim()) newErrors.aadharNumber = "Aadhar is required";
-    else if (!/^\d{12}$/.test(formData.aadharNumber))
+    if (formData.aadharNumber && !/^\d{12}$/.test(formData.aadharNumber))
       newErrors.aadharNumber = "Aadhar must be 12 digits";
     if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
     if (!formData.companyAddress.trim()) newErrors.companyAddress = "Company address is required";
     if (!formData.companyNumber.trim()) newErrors.companyNumber = "Company number is required";
     else if (!/^\d{10}$/.test(formData.companyNumber))
       newErrors.companyNumber = "Company number must be 10 digits";
-    if (!formData.gstNumber.trim()) newErrors.gstNumber = "GST number is required";
-    else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber))
+    if (formData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber))
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
-    if (!formData.reraNumber.trim()) newErrors.reraNumber = "RERA number is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (formData.companyLogo && !["image/jpeg", "image/png"].includes(formData.companyLogo.type))
       newErrors.companyLogo = "Company logo must be JPEG or PNG";
@@ -179,16 +172,16 @@ const AddBuilder = () => {
       location: formData.locality,
       address: formData.address,
       pincode: formData.pincode,
-      gst_number: formData.gstNumber,
-      rera_number: formData.reraNumber,
+      gst_number: formData.gstNumber || undefined,
+      rera_number: formData.reraNumber || undefined,
       created_by: user?.name || "Admin",
       created_user_id: user?.id || 1,
       created_user_type: user?.user_type || 1,
       company_name: formData.companyName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
-      pan_card_number: formData.panCardNumber,
-      aadhar_number: formData.aadharNumber,
+      pan_card_number: formData.panCardNumber || undefined, 
+      aadhar_number: formData.aadharNumber || undefined, 
       photo: formData.photo || undefined,
       company_logo: formData.companyLogo || undefined,
     };
@@ -330,7 +323,7 @@ const AddBuilder = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">GST Number</label>
+            <label className="text-sm font-medium text-gray-700">GST Number </label>
             <Input
               value={formData.gstNumber}
               onChange={(e) => handleChange("gstNumber")(e.target.value)}
@@ -372,7 +365,7 @@ const AddBuilder = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
+            <label className="text-sm font-medium text-gray-700">PAN Card Number </label>
             <Input
               value={formData.panCardNumber}
               onChange={(e) => handleChange("panCardNumber")(e.target.value)}
@@ -382,7 +375,7 @@ const AddBuilder = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
+            <label className="text-sm font-medium text-gray-700">Aadhar Number </label>
             <Input
               value={formData.aadharNumber}
               onChange={(e) => handleChange("aadharNumber")(e.target.value)}
