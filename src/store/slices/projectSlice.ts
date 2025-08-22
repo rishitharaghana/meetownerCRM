@@ -10,7 +10,7 @@ interface ProjectState {
   ongoingProjects: Project[];
   upcomingProjects: Project[];
   allProjects: Project[];
-  stoppedProjects: Project[]; // New field for stopped properties
+  stoppedProjects: Project[];
   selectedProject: Project | null;
   loading: boolean;
   error: string | null;
@@ -377,11 +377,9 @@ const projectSlice = createSlice({
       })
       .addCase(deleteProperty.fulfilled, (state, action) => {
         state.loading = false;
-        // Remove the deleted project from allProjects
         state.allProjects = state.allProjects.filter(
           (project) => project.property_id !== action.meta.arg.property_id
         );
-        // Clear selectedProject if it was deleted
         if (
           state.selectedProject?.property_id === action.meta.arg.property_id
         ) {
@@ -453,14 +451,12 @@ const projectSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Something went wrong";
       })
-      // New Cases for stopPropertyLeads
       .addCase(stopPropertyLeads.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(stopPropertyLeads.fulfilled, (state) => {
         state.loading = false;
-        // Optionally update state (e.g., remove from ongoingProjects)
         state.ongoingProjects = state.ongoingProjects.filter(
           (project) => project.stop_leads !== "Yes"
         );
@@ -469,7 +465,6 @@ const projectSlice = createSlice({
         state.loading = false;
         state.error = action.payload || "Something went wrong";
       })
-      // New Cases for getStoppedProperties
       .addCase(getStoppedProperties.pending, (state) => {
         state.loading = true;
         state.error = null;

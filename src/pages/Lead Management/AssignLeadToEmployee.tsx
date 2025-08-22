@@ -97,6 +97,7 @@ const AssignLeadEmployeePage: React.FC = () => {
       value: project.property_id.toString(),
       label: `${project.project_name} - ${project.property_type}`,
     })) || [];
+    console.log("projectOptions:", projectOptions);
 
   useEffect(() => {
     if (user?.id) {
@@ -247,7 +248,6 @@ const AssignLeadEmployeePage: React.FC = () => {
             : undefined,
       };
 
-      // Include interested_project_id and interested_project_name only if they are provided
       if (formData.interested_project_id) {
         submitData.interested_project_id = parseInt(formData.interested_project_id);
         submitData.interested_project_name = formData.interested_project_name;

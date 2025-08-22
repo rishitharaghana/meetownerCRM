@@ -94,7 +94,7 @@ const LeadsType: React.FC = () => {
     ) {
       return null;
     }
-
+console.log("user",user,isAuthenticated,isBuilder)
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
       lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
@@ -114,6 +114,7 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     if (leadsParams) {
+      console.log(leadsParams)
       dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
         toast.error(`Failed to fetch leads: ${err.message || "Unknown error"}`);
       });
