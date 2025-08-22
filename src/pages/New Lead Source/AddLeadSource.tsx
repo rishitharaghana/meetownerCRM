@@ -38,7 +38,6 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
     if (!formData.name.trim()) {
       newErrors.name = 'Source name is required';
     } else if (!editingSource && leadSources) {
-      // Check for duplicate names only when adding new source
       const isDuplicate = leadSources.some(
         source => source.name.toLowerCase() === formData.name.trim().toLowerCase()
       );
@@ -60,13 +59,11 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
 
     try {
       if (editingSource) {
-        // Handle edit (not implemented yet, use onSubmit for now)
         onSubmit({
           ...editingSource,
           ...formData,
         });
       } else {
-        // Dispatch addLeadSource thunk
         const result = await dispatch(addLeadSource({ name: formData.name.trim() }));
         if (addLeadSource.fulfilled.match(result)) {
           onSubmit(result.payload);
@@ -102,7 +99,6 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
       </div>
       
       <form onSubmit={handleSubmit} className="px-8 py-6">
-        {/* Show existing lead sources */}
         {!editingSource && leadSources && leadSources.length > 0 && (
           <div className="mb-8 p-4 bg-blue-50 border border-blue-200 rounded-lg">
             <h3 className="text-sm font-semibold text-blue-900 mb-3">Existing Lead Sources ({leadSources.length})</h3>
