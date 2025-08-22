@@ -120,10 +120,10 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
   };
 
   return (
-    <div className="fixed inset-0 z-[9999999] pointer-events-auto">
-      <div className="absolute inset-0 bg-white/30 backdrop-blur-sm">
-        <div className="relative flex items-center justify-center h-full">
-          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-sm w-full">
+    <div className="pointer-events-auto">
+      <div className="bg-white/30 backdrop-blur-sm ">
+        <div className="relative flex items-center p-8 justify-center m-auto h-full">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
             <h2 className="text-xl font-semibold mb-4">Update Lead</h2>
             {submitSuccess && (
               <div className="p-3 mb-4 bg-green-100 text-green-700 rounded-md">

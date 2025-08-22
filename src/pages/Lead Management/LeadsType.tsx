@@ -268,9 +268,8 @@ console.log("user",user,isAuthenticated,isBuilder)
   };
 
   const handleUpdateLead = (leadId: number) => {
-    setSelectedLeadId(leadId);
-    setIsUpdateModalOpen(true);
-  };
+    navigate(`/leads/update-lead/${leadId}`)  
+  }
 
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
