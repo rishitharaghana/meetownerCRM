@@ -11,7 +11,7 @@ import { useNavigate } from "react-router";
 import { setCityDetails } from "../../store/slices/propertyDetails";
 import { insertUser, InsertUserRequest } from "../../store/slices/userslice";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-
+import DatePicker from "../../components/form/date-picker";
 interface FormData {
   name: string;
   mobile: string;
@@ -31,6 +31,7 @@ interface FormData {
   reraNumber: string;
   address: string;
   photo: File | null;
+  expiryDate: string; 
 }
 
 interface Errors {
@@ -64,6 +65,7 @@ const AddBuilder = () => {
     reraNumber: "",
     address: "",
     photo: null,
+    expiryDate: "",
   });
   const [errors, setErrors] = useState<Errors>({});
   const [showPassword, setShowPassword] = useState(false);
@@ -143,6 +145,8 @@ const AddBuilder = () => {
       newErrors.companyNumber = "Company number must be 10 digits";
     if (formData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber))
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
+    if (formData.expiryDate && !/^\d{4}-\d{2}-\d{2}$/.test(formData.expiryDate))
+      newErrors.expiryDate = "Invalid expiry date format (e.g., YYYY-MM-DD)"; 
     if (!formData.address.trim()) newErrors.address = "Address is required";
     if (formData.companyLogo && !["image/jpeg", "image/png"].includes(formData.companyLogo.type))
       newErrors.companyLogo = "Company logo must be JPEG or PNG";
@@ -180,10 +184,11 @@ const AddBuilder = () => {
       company_name: formData.companyName,
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
-      pan_card_number: formData.panCardNumber || undefined, 
-      aadhar_number: formData.aadharNumber || undefined, 
+      pan_card_number: formData.panCardNumber || undefined,
+      aadhar_number: formData.aadharNumber || undefined,
       photo: formData.photo || undefined,
       company_logo: formData.companyLogo || undefined,
+      expiry_date: formData.expiryDate || undefined, 
     };
 
     const formDataToSend = new FormData();
@@ -215,6 +220,7 @@ const AddBuilder = () => {
         reraNumber: "",
         address: "",
         photo: null,
+        expiryDate: "",
       });
       setErrors({});
     } catch (err) {
@@ -333,7 +339,7 @@ const AddBuilder = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">RERA Number</label>
+            <label className="text-sm font-medium text-gray-700">RERA Number </label>
             <Input
               value={formData.reraNumber}
               onChange={(e) => handleChange("reraNumber")(e.target.value)}
@@ -365,7 +371,7 @@ const AddBuilder = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">PAN Card Number </label>
+            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
             <Input
               value={formData.panCardNumber}
               onChange={(e) => handleChange("panCardNumber")(e.target.value)}
@@ -382,6 +388,21 @@ const AddBuilder = () => {
               placeholder="Enter 12-digit Aadhar number"
             />
             {errors.aadharNumber && <p className="text-red-600 text-sm mt-1">⚠️ {errors.aadharNumber}</p>}
+          </div>
+
+          <div>
+            <label className="text-sm font-medium text-gray-700">Expiry Date </label>
+            <DatePicker
+              id="expiryDate"
+              mode="single"
+              onChange={(selectedDates) => {
+                const date = selectedDates[0] ? selectedDates[0].toISOString().split('T')[0] : "";
+                handleChange("expiryDate")(date);
+              }}
+              defaultDate={formData.expiryDate ? new Date(formData.expiryDate) : undefined}
+              placeholder="Select expiry date (YYYY-MM-DD)"
+            />
+            {errors.expiryDate && <p className="text-red-600 text-sm mt-1">⚠️ {errors.expiryDate}</p>}
           </div>
 
           <div>

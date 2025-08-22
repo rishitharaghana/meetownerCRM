@@ -9,7 +9,10 @@ export default function BuilderDetailsScreen() {
   const { state } = useLocation();
   const userDetails = state?.userDetails;
 
-  const formatDate = (dateString) => new Date(dateString).toISOString().split("T")[0];
+  const formatDate = (dateString) => {
+    if (!dateString) return "N/A";
+    return new Date(dateString).toISOString().split("T")[0];
+  };
 
   if (!userDetails) {
     return (
@@ -62,6 +65,9 @@ export default function BuilderDetailsScreen() {
             <p><strong>RERA Number:</strong> {userDetails.rera_number || "N/A"}</p>
             <p><strong>PAN Card Number:</strong> {userDetails.pan_card_number || "N/A"}</p>
             <p><strong>Aadhar Number:</strong> {userDetails.aadhar_number || "N/A"}</p>
+            {userDetails.user_type === 2 && (
+              <p><strong>Expiry Date:</strong> {formatDate(userDetails.expiry_date)}</p>
+            )}
           </div>
         </div>
         {userDetails.photo && (

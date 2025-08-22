@@ -61,7 +61,7 @@ export const checkMobileExists = createAsyncThunk(
   "auth/checkMobileExists",
   async (mobile: string, { rejectWithValue }) => {
     try {
-      const promise = ngrokAxiosInstance.post<{ exists: boolean }>("api/v1/check-mobile", { mobile });
+      const promise = ngrokAxiosInstance.post<{ exists: boolean; isSubscriptionExpired?: boolean }>("api/v1/check-mobile", { mobile });
 
       toast.promise(promise, {
         loading: "Verifying mobile number...",
@@ -70,7 +70,7 @@ export const checkMobileExists = createAsyncThunk(
       });
 
       const response = await promise;
-      return response.data.exists;
+      return response.data;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
       console.error("Mobile check error:", axiosError);
@@ -102,7 +102,7 @@ export const resetPassword = createAsyncThunk(
   "auth/resetPassword",
   async ({ mobile, newPassword }: { mobile: string; newPassword: string }, { rejectWithValue }) => {
     try {
-      const promise = ngrokAxiosInstance.post<{ message: string }>(
+      const promise = ngrokAxiosInstance.post<{ message: string; isSubscriptionExpired?: boolean }>(
         "api/v1/reset-password",
         { mobile, newPassword }
       );
@@ -142,7 +142,6 @@ export const resetPassword = createAsyncThunk(
   }
 );
 
-
 const authSlice = createSlice({
   name: "auth",
   initialState: {
@@ -153,6 +152,7 @@ const authSlice = createSlice({
     error: null,
     userCounts: null,
     mobileExists: false,
+    isSubscriptionExpired: false,
   } as AuthState,
   reducers: {
     logout: (state) => {
@@ -160,7 +160,8 @@ const authSlice = createSlice({
       state.user = null;
       state.token = null;
       state.error = null;
-       state.mobileExists = false;
+      state.mobileExists = false;
+      state.isSubscriptionExpired = false; 
       localStorage.removeItem("token");
       localStorage.removeItem("name");
       localStorage.removeItem("userType");
@@ -185,6 +186,9 @@ const authSlice = createSlice({
       localStorage.removeItem("created_user_id");
       localStorage.removeItem("created_user_type");
     },
+    clearSubscriptionPopup: (state) => {
+      state.isSubscriptionExpired = false; // Action to clear popup
+    },
   },
   extraReducers: (builder) => {
     builder
@@ -197,8 +201,8 @@ const authSlice = createSlice({
         state.isAuthenticated = true;
         state.user = action.payload.user;
         state.token = action.payload.token;
+        state.isSubscriptionExpired = action.payload.isSubscriptionExpired || false; // Store isSubscriptionExpired
 
-        
         localStorage.setItem("token", action.payload.token);
         localStorage.setItem("name", action.payload.user.name);
         localStorage.setItem("userType", action.payload.user.user_type.toString());
@@ -227,25 +231,27 @@ const authSlice = createSlice({
         state.loading = false;
         state.error = action.payload as string;
       })
-       .addCase(checkMobileExists.pending, (state) => {
+      .addCase(checkMobileExists.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
       .addCase(checkMobileExists.fulfilled, (state, action) => {
         state.loading = false;
-        state.mobileExists = action.payload;
+        state.mobileExists = action.payload.exists;
+        state.isSubscriptionExpired = action.payload.isSubscriptionExpired || false; // Store isSubscriptionExpired
       })
       .addCase(checkMobileExists.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
       })
-       .addCase(resetPassword.pending, (state) => {
+      .addCase(resetPassword.pending, (state) => {
         state.loading = true;
         state.error = null;
       })
-      .addCase(resetPassword.fulfilled, (state) => {
+      .addCase(resetPassword.fulfilled, (state, action) => {
         state.loading = false;
-        state.mobileExists = false; // Reset after successful password reset
+        state.mobileExists = false;
+        state.isSubscriptionExpired = action.payload.isSubscriptionExpired || false; // Store isSubscriptionExpired
       })
       .addCase(resetPassword.rejected, (state, action) => {
         state.loading = false;
@@ -267,5 +273,5 @@ export const isTokenExpired = (token: string | null): boolean => {
   }
 };
 
-export const { logout } = authSlice.actions;
+export const { logout, clearSubscriptionPopup } = authSlice.actions;
 export default authSlice.reducer;

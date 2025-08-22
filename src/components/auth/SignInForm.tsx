@@ -7,13 +7,15 @@ import Input from "../form/input/InputField";
 import Button from "../ui/button/Button";
 import { LoginRequest } from "../../types/UserModel";
 import { AppDispatch, RootState } from "../../store/store";
-import { loginUser } from "../../store/slices/authSlice";
-
+import { loginUser, clearSubscriptionPopup } from "../../store/slices/authSlice";
+import SubscriptionPopup from "../../pages/Subscription/SubscriptionPopup";
 
 export default function SignInForm() {
   const navigate = useNavigate();
- const dispatch = useDispatch<AppDispatch>();
-  const { isAuthenticated, error, loading } = useSelector((state: RootState) => state.auth);
+  const dispatch = useDispatch<AppDispatch>();
+  const { isAuthenticated, error, loading, user, isSubscriptionExpired } = useSelector(
+    (state: RootState) => state.auth
+  );
 
   const [showPassword, setShowPassword] = useState(false);
   const [formKey, setFormKey] = useState(Date.now());
@@ -26,19 +28,22 @@ export default function SignInForm() {
     password: "",
     general: "",
   });
-
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (isAuthenticated) {
-      navigate("/"); 
+      // Show popup for non-Admin users with expired subscription
+      if (isSubscriptionExpired && user?.user_type !== 1) {
+        setShowPopup(true);
+      }
+      navigate("/");
     } else {
-    
       setFormData({ mobile: "", password: "" });
       setErrors({ mobile: "", password: "", general: "" });
       setFormKey(Date.now());
+      setShowPopup(false);
     }
-  }, [isAuthenticated, navigate]);
-
+  }, [isAuthenticated, isSubscriptionExpired, user, navigate]);
 
   useEffect(() => {
     if (error) {
@@ -99,13 +104,11 @@ export default function SignInForm() {
     if (loginUser.fulfilled.match(resultAction)) {
       setFormData({ mobile: "", password: "" });
       setFormKey(Date.now());
-      navigate("/"); // Navigate to home on success
     }
   };
 
   return (
-    <div className="flex flex-col flex-1 bg-white dark:bg-gray
-    -900 text-gray-900 dark:text-white p-6">
+    <div className="flex flex-col flex-1 bg-white dark:bg-gray-900 text-gray-900 dark:text-white p-6">
       <div className="flex flex-col justify-center flex-1 w-full max-w-md mx-auto">
         <div>
           <div className="mb-5 sm:mb-8">
@@ -128,7 +131,7 @@ export default function SignInForm() {
                   value={formData.mobile}
                   maxLength={10}
                   onChange={handleInputChange}
-                  className="w-full px-4 py-2 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
+                  className="w-full px-4 py-2 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
                 />
                 {errors.mobile && (
                   <p className="mt-1 text-sm text-red-500">{errors.mobile}</p>
@@ -146,7 +149,7 @@ export default function SignInForm() {
                     value={formData.password}
                     onChange={handleInputChange}
                     placeholder="Enter your password"
-                    className="w-full px-4 py-2 pr-10 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-800 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
+                    className="w-full px-4 py-2 pr-10 mt-1 border rounded-md bg-white dark:bg-gray-800 text-sm text-gray-900 dark:text-white border-gray-300 dark:border-gray-700 focus:outline-none focus:ring-2 focus:ring-[#7700ff]"
                   />
                   <span
                     onClick={() => setShowPassword(!showPassword)}
@@ -168,19 +171,19 @@ export default function SignInForm() {
                 <Button
                   className="w-full px-5 py-3 font-semibold text-white bg-blue-900 hover:bg-blue-800 rounded-md text-sm shadow-md"
                   size="sm"
-                  disabled={loading} // Disable button during API call
+                  disabled={loading}
                 >
                   {loading ? "Signing in..." : "Sign in"}
                 </Button>
               </div>
-               <div className="mt-2 text-right">
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
-                  >
-                    Forgot Password?
-                  </Link>
-                </div>
+              <div className="mt-2 text-right">
+                <Link
+                  to="/forgot-password"
+                  className="text-sm text-blue-600 dark:text-blue-400 hover:underline"
+                >
+                  Forgot Password?
+                </Link>
+              </div>
             </div>
           </form>
 
@@ -189,6 +192,13 @@ export default function SignInForm() {
           )}
         </div>
       </div>
+      <SubscriptionPopup
+        isOpen={showPopup}
+        onClose={() => {
+          setShowPopup(false);
+          dispatch(clearSubscriptionPopup());
+        }}
+      />
     </div>
   );
 }

@@ -8,6 +8,8 @@ export interface AuthState {
   error: string | null;
   userCounts: UserCount[] | null;
 mobileExists: boolean;
+ isSubscriptionExpired: boolean;
+
 }
 
 export interface LoginRequest {
@@ -48,12 +50,14 @@ export interface User {
   ifsc_code:string;
   feedback: string | null;
   company_logo:string | null;
+   expiry_date?: string;
 }
 
 export interface LoginResponse {
   message: string;
   user: User;
   token: string;
+  isSubscriptionExpired: boolean;
 }
 
 
