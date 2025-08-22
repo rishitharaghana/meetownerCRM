@@ -105,16 +105,14 @@ const AddChannelPartner = () => {
     text: state.label,
   })) || [];
 
-  // Memoized validation for RERA number
   const validateReraNumber = useCallback(
     (reraNumber: string, state: string): string | undefined => {
-      if (!reraNumber.trim()) return "RERA number is required";
+      if (!reraNumber.trim()) return undefined; 
       const reraRegex = /^[A-Za-z0-9-]{1,30}$/;
       if (!reraRegex.test(reraNumber)) {
         return "RERA number must be alphanumeric with optional hyphens and up to 30 characters";
       }
       if (state === "27") {
-        // Assuming '27' is Maharashtra's state code
         const maharashtraReraRegex = /^P\d{3}\d{8}$/;
         if (!maharashtraReraRegex.test(reraNumber)) {
           return "Invalid RERA number format for Maharashtra (e.g., P51700012345)";
@@ -125,7 +123,6 @@ const AddChannelPartner = () => {
     []
   );
 
-  // Memoized input change handler
   const handleChange = useCallback(
     (field: keyof FormData) => (value: string | File | null) => {
       setFormData((prev) => ({ ...prev, [field]: value }));
@@ -178,24 +175,25 @@ const AddChannelPartner = () => {
     if (!formData.locality.trim()) newErrors.locality = "Locality is required";
     if (!formData.pincode.trim()) newErrors.pincode = "Pincode is required";
     else if (!/^\d{6}$/.test(formData.pincode)) newErrors.pincode = "Pincode must be 6 digits";
-    if (!formData.panCardNumber.trim()) newErrors.panCardNumber = "PAN Card is required";
-    else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
-    if (!formData.aadharNumber.trim()) newErrors.aadharNumber = "Aadhar is required";
-    else if (!/^\d{12}$/.test(formData.aadharNumber)) newErrors.aadharNumber = "Aadhar must be 12 digits";
+    if (formData.panCardNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber))
+      newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
+    if (formData.aadharNumber && !/^\d{12}$/.test(formData.aadharNumber))
+      newErrors.aadharNumber = "Aadhar must be 12 digits";
     if (!formData.companyName.trim()) newErrors.companyName = "Company name is required";
     if (!formData.representativeName.trim()) newErrors.representativeName = "Representative name is required";
     if (!formData.companyAddress.trim()) newErrors.companyAddress = "Company address is required";
     if (!formData.companyNumber.trim()) newErrors.companyNumber = "Company number is required";
     else if (!/^\d{10}$/.test(formData.companyNumber)) newErrors.companyNumber = "Company number must be 10 digits";
-    if (!formData.gstNumber.trim()) newErrors.gstNumber = "GST number is required";
-    else if (!/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
+    if (formData.gstNumber && !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(formData.gstNumber)) {
       newErrors.gstNumber = "Invalid GST number (e.g., 22ABCDE1234F1Z5)";
     }
     const reraError = validateReraNumber(formData.reraNumber, formData.state);
     if (reraError) newErrors.reraNumber = reraError;
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (formData.accountNumber && formData.accountNumber.length > 20) newErrors.accountNumber = "Account number must not exceed 20 characters";
-    if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode)) newErrors.ifscCode = "Invalid IFSC code (e.g., SBIN0001234)";
+    if (formData.accountNumber && formData.accountNumber.length > 20)
+      newErrors.accountNumber = "Account number must not exceed 20 characters";
+    if (formData.ifscCode && !/^[A-Z]{4}0[A-Z0-9]{6}$/.test(formData.ifscCode))
+      newErrors.ifscCode = "Invalid IFSC code (e.g., SBIN0001234)";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -227,8 +225,8 @@ const AddChannelPartner = () => {
         location: formData.locality,
         address: formData.address,
         pincode: formData.pincode,
-        gst_number: formData.gstNumber,
-        rera_number: formData.reraNumber,
+        gst_number: formData.gstNumber || undefined,
+        rera_number: formData.reraNumber || undefined, 
         created_by: createdBy,
         created_user_id: createdUserId,
         created_user_type: 2,
@@ -236,11 +234,11 @@ const AddChannelPartner = () => {
         company_number: formData.companyNumber,
         company_address: formData.companyAddress,
         representative_name: formData.representativeName,
-        pan_card_number: formData.panCardNumber,
-        aadhar_number: formData.aadharNumber,
+        pan_card_number: formData.panCardNumber || undefined, 
+        aadhar_number: formData.aadharNumber || undefined, 
         photo: formData.photo || undefined,
-        account_number: formData.accountNumber,
-        ifsc_code: formData.ifscCode,
+        account_number: formData.accountNumber || undefined, 
+        ifsc_code: formData.ifscCode || undefined, 
       };
 
       const formDataToSend = new FormData();
@@ -401,7 +399,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">RERA Number</label>
+            <label className="text-sm font-medium text-gray-700">RERA Number </label>
             <Input
               value={formData.reraNumber}
               onChange={(e) => handleChange("reraNumber")(e.target.value)}
@@ -436,7 +434,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">PAN Card Number</label>
+            <label className="text-sm font-medium text-gray-700">PAN Card Number </label>
             <Input
               value={formData.panCardNumber}
               onChange={(e) => handleChange("panCardNumber")(e.target.value)}
@@ -447,7 +445,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Account Number</label>
+            <label className="text-sm font-medium text-gray-700">Account Number </label>
             <Input
               value={formData.accountNumber}
               onChange={(e) => handleChange("accountNumber")(e.target.value)}
@@ -458,7 +456,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">IFSC Code</label>
+            <label className="text-sm font-medium text-gray-700">IFSC Code </label>
             <Input
               value={formData.ifscCode}
               onChange={(e) => handleChange("ifscCode")(e.target.value)}
@@ -469,7 +467,7 @@ const AddChannelPartner = () => {
           </div>
 
           <div>
-            <label className="text-sm font-medium text-gray-700">Aadhar Number</label>
+            <label className="text-sm font-medium text-gray-700">Aadhar Number </label>
             <Input
               value={formData.aadharNumber}
               onChange={(e) => handleChange("aadharNumber")(e.target.value)}

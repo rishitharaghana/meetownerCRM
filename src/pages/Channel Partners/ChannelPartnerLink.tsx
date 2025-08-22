@@ -127,7 +127,7 @@ const ChannelPartnerLink = () => {
     state: string
   ): string | undefined => {
     if (!reraNumber.trim()) {
-      return "RERA number is required";
+      return undefined; 
     }
     const reraRegex = /^[A-Za-z0-9-]{1,30}$/;
     if (!reraRegex.test(reraNumber)) {
@@ -198,14 +198,10 @@ const ChannelPartnerLink = () => {
     } else if (!/^\d{6}$/.test(formData.pincode)) {
       newErrors.pincode = "Pincode must be 6 digits";
     }
-    if (!formData.panCardNumber.trim()) {
-      newErrors.panCardNumber = "PAN Card is required";
-    } else if (!/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
+    if (formData.panCardNumber && !/^[A-Z]{5}[0-9]{4}[A-Z]{1}$/.test(formData.panCardNumber)) {
       newErrors.panCardNumber = "Invalid PAN (e.g., ABCDE1234F)";
     }
-    if (!formData.aadharNumber.trim()) {
-      newErrors.aadharNumber = "Aadhar is required";
-    } else if (!/^\d{12}$/.test(formData.aadharNumber)) {
+    if (formData.aadharNumber && !/^\d{12}$/.test(formData.aadharNumber)) {
       newErrors.aadharNumber = "Aadhar must be 12 digits";
     }
     if (!formData.companyName.trim())
@@ -219,9 +215,8 @@ const ChannelPartnerLink = () => {
     } else if (!/^\d{10}$/.test(formData.companyNumber)) {
       newErrors.companyNumber = "Company number must be 10 digits";
     }
-    if (!formData.gstNumber.trim())
-      newErrors.gstNumber = "GST number is required";
-    else if (
+    if (
+      formData.gstNumber &&
       !/^[0-9]{2}[A-Z]{5}[0-9]{4}[A-Z]{1}[1-9A-Z]{1}Z[0-9A-Z]{1}$/.test(
         formData.gstNumber
       )
@@ -280,8 +275,8 @@ const ChannelPartnerLink = () => {
       location: formData.locality,
       address: formData.address,
       pincode: formData.pincode,
-      gst_number: formData.gstNumber,
-      rera_number: formData.reraNumber,
+      gst_number: formData.gstNumber || undefined,
+      rera_number: formData.reraNumber || undefined,
       created_by: createdBy,
       created_user_id: createdUserId,
       created_user_type: createdUserType,
@@ -289,11 +284,11 @@ const ChannelPartnerLink = () => {
       company_number: formData.companyNumber,
       company_address: formData.companyAddress,
       representative_name: formData.representativeName,
-      pan_card_number: formData.panCardNumber,
-      aadhar_number: formData.aadharNumber,
+      pan_card_number: formData.panCardNumber || undefined, 
+      aadhar_number: formData.aadharNumber || undefined, 
       photo: formData.photo || undefined,
-      account_number: formData.accountNumber,
-      ifsc_code: formData.ifscCode,
+      account_number: formData.accountNumber || undefined, 
+      ifsc_code: formData.ifscCode || undefined, 
       admin_user_id: builderId,
     };
 
@@ -476,7 +471,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                GST Number
+                GST Number 
               </label>
               <Input
                 value={formData.gstNumber}
@@ -490,7 +485,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                RERA Number
+                RERA Number 
               </label>
               <Input
                 value={formData.reraNumber}
@@ -506,7 +501,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                PAN Card Number
+                PAN Card Number 
               </label>
               <Input
                 value={formData.panCardNumber}
@@ -522,7 +517,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                Aadhar Number
+                Aadhar Number 
               </label>
               <Input
                 value={formData.aadharNumber}
@@ -538,7 +533,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                Account Number
+                Account Number 
               </label>
               <Input
                 value={formData.accountNumber}
@@ -554,7 +549,7 @@ const ChannelPartnerLink = () => {
 
             <div>
               <label className="text-sm font-medium text-gray-700">
-                IFSC Code
+                IFSC Code 
               </label>
               <Input
                 value={formData.ifscCode}
@@ -635,7 +630,6 @@ const ChannelPartnerLink = () => {
               />
             </div>
 
-            {/* Full-width fields for textareas */}
             <div className="md:col-span-2">
               <label className="text-sm font-medium text-gray-700">
                 Company Address
