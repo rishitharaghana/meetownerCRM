@@ -209,7 +209,6 @@ console.log("user",user,isAuthenticated,isBuilder)
 
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
-      // Placeholder for click outside logic
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);

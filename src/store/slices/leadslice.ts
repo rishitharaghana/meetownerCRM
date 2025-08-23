@@ -1048,15 +1048,26 @@ const leadSlice = createSlice({
         state.error = null;
       })
       .addCase(assignLeadToEmployee.fulfilled, (state, action) => {
-        state.loading = false;
-        if (action.payload.data && state.leads) {
-          state.leads = state.leads.map((lead) =>
-            lead.lead_id === action.payload.data.lead_id
-              ? { ...lead, ...action.payload.data }
-              : lead
-          );
-        }
-      })
+  state.loading = false;
+  if (action.payload.data && state.leads) {
+    state.leads = state.leads.map((lead) =>
+      lead.lead_id === action.payload.data.lead_id
+        ? {
+            ...lead,
+            ...action.payload.data, 
+            interested_project_id:
+              action.payload.data.interested_project_id !== undefined
+                ? action.payload.data.interested_project_id
+                : lead.interested_project_id, 
+            interested_project_name:
+              action.payload.data.interested_project_name !== undefined
+                ? action.payload.data.interested_project_name
+                : lead.interested_project_name,
+          }
+        : lead
+    );
+  }
+})
       .addCase(assignLeadToEmployee.rejected, (state, action) => {
         state.loading = false;
         state.error = action.payload as string;
