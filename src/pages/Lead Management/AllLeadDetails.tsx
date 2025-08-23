@@ -36,6 +36,7 @@ const statusOptions = [
   { value: "7", label: "Lost" },
   { value: "8", label: "Revoked" },
 ];
+//leads
 const AllLeadDetails: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");

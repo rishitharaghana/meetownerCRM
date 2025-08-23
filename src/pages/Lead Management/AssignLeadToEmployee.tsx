@@ -207,7 +207,6 @@ const AssignLeadEmployeePage: React.FC = () => {
     ) {
       newErrors.action_date = "Action date cannot be in the past";
     }
-    // Removed validation for interested_project_id to make it optional
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };

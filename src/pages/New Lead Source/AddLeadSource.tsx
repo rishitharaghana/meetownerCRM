@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { Plus, Database, Edit2, Trash2 } from 'lucide-react';
 import { useDispatch, useSelector } from 'react-redux';
-import { addLeadSource, getLeadSources } from '../../store/slices/leadslice'; // Adjust path to your leadSlice
-import { RootState } from '../../store/store'; // Adjust path to your store
+import { addLeadSource, getLeadSources } from '../../store/slices/leadslice'; 
+import { RootState } from '../../store/store';
 
 interface LeadSource {
   lead_source_id: number;
@@ -25,7 +25,6 @@ function AddLeadSourceForm({ onSubmit, onCancel, editingSource }: AddLeadSourceF
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Fetch lead sources on mount if not already loaded
   useEffect(() => {
     if (!leadSources) {
       dispatch(getLeadSources());

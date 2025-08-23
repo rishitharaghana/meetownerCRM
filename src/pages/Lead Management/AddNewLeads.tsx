@@ -11,7 +11,7 @@ import { LeadSource } from "../../types/LeadModel";
 import PageMeta from "../../components/common/PageMeta";
 import toast from "react-hot-toast";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
-
+//leads
 interface FormData {
   name: string;
   mobile: string;

@@ -217,7 +217,6 @@ updated_date
           Loading lead updates...
         </div>
       )}
-      {/* {error && <div className="text-center text-red-500 py-4">{error}</div>} */}
 
       <div className="bg-white dark:bg-dark-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">
