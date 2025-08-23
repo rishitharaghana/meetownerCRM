@@ -78,6 +78,8 @@ const navItems: NavItem[] = [
       { name: "Telecallers", path: "/employee/5", pro: false },
       { name: "Marketing Executives", path: "/employee/6", pro: false },
       { name: "Receptionists", path: "/employee/7", pro: false },
+      { name: "BDM", path: "/employee/8", pro: false },
+      { name: "BDE", path: "/employee/9", pro: false },
       { name: "Add Employee", path: "/create-employee" },
     ],
   },
