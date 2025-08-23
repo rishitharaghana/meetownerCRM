@@ -120,7 +120,6 @@ const AppSidebar: React.FC = () => {
   const isActive = useCallback((path?: string) => !!path && location.pathname === path, [location.pathname]);
 
   useEffect(() => {
-    // Set loading state to false and cache logo URL once user data is available
     if (user) {
       setIsLoading(false);
       setLogoUrl(user.company_logo || null);

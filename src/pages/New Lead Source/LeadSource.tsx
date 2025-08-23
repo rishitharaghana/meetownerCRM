@@ -9,16 +9,18 @@ import toast from "react-hot-toast";
 import PageBreadcrumb from "../../components/common/PageBreadCrumb";
 
 interface FormData {
-  lead_source_name: string; 
+  lead_source_name: string;
 }
 
 interface Errors {
-  lead_source_name?: string; 
+  lead_source_name?: string;
 }
-//leads
+
 const LeadSource: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
-  const { loading: leadsLoading, error: leadsError } = useSelector((state: RootState) => state.lead);
+  const { leadSources, loading: leadsLoading, error: leadsError } = useSelector(
+    (state: RootState) => state.lead
+  );
 
   const [formData, setFormData] = useState<FormData>({ lead_source_name: "" });
   const [errors, setErrors] = useState<Errors>({});
@@ -57,10 +59,12 @@ const LeadSource: React.FC = () => {
     setSubmitError(null);
     setSubmitSuccess(null);
     try {
-      const result = await dispatch(addLeadSource({ lead_source_name: formData.lead_source_name })).unwrap();
+      const result = await dispatch(
+        addLeadSource({ lead_source_name: formData.lead_source_name })
+      ).unwrap();
       setSubmitSuccess(`Lead source "${result.lead_source_name}" added successfully!`);
       setFormData({ lead_source_name: "" });
-      dispatch(getLeadSources()); 
+      dispatch(getLeadSources());
       toast.success("Lead source added successfully!");
     } catch (error: any) {
       setSubmitError(error.message || "Failed to add lead source. Please try again.");
@@ -82,54 +86,122 @@ const LeadSource: React.FC = () => {
       </div>
       <PageMeta title="Add Lead Source - Lead Management" />
 
-      <div className="max-w-md mx-auto">
-        {submitSuccess && (
-          <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">{submitSuccess}</div>
-        )}
-        {submitError && (
-          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">{submitError}</div>
-        )}
-        {leadsError && (
-          <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">{leadsError}</div>
-        )}
-        <div className="text-center mb-6 animate-fade-in">
-          <h1 className="text-2xl font-bold text-gray-800 mb-2">Add New Lead Source</h1>
-          <p className="text-gray-600 text-sm">Add a new source for tracking lead origins</p>
-        </div>
-        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8 animate-fade-in">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            <div className="space-y-1">
-              <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">Lead Source Name</label>
-              <Input
-                type="text"
-                value={formData.lead_source_name}
-                onChange={handleInputChange}
-                placeholder="Enter lead source name (e.g., LinkedIn Ads)"
-                className={errors.lead_source_name ? "border-red-500" : ""}
-                disabled={isSubmitting}
-              />
-              {errors.lead_source_name && <p className="text-red-500 text-sm mt-1">{errors.lead_source_name}</p>}
+      <div className="max-w-4xl mx-auto">
+        {/* Form Section */}
+        <div className="mb-8">
+          {submitSuccess && (
+            <div className="p-3 mb-6 bg-green-100 text-green-700 rounded-md">
+              {submitSuccess}
             </div>
-            <div className="pt-6">
-              <button
-                type="submit"
-                disabled={isSubmitting || leadsLoading}
-                className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50"
-              >
-                {isSubmitting || leadsLoading ? (
-                  <div className="flex items-center justify-center gap-2">
-                    <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                    Adding Lead Source...
-                  </div>
-                ) : (
-                  <div className="flex items-center justify-center gap-2">
-                    <Target className="w-5 h-5 text-white" />
-                    Add Lead Source
-                  </div>
+          )}
+          {submitError && (
+            <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">
+              {submitError}
+            </div>
+          )}
+          {leadsError && (
+            <div className="p-3 mb-6 bg-red-100 text-red-700 rounded-md">
+              {leadsError}
+            </div>
+          )}
+          <div className="text-center mb-6 animate-fade-in">
+            <h1 className="text-2xl font-bold text-gray-800 mb-2">
+              Add New Lead Source
+            </h1>
+            <p className="text-gray-600 text-sm">
+              Add a new source for tracking lead origins
+            </p>
+          </div>
+          <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8 animate-fade-in">
+            <form onSubmit={handleSubmit} className="space-y-6">
+              <div className="space-y-1">
+                <label className="block text-sm font-medium text-realty-700 dark:text-realty-300">
+                  Lead Source Name
+                </label>
+                <Input
+                  type="text"
+                  value={formData.lead_source_name}
+                  onChange={handleInputChange}
+                  placeholder="Enter lead source name (e.g., LinkedIn Ads)"
+                  className={errors.lead_source_name ? "border-red-500" : ""}
+                  disabled={isSubmitting}
+                />
+                {errors.lead_source_name && (
+                  <p className="text-red-500 text-sm mt-1">
+                    {errors.lead_source_name}
+                  </p>
                 )}
-              </button>
+              </div>
+              <div className="pt-6">
+                <button
+                  type="submit"
+                  disabled={isSubmitting || leadsLoading}
+                  className="w-full py-3 bg-blue-900 text-white font-semibold rounded-xl transition-all duration-300 disabled:opacity-50"
+                >
+                  {isSubmitting || leadsLoading ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                      Adding Lead Source...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <Target className="w-5 h-5 text-white" />
+                      Add Lead Source
+                    </div>
+                  )}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        {/* Lead Sources Table */}
+        <div className="bg-white/70 backdrop-blur-xl rounded-2xl shadow-xl border border-white/20 p-8">
+          <h2 className="text-xl font-bold text-gray-800 mb-4">
+            All Lead Sources
+          </h2>
+          {leadsLoading ? (
+            <div className="flex items-center justify-center gap-2">
+              <div className="w-5 h-5 border-2 border-blue-900/30 border-t-blue-900 rounded-full animate-spin" />
+              <span>Loading lead sources...</span>
             </div>
-          </form>
+          ) : leadsError ? (
+            <div className="p-3 bg-red-100 text-red-700 rounded-md">
+              {leadsError}
+            </div>
+          ) : !leadSources || leadSources.length === 0 ? (
+            <p className="text-gray-600">No lead sources available.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="bg-realty-100/50 text-realty-700">
+                    <th className="p-3 text-sm font-medium">ID</th>
+                    <th className="p-3 text-sm font-medium">Lead Source Name</th>
+                    <th className="p-3 text-sm font-medium">Date Added</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {leadSources.map((source) => (
+                    <tr
+                      key={source.lead_source_id}
+                      className="border-b border-gray-200 hover:bg-gray-50"
+                    >
+                      <td className="p-3 text-sm text-gray-700">
+                        {source.lead_source_id}
+                      </td>
+                      <td className="p-3 text-sm text-gray-700">
+                        {source.lead_source_name}
+                      </td>
+                      <td className="p-3 text-sm text-gray-700">
+                        {new Date(source.date_added).toLocaleDateString()}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       </div>
     </div>
