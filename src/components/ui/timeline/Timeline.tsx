@@ -9,6 +9,8 @@ const allDesignationOptions = [
   { value: "5", text: "Telecaller" },
   { value: "6", text: "Marketing Executive" },
   { value: "7", text: "Receptionists" },
+  {value : "8", text: "BDE"},
+  {value: "9", text: "BDM"}
 ];
 
 export interface TimelineEvent {
