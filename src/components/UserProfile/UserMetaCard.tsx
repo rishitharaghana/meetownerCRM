@@ -14,6 +14,8 @@ const designationOptions: Option[] = [
   { value: 5, text: "Telecallers" },
   { value: 6, text: "Marketing Executor" },
   { value: 7, text: "Receptionist" },
+  { value : 8, text: "BDE"},
+  {value : 9, text : "BDM"}
 ];
 
 export default function UserMetaCard() {

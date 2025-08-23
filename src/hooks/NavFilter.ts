@@ -47,6 +47,8 @@ export const filterNavItemsByUserType = (navItems: NavItem[], userType: number |
       if (userType === 5) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Telecallers 
       if (userType === 6) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Marketing agent
       if (userType === 7) return !["Employee Management", "Bookings", "Partners","Builders","Queries"].includes(item.name); // Receptionists
+      if (userType === 8) return !["Employee Management", "Bookings", "Partners", "Builders", "Queries"].includes(item.name);
+      if(userType === 9) return !["Employee Management", "Bookings", "Partners", "Builders", "Queries"].includes(item.name);
       return true; 
     })
     .map((item) => {

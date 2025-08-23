@@ -110,17 +110,15 @@ const ViewLeadDetails = () => {
 
    const timeline: TimelineEvent[] = leadUpdates?.length
     ? leadUpdates.map((update: LeadUpdate, index: number) => {
-        // Validate update_date and update_time
         const isValidDate = (dateStr: string) =>
-          /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(dateStr); // Allow ISO format
+          /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(dateStr); 
         const isValidTime = (timeStr: string) =>
           /^\d{2}:\d{2}:\d{2}$/.test(timeStr);
 
-        // Extract date part from update_date (strip time and timezone)
         const updateDate = lead?.
 updated_date
         
-        const updateTime = update.update_time || "00:00:00"; // Fallback
+        const updateTime = update.update_time || "00:00:00"; 
 
         if (!isValidDate(updateDate) || !isValidTime(updateTime)) {
           console.warn(
@@ -145,7 +143,6 @@ updated_date
           };
         }
 
-        // Construct date string in ISO format with IST offset
         const dateTimeString = `${updateDate}T${updateTime}+05:30`;
         const date = new Date(dateTimeString);
 
@@ -183,7 +180,7 @@ updated_date
             minute: "2-digit",
             second: "2-digit",
             hour12: true,
-          }), // Format: "Aug 21, 2025, 08:08:32 PM"
+          }), 
           status:
             update.status_id &&
             lead.status_id &&

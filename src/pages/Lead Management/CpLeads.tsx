@@ -25,6 +25,8 @@ const userTypeOptions = [
   { value: "5", label: "Telecallers" },
   { value: "6", label: "Marketing Executive" },
   { value: "7", label: "Receptionists" },
+  {value: "8", label: "BDE"},
+  {value : "9", label : "BDM"},
 ];
 const statusOptions = [
   { value: "", label: "All" },

@@ -28,6 +28,8 @@ const userTypeMap: { [key: string]: string } = {
   "5": "Telecallers",
   "6": "Marketing Agent",
   "7": "Receptionists",
+  "8": "BDE",
+  "9": "BDM"
 };
 
 const userTypeRoutes: { [key: string]: string } = {
@@ -41,6 +43,8 @@ const userTypeRoutes: { [key: string]: string } = {
   "5": "/employee/5",
   "6": "/employee/6",
   "7": "/employee/7",
+  "8": "/employee/8",
+  "9": "/employee/9",
 };
 
 const iconMap: { [key: string]: any } = {

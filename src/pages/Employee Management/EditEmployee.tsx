@@ -21,6 +21,8 @@ const allDesignationOptions: Option[] = [
   { value: "8", text: "TeleCaller" },
   { value: "9", text: "Marketing Executive" },
   { value: "10", text: "Receptionist" },
+  {value :"11", text:"BDE"},
+  {value : "12", text : "BDM"}
 
 ];
 

@@ -127,7 +127,7 @@ const CreateEmployee = () => {
     { value: "5", text: "Telecallers" },
     { value: "6", text: "Marketing Executor" },
     { value: "7", text: "Receptionists" },
-    { value: "8", text: "Bde" },
+    { value: "8", text: "BDE" },
     { value: "9", text: "BDM" },
 
   ];
@@ -256,60 +256,7 @@ const CreateEmployee = () => {
     }
   };
 
-  // const handleSubmit = async (e: React.FormEvent) => {
-  //   e.preventDefault();
-  //   if (!validateForm()) return;
-
-  //   const createdBy = localStorage.getItem("name") || "Admin";
-  //   const createdUserId = parseInt(localStorage.getItem("userId") || "1");
-
-  //   const formDataToSend = new FormData();
-  //   formDataToSend.append("name", formData.name);
-  //   formDataToSend.append("mobile", formData.mobile);
-  //   formDataToSend.append("email", formData.email);
-  //   formDataToSend.append("password", formData.password);
-  //   formDataToSend.append(
-  //     "city",
-  //     cityOptions.find((c) => c.value === formData.city)?.text || formData.city
-  //   );
-  //   formDataToSend.append(
-  //     "state",
-  //     stateOptions.find((s) => s.value === formData.state)?.text ||
-  //       formData.state
-  //   );
-  //   formDataToSend.append("pincode", formData.pincode);
-  //   formDataToSend.append("location", formData.location);
-  //   formDataToSend.append("address", formData.address);
-  //   if (formData.photo) formDataToSend.append("photo", formData.photo);
-  //   formDataToSend.append("status", "1");
-  //   formDataToSend.append("user_type", formData.designation);
-  //   formDataToSend.append("created_by", createdBy);
-  //   formDataToSend.append("created_user_id", createdUserId.toString());
-  //   formDataToSend.append("created_user_type", "2");
-
-  //   try {
-  //     await dispatch(insertUser(formDataToSend)).unwrap();
-
-  //     setFormData({
-  //       name: "",
-  //       mobile: "",
-  //       email: "",
-  //       designation: "",
-  //       password: "",
-  //       city: "",
-  //       state: "",
-  //       pincode: "",
-  //       location: "",
-  //       address: "",
-  //       photo: null,
-  //     });
-  //     setErrors({});
-  //   } catch (error) {
-  //     console.error("User Insertion failed:", error);
-  //   }
-
-  // };
-
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
       <div className="flex justify-end">

@@ -32,6 +32,8 @@ const userTypeMap: { [key: number]: string } = {
   5: "Telecallers",
   6: "Marketing Executive",
   7: "Receptionists",
+  8: "BDE",
+  9: "BDM",
 };
 
 const formatDate = (dateString: string): string => {

@@ -22,7 +22,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
   useEffect(() => {
-    if (userType && userId && [3, 4, 5, 6, 7].includes(userType)) {
+    if (userType && userId && [3, 4, 5, 6, 7, 8, 9].includes(userType)) {
       dispatch(fetchLeadNotifications({ assigned_user_type: userType, assigned_id: userId }));
       const interval = setInterval(() => {
         dispatch(fetchLeadNotifications({ assigned_user_type: userType, assigned_id: userId }));
@@ -82,7 +82,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [isApplicationMenuOpen, isNotificationMenuOpen]);
 
-  const allowedUserTypes = [3, 4, 5, 6, 7];
+  const allowedUserTypes = [3, 4, 5, 6, 7, 8, 9];
   const canViewNotifications = userType !== null && allowedUserTypes.includes(userType);
 
   return (
