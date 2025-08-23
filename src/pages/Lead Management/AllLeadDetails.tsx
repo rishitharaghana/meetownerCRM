@@ -1,3 +1,4 @@
+// src/components/AllLeadDetails.tsx
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import { useSelector, useDispatch } from "react-redux";
@@ -16,14 +17,16 @@ import { Lead } from "../../types/LeadModel";
 import { clearLeads, getLeadsByUser } from "../../store/slices/leadslice";
 import FilterBar from "../../components/common/FilterBar";
 import PageBreadcrumbList from "../../components/common/PageBreadCrumbLists";
+
 const userTypeOptions = [
   { value: "4", label: "Sales Manager" },
   { value: "5", label: "Telecallers" },
   { value: "6", label: "Marketing Executive" },
   { value: "7", label: "Receptionists" },
-  { value : "8", label: "BDE"},
-  {value: 9, label: "BDM"},
+  { value: "8", label: "BDE" },
+  { value: "9", label: "BDM" },
 ];
+
 const statusOptions = [
   { value: "", label: "All" },
   { value: "0", label: "Total Leads" },
@@ -36,7 +39,7 @@ const statusOptions = [
   { value: "7", label: "Lost" },
   { value: "8", label: "Revoked" },
 ];
-//leads
+
 const AllLeadDetails: React.FC = () => {
   const [localPage, setLocalPage] = useState<number>(1);
   const [searchQuery, setSearchQuery] = useState<string>("");
@@ -50,6 +53,7 @@ const AllLeadDetails: React.FC = () => {
   const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<
     number | null
   >(null);
+
   const navigate = useNavigate();
   const location = useLocation();
   const dispatch = useDispatch<AppDispatch>();
@@ -67,32 +71,16 @@ const AllLeadDetails: React.FC = () => {
     name,
   } = location.state || {};
   const itemsPerPage = 10;
+
   useEffect(() => {
     if (isAuthenticated && user?.id) {
-      const params = {
-        lead_added_user_type: admin_user_type || user.user_type,
-        lead_added_user_id: admin_user_id || user.id,
-        assigned_id,
-      };
-      dispatch(getLeadsByUser(params))
-        .unwrap()
-        .catch((err) => {
-          toast.error(err || "Failed to fetch leads");
-        });
-    }
-    return () => {
       dispatch(clearLeads());
-    };
-  }, [isAuthenticated, user, admin_user_id, admin_user_type, dispatch]);
-
-useEffect(() => {
-    if (isAuthenticated && user?.id) {
       const params = {
         lead_added_user_type: admin_user_type || user.user_type,
         lead_added_user_id: admin_user_id || user.id,
-        assigned_user_type,
-        assigned_id,
-        status_id: selectedStatus,
+        ...(assigned_user_type && { assigned_user_type }),
+        ...(assigned_id && { assigned_id }),
+        ...(selectedStatus && { status_id: parseInt(selectedStatus) }),
       };
       dispatch(getLeadsByUser(params))
         .unwrap()
@@ -114,87 +102,84 @@ useEffect(() => {
     dispatch,
   ]);
 
+  const uniqueLeads = Array.from(
+    new Map((leads || []).map((lead) => [lead.lead_id, lead])).values()
+  );
 
-  const filteredLeads =
-    leads?.filter((item) => {
-      const matchesSearch = !searchQuery
-        ? true
-        : item.customer_name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          item.customer_phone_number.includes(searchQuery) ||
-          item.customer_email
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          item.interested_project_name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          item.assigned_name
-            .toLowerCase()
-            .includes(searchQuery.toLowerCase()) ||
-          item.assigned_emp_number.includes(searchQuery);
-      const matchesStatus = !selectedStatus
-        ? true
-        
-        : item.status_id.toString() === selectedStatus;
-      const itemCreatedDate = item.created_date?.split("T")[0] || "";
-      const matchesCreatedDate =
-        (!startCreatedDate || itemCreatedDate >= startCreatedDate) &&
-        (!endCreatedDate || itemCreatedDate <= endCreatedDate);
-      const itemUpdatedDate = item.updated_date?.split("T")[0] || "";
-      const matchesUpdatedDate =
-        (!startUpdatedDate || itemUpdatedDate >= startUpdatedDate) &&
-        (!endUpdatedDate || itemUpdatedDate <= endUpdatedDate);
-      const matchesCity = !selectedCity
-        ? true
-        : item.city?.toString() === selectedCity;
-      return (
-        matchesSearch &&
-        matchesStatus &&
-        matchesCreatedDate &&
-        matchesUpdatedDate &&
-        matchesCity
-      );
-    }) || [];
+  const filteredLeads = uniqueLeads.filter((item) => {
+    const matchesSearch = !searchQuery
+      ? true
+      : item.customer_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.customer_phone_number.includes(searchQuery) ||
+        item.customer_email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.interested_project_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.assigned_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        item.assigned_emp_number.includes(searchQuery);
+    const itemCreatedDate = item.created_date?.split("T")[0] || "";
+    const matchesCreatedDate =
+      (!startCreatedDate || itemCreatedDate >= startCreatedDate) &&
+      (!endCreatedDate || itemCreatedDate <= endCreatedDate);
+    const itemUpdatedDate = item.updated_date?.split("T")[0] || "";
+    const matchesUpdatedDate =
+      (!startUpdatedDate || itemUpdatedDate >= startUpdatedDate) &&
+      (!endUpdatedDate || itemUpdatedDate <= endUpdatedDate);
+    const matchesCity = !selectedCity ? true : item.city?.toString() === selectedCity;
+    return matchesSearch && matchesCreatedDate && matchesUpdatedDate && matchesCity;
+  });
+
   const totalCount = filteredLeads.length;
   const totalPages = Math.ceil(totalCount / itemsPerPage);
   const currentLeads = filteredLeads.slice(
     (localPage - 1) * itemsPerPage,
     localPage * itemsPerPage
   );
+
   const getUserType =
     userTypeOptions.find(
       (option) => option.value === assigned_user_type?.toString()
     )?.label || "Unknown";
+
   const handleSearch = (value: string) => {
     setSearchQuery(value.trim());
     setLocalPage(1);
   };
+
   const handleStatusChange = (value: string | null) => {
     setSelectedStatus(value || "");
     setLocalPage(1);
   };
+
   const handleStartCreatedDateChange = (date: string | null) => {
     setStartCreatedDate(date);
     setLocalPage(1);
   };
+
   const handleEndCreatedDateChange = (date: string | null) => {
     setEndCreatedDate(date);
     setLocalPage(1);
   };
+
   const handleStartUpdatedDateChange = (date: string | null) => {
     setStartUpdatedDate(date);
     setLocalPage(1);
   };
+
+  const handleEndUpdatedDateChange = (date: string | null) => {
+    setEndUpdatedDate(date);
+    setLocalPage(1);
+  };
+
   const handleStateChange = (value: string | null) => {
     setSelectedState(value);
     setSelectedCity(null);
     setLocalPage(1);
   };
+
   const handleCityChange = (value: string | null) => {
     setSelectedCity(value);
     setLocalPage(1);
   };
+
   const handleClearFilters = () => {
     setSearchQuery("");
     setSelectedStatus("");
@@ -206,9 +191,11 @@ useEffect(() => {
     setSelectedCity(null);
     setLocalPage(1);
   };
+
   const goToPage = (page: number) => setLocalPage(page);
   const goToPreviousPage = () => localPage > 1 && goToPage(localPage - 1);
   const goToNextPage = () => localPage < totalPages && goToPage(localPage + 1);
+
   const getPaginationItems = () => {
     const pages = [];
     const totalVisiblePages = 7;
@@ -224,12 +211,15 @@ useEffect(() => {
     if (endPage < totalPages) pages.push(totalPages);
     return pages;
   };
+
   const handleViewHistory = (item: Lead) => {
     navigate("/leads/view", { state: { property: item } });
   };
+
   const handleLeadAssign = (leadId: number) => {
     navigate(`/leads/assign/${leadId}`);
   };
+
   const handleMarkAsBooked = (leadId: number) => {
     const lead = currentLeads.find((item) => item.lead_id === leadId);
     if (lead) {
@@ -245,9 +235,11 @@ useEffect(() => {
       toast.error("Lead not found");
     }
   };
+
   const handleCheckboxChange = (leadId: number) => {
     setSelectedLeadIdSingle((prev) => (prev === leadId ? null : leadId));
   };
+
   const handleBulkAssign = () => {
     if (selectedLeadIdSingle === null) {
       toast.error("Please select a lead.");
@@ -255,6 +247,7 @@ useEffect(() => {
     }
     handleLeadAssign(selectedLeadIdSingle);
   };
+
   const handleBulkViewHistory = () => {
     if (selectedLeadIdSingle === null) {
       toast.error("Please select a lead.");
@@ -265,6 +258,7 @@ useEffect(() => {
     );
     if (lead) handleViewHistory(lead);
   };
+
   const handleBulkBookingDone = () => {
     if (selectedLeadIdSingle === null) {
       toast.error("Please select a lead.");
@@ -272,7 +266,8 @@ useEffect(() => {
     }
     handleMarkAsBooked(selectedLeadIdSingle);
   };
- return (
+
+  return (
     <div className="relative min-h-screen">
       <PageMeta title="All Leads - Lead Management" />
       <FilterBar
@@ -287,12 +282,14 @@ useEffect(() => {
         onCreatedDateChange={handleStartCreatedDateChange}
         onCreatedEndDateChange={handleEndCreatedDateChange}
         onUpdatedDateChange={handleStartUpdatedDateChange}
+        onUpdatedEndDateChange={handleEndUpdatedDateChange}
         onStateChange={handleStateChange}
         onCityChange={handleCityChange}
         onClearFilters={handleClearFilters}
         createdDate={startCreatedDate}
         createdEndDate={endCreatedDate}
         updatedDate={startUpdatedDate}
+        updatedEndDate={endUpdatedDate}
         selectedStatus={selectedStatus}
         selectedState={selectedState}
         selectedCity={selectedCity}
@@ -404,7 +401,7 @@ useEffect(() => {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="divide-y divide-gray-100 dark:divide-white/[0.05]">
-                  {currentLeads.map((item, index) => (
+                  {currentLeads.map((item) => (
                     <TableRow
                       key={item.lead_id}
                       className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
@@ -446,14 +443,44 @@ useEffect(() => {
                 </TableBody>
               </Table>
             </div>
+            {totalPages > 1 && (
+              <div className="flex justify-center items-center gap-2 py-4">
+                <Button
+                  variant="outline"
+                  onClick={goToPreviousPage}
+                  disabled={localPage === 1}
+                >
+                  Previous
+                </Button>
+                {getPaginationItems().map((page, index) =>
+                  page === "..." ? (
+                    <span key={index} className="px-2">
+                      ...
+                    </span>
+                  ) : (
+                    <Button
+                      key={page}
+                      variant={localPage === page ? "primary" : "outline"}
+                      onClick={() => goToPage(page as number)}
+                    >
+                      {page}
+                    </Button>
+                  )
+                )}
+                <Button
+                  variant="outline"
+                  onClick={goToNextPage}
+                  disabled={localPage === totalPages}
+                >
+                  Next
+                </Button>
+              </div>
+            )}
           </div>
         )}
-        {/* ... pagination and rest of the component ... */}
       </div>
     </div>
   );
 };
-
-
 
 export default AllLeadDetails;

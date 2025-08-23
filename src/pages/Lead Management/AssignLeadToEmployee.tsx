@@ -1,3 +1,4 @@
+// src/pages/AssignLeadEmployeePage.tsx
 import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate, useParams } from "react-router";
@@ -6,6 +7,7 @@ import {
   assignLeadToEmployee,
   getLeadStatuses,
   fetchTodayFollowUps,
+  getLeadsByUser, // Add this import
 } from "../../store/slices/leadslice";
 import {
   fetchOngoingProjects,
@@ -72,8 +74,8 @@ const AssignLeadEmployeePage: React.FC = () => {
     { value: "5", label: "Telecallers" },
     { value: "6", label: "Marketing Executive" },
     { value: "7", label: "Receptionists" },
-    {value : "8", label: "BDE"},
-    {value: "9", label: "BDM"},
+    { value: "8", label: "BDE" },
+    { value: "9", label: "BDM" },
   ];
 
   const priorityOptions = [
@@ -99,7 +101,7 @@ const AssignLeadEmployeePage: React.FC = () => {
       value: project.property_id.toString(),
       label: `${project.project_name} - ${project.property_type}`,
     })) || [];
-    console.log("projectOptions:", projectOptions);
+  console.log("projectOptions:", projectOptions);
 
   useEffect(() => {
     if (user?.id) {
@@ -257,6 +259,13 @@ const AssignLeadEmployeePage: React.FC = () => {
       await dispatch(assignLeadToEmployee(submitData)).unwrap();
       setSubmitSuccess(
         `Lead assigned successfully! Lead ID: ${submitData.lead_id}`
+      );
+      // Add dispatch to refresh total leads table
+      dispatch(
+        getLeadsByUser({
+          lead_added_user_id: user.id,
+          lead_added_user_type: user.user_type,
+        })
       );
       if (
         formData.status_id === "2" &&
