@@ -679,7 +679,6 @@ export const assignLeadToEmployee = createAsyncThunk<
         assignData.status_id !== 2 && assignData.status_id !== 3 && assignData.status_id
           ? assignData.action_date
           : undefined,
-      // Explicitly handle optional fields to ensure they are undefined if not provided
       interested_project_id: assignData.interested_project_id || undefined,
       interested_project_name: assignData.interested_project_name || undefined,
     };
@@ -835,7 +834,7 @@ export const updateLeadByEmployee = createAsyncThunk<
     updated_emp_phone: string;
     lead_added_user_type: number;
     lead_added_user_id: number;
-    followup_date?: string; // Added followup_date
+    followup_date?: string; 
   },
   { rejectValue: string }
 >("lead/updateLeadByEmployee", async (updateData, { rejectWithValue }) => {
