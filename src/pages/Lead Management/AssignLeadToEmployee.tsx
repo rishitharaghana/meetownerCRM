@@ -6,7 +6,7 @@ import {
   assignLeadToEmployee,
   getLeadStatuses,
   fetchTodayFollowUps,
-  getLeadsByUser, // Add this import
+  getLeadsByUser,
 } from "../../store/slices/leadslice";
 import {
   fetchOngoingProjects,

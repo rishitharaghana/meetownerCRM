@@ -91,12 +91,12 @@ const initialFormData = {
     if ((formData.status_id === "2" || formData.status_id === "3") && formData.followup_date < today) {
       newErrors.followup_date = "Follow-up date cannot be in the past";
     }
-    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
-      newErrors.action_date = "Action date is required";
-    }
-    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date > today) {
-      newErrors.action_date = "Action date cannot be in the past";
-    }
+    // if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
+    //   newErrors.action_date = "Action date is required";
+    // }
+    // if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date > today) {
+    //   newErrors.action_date = "Action date cannot be in the past";
+    // }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -119,8 +119,8 @@ console.log("trigger")
 
     console.log("checking dataa")
     const token = localStorage.getItem("token");
-    console.log("tokem",token)
-    console.log("Token before request:", token); // Debug token
+    console.log("token",token)
+    console.log("Token before request:", token); 
     if (!token || isTokenExpired(token)) {
       dispatch(logout());
       setSubmitError("Your session has expired. Please log in again.");
@@ -233,7 +233,7 @@ console.log("submit",submitData)
                     onChange={(selectedDates: Date[]) => {
                       if (selectedDates.length > 0) {
                         const date = selectedDates[0].toLocaleDateString("en-CA");
-                        handleInputChange("followup_date")(date);
+                        handleInputChange("action_date")(date);
                       } else {
                         handleInputChange("action_date")("");
                       }

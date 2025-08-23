@@ -138,12 +138,13 @@ export const getLeadsByUser = createAsyncThunk<
   }
 );
 export const getTotalLeads = createAsyncThunk<
-  number,
-  { lead_added_user_id: number; lead_added_user_type: number },
+ number,
+  Record<string, any>,   
   { rejectValue: string }
 >(
   "lead/getTotalLeads",
-  async ({ lead_added_user_id, lead_added_user_type }, { rejectWithValue }) => {
+  async ({leadParams }, { rejectWithValue }) => {
+    console.log("k",leadParams)
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -154,10 +155,7 @@ export const getTotalLeads = createAsyncThunk<
         status: string;
         total: number;
       }>(`api/v1/leads/totalLeadsCount`, {
-        params: {
-          lead_added_user_id,
-          lead_added_user_type,
-        },
+           params: leadParams,  
         headers: {
           Authorization: `Bearer ${token}`,
         },

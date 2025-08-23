@@ -53,7 +53,7 @@ const LeadsType: React.FC = () => {
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-
+console.log("user",user)
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
@@ -103,7 +103,7 @@ console.log("user",user,isAuthenticated,isBuilder)
       lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
       status_id: statusId,
     };
-
+    
     if (!isBuilder) {
       return {
         ...params,
@@ -111,10 +111,11 @@ console.log("user",user,isAuthenticated,isBuilder)
         assigned_id: user.id,
       };
     }
-
+    
     return params;
   }, [isAuthenticated, user, statusId, isBuilder]);
-
+  
+  console.log("params",leadsParams)
   useEffect(() => {
     if (leadsParams) {
       console.log(leadsParams)

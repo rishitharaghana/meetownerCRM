@@ -18,7 +18,7 @@ import { getTotalLeads } from "../../store/slices/leadslice";
 import toast from "react-hot-toast";
 
 const userTypeMap: { [key: string]: string } = {
-  total_leads: "Total Leads", 
+  total_leads: "Total Leads",
   today_follow_ups: "Today Follow-Ups",
   site_visit_done: "Site Visits Done",
   booked: "Bookings",
@@ -29,11 +29,11 @@ const userTypeMap: { [key: string]: string } = {
   "6": "Marketing Agent",
   "7": "Receptionists",
   "8": "BDE",
-  "9": "BDM"
+  "9": "BDM",
 };
 
 const userTypeRoutes: { [key: string]: string } = {
-  total_leads: "/leads/new/0", 
+  total_leads: "/leads/new/0",
   today_follow_ups: "/leads/today/2",
   site_visit_done: "/leads/SiteVisitDone/5",
   booked: "/bookings/bookings-done",
@@ -58,6 +58,8 @@ const iconMap: { [key: string]: any } = {
   "5": Headset,
   "6": CircleUser,
   "7": UserRound,
+  "8": User, // Added for BDE
+  "9": User, // Added for BDM
 };
 
 const cardColors = [
@@ -77,6 +79,7 @@ const iconBgColors = [
 ];
 
 const BUILDER_USER_TYPE = 2;
+const EMPLOYEE_USER_TYPES = [3, 4, 5, 6, 7, 8, 9];
 
 export default function Home() {
   const dispatch = useDispatch<AppDispatch>();
@@ -103,7 +106,7 @@ export default function Home() {
         admin_user_id: user.id,
         admin_user_type: user.user_type,
       };
-    } else {
+    } else if (EMPLOYEE_USER_TYPES.includes(user.user_type)) {
       return {
         admin_user_id: user.created_user_id,
         admin_user_type: BUILDER_USER_TYPE,
@@ -111,20 +114,25 @@ export default function Home() {
         emp_user_type: user.user_type,
       };
     }
+    return null;
   }, [isAuthenticated, user]);
 
   useEffect(() => {
-    if (typesCountParams && user?.user_type !== 1) {
-      // Fetch user counts
+    if (!typesCountParams) {
+      toast.error("Invalid user data. Please log in again.");
+      return;
+    }
+
+    if (user?.user_type !== 1) {
       dispatch(getTypesCount(typesCountParams))
         .unwrap()
         .catch((err) => {
-          toast.error(err || "Failed to fetch counts");
+          toast.error(err || "Failed to fetch user counts");
         });
-
-      // Fetch total leads
+        console.log(user?.user_type)
+console.log("type",typesCountParams)
       const leadParams =
-        user.user_type === BUILDER_USER_TYPE
+        user.user_type === 2
           ? {
               lead_added_user_id: typesCountParams.admin_user_id,
               lead_added_user_type: typesCountParams.admin_user_type,
@@ -132,21 +140,16 @@ export default function Home() {
           : {
               lead_added_user_id: typesCountParams.admin_user_id,
               lead_added_user_type: typesCountParams.admin_user_type,
-              emp_id: typesCountParams.emp_id,
-              emp_user_type: typesCountParams.emp_user_type,
+              assigned_id: typesCountParams.emp_id,
+              assigned_user_type: typesCountParams.emp_user_type,
             };
+console.log("sd",leadParams)
+     dispatch(getTotalLeads({ leadParams }))
 
-      dispatch(getTotalLeads(leadParams))
         .unwrap()
         .catch((err) => {
           toast.error(err || "Failed to fetch total leads");
         });
-    } else if (isAuthenticated && user) {
-      console.warn("Invalid user data:", {
-        id: user.id,
-        user_type: user.user_type,
-        created_user_id: user.created_user_id,
-      });
     }
   }, [typesCountParams, dispatch, user]);
 
@@ -159,23 +162,39 @@ export default function Home() {
           item.user_type !== "projects" && item.user_type !== "today_leads"
       ) || [];
 
-    const totalLeadsCard = { user_type: "total_leads", count: totalLeads };
+    const totalLeadsCard =
+      user?.user_type === BUILDER_USER_TYPE || EMPLOYEE_USER_TYPES.includes(user?.user_type)
+        ? { user_type: "total_leads", count: totalLeads }
+        : null;
 
     const filtered = counts.filter((item) => item.user_type !== "total_leads");
 
-    return [totalLeadsCard, ...filtered];
-  }, [userCounts, totalLeads]);
+    return totalLeadsCard ? [totalLeadsCard, ...filtered] : filtered;
+  }, [userCounts, totalLeads, user?.user_type]);
 
-  if (user?.user_type === 1) {
+  if (!isAuthenticated || !user) {
+    return (
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-6">
+        <div className="text-center text-red-500">
+          Please log in to view the dashboard.
+        </div>
+      </div>
+    );
+  }
+
+  if (user.user_type === 1) {
     return (
       <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50/30 to-indigo-50/50 p-6">
         <div className="mb-8">
           <div className="flex items-center gap-3 mb-2">
             <div className="w-2 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
             <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-              Welcome back, {user?.name || "User"}!
+              Welcome back, {user.name || "User"}!
             </h1>
           </div>
+          <p className="text-slate-600 ml-5">
+            Admin dashboard under construction.
+          </p>
         </div>
       </div>
     );
@@ -187,7 +206,7 @@ export default function Home() {
         <div className="flex items-center gap-3 mb-2">
           <div className="w-2 h-8 bg-gradient-to-b from-blue-600 to-indigo-600 rounded-full"></div>
           <h1 className="text-3xl font-bold bg-gradient-to-r from-slate-800 to-slate-600 bg-clip-text text-transparent">
-            Welcome back, {user?.name || "User"}!
+            Welcome back, {user.name || "User"}!
           </h1>
         </div>
         <p className="text-slate-600 ml-5">
@@ -196,23 +215,48 @@ export default function Home() {
       </div>
 
       {(userLoading || leadLoading) && (
-        <div className="text-center text-slate-600 dark:text-slate-400 mb-8">
-          Loading counts...
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, index) => (
+            <div
+              key={index}
+              className="animate-pulse rounded-2xl bg-gray-200/50 border p-6"
+            >
+              <div className="w-12 h-12 bg-gray-300 rounded-xl mb-6"></div>
+              <div className="space-y-3">
+                <div className="h-4 bg-gray-300 rounded w-3/4"></div>
+                <div className="h-6 bg-gray-300 rounded w-1/2"></div>
+              </div>
+            </div>
+          ))}
         </div>
       )}
       {(userError || leadError) && (
         <div className="text-center text-red-500 mb-8">
-          {userError || leadError}
+          {userError && <p>User data error: {userError}</p>}
+          {leadError && <p>Leads data error: {leadError}</p>}
           <button
             onClick={() => {
-              if (typesCountParams) dispatch(getTypesCount(typesCountParams));
-              if (typesCountParams)
+              if (userError && typesCountParams) {
+                dispatch(getTypesCount(typesCountParams))
+                  .unwrap()
+                  .catch((err) => {
+                    toast.error(err || "Failed to fetch user counts");
+                  });
+              }
+              if (leadError && typesCountParams) {
                 dispatch(
                   getTotalLeads({
                     lead_added_user_id: typesCountParams.admin_user_id,
                     lead_added_user_type: typesCountParams.admin_user_type,
+                    assigned_id: typesCountParams.emp_id,
+                    assigned_user_type: typesCountParams.emp_user_type,
                   })
-                );
+                )
+                  .unwrap()
+                  .catch((err) => {
+                    toast.error(err || "Failed to fetch total leads");
+                  });
+              }
             }}
             className="ml-4 px-4 py-2 text-sm bg-blue-600 text-white rounded-md"
           >
