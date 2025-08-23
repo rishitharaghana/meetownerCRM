@@ -26,6 +26,7 @@ export interface TimelineEvent {
 }
 
 const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
+  
   if (!Array.isArray(data) || data.length === 0) {
     return <p className="text-sm text-gray-500 dark:text-gray-400">No timeline data available.</p>;
   }

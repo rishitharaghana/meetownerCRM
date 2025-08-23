@@ -127,6 +127,9 @@ const CreateEmployee = () => {
     { value: "5", text: "Telecallers" },
     { value: "6", text: "Marketing Executor" },
     { value: "7", text: "Receptionists" },
+    { value: "8", text: "Bde" },
+    { value: "9", text: "BDM" },
+
   ];
   const cityOptions =
     citiesResult?.data?.map((city: any) => ({

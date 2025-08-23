@@ -35,6 +35,7 @@ const LeadsType: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
+  console.log("selected lead ",selectedLeadId)
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
@@ -201,6 +202,9 @@ console.log("user",user,isAuthenticated,isBuilder)
     localPage * itemsPerPage
   );
 
+
+  console.log("currentLeads",currentLeads)
+
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       // Placeholder for click outside logic
@@ -268,6 +272,7 @@ console.log("user",user,isAuthenticated,isBuilder)
   };
 
   const handleUpdateLead = (leadId: number) => {
+    console.log("ro")
     navigate(`/leads/update-lead/${leadId}`)  
   }
 

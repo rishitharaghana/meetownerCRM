@@ -857,6 +857,7 @@ export const updateLeadByEmployee = createAsyncThunk<
     if (response.data.status !== "success") {
       return rejectWithValue(response.data.message || "Failed to update lead");
     }
+    console.log("response",response)
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ErrorResponse>;

@@ -22,8 +22,9 @@ const ViewLeadDetails = () => {
   );
   const { leads, leadUpdates, loading, error } = useSelector(
     (state: RootState) => state.lead
-  );
-  console.log("Lead Updates:", leadUpdates);
+  );  
+  console.log("Lead::::::::::::::::::::::", leads);
+  console.log("lead update",leadUpdates)
   const property = location.state?.property as Lead;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const leadSources = useSelector((state: RootState) => state.lead.leadSources);
@@ -81,6 +82,7 @@ const ViewLeadDetails = () => {
       ? leads?.find((l) => l.lead_id === property)
       : property;
 
+      console.log("lead",lead)
   if (!lead) {
     return (
       <div className="p-6 space-y-6">
@@ -106,26 +108,97 @@ const ViewLeadDetails = () => {
     );
   }
 
-  const timeline: TimelineEvent[] = leadUpdates?.length
-    ? leadUpdates.map((update: LeadUpdate, index: number) => ({
-        label: update.status_name || `Update ${index + 1}`,
-        timestamp: new Date(
-          `${update.update_date.split("T")[0]}T${update.update_time}Z`
-        ).toLocaleString("en-US", { timeZone: "Asia/Kolkata" }),
-        status:
-          update.status_id &&
-          lead.status_id &&
-          update.status_id <= lead.status_id
-            ? "completed"
-            : "pending",
-        description: update.feedback,
-        nextAction: update.next_action,
-        current: update.status_id === lead.status_id,
-        updatedEmpType: update.updated_by_emp_type,
-        updatedEmpId: update.updated_by_emp_id,
-        updatedEmpPhone: update.updated_emp_phone,
-        updatedEmpName: update.updated_by_emp_name,
-      }))
+   const timeline: TimelineEvent[] = leadUpdates?.length
+    ? leadUpdates.map((update: LeadUpdate, index: number) => {
+        // Validate update_date and update_time
+        const isValidDate = (dateStr: string) =>
+          /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(dateStr); // Allow ISO format
+        const isValidTime = (timeStr: string) =>
+          /^\d{2}:\d{2}:\d{2}$/.test(timeStr);
+
+        // Extract date part from update_date (strip time and timezone)
+        const updateDate = lead?.
+updated_date
+        
+        const updateTime = update.update_time || "00:00:00"; // Fallback
+
+        if (!isValidDate(updateDate) || !isValidTime(updateTime)) {
+          console.warn(
+            `Invalid date or time for update ${index + 1}: date=${updateDate}, time=${updateTime}`
+          );
+          return {
+            label: update.status_name || `Update ${index + 1}`,
+            timestamp: "Invalid date",
+            status:
+              update.status_id &&
+              lead.status_id &&
+              update.status_id <= lead.status_id
+                ? "completed"
+                : "pending",
+            description: update.feedback,
+            nextAction: update.next_action,
+            current: update.status_id === lead.status_id,
+            updatedEmpType: update.updated_by_emp_type,
+            updatedEmpId: update.updated_by_emp_id,
+            updatedEmpPhone: update.updated_emp_phone,
+            updatedEmpName: update.updated_by_emp_name,
+          };
+        }
+
+        // Construct date string in ISO format with IST offset
+        const dateTimeString = `${updateDate}T${updateTime}+05:30`;
+        const date = new Date(dateTimeString);
+
+        if (isNaN(date.getTime())) {
+          console.warn(
+            `Failed to parse date for update ${index + 1}: ${dateTimeString}`
+          );
+          return {
+            label: update.status_name || `Update ${index + 1}`,
+            timestamp: "Invalid date",
+            status:
+              update.status_id &&
+              lead.status_id &&
+              update.status_id <= lead.status_id
+                ? "completed"
+                : "pending",
+            description: update.feedback,
+            nextAction: update.next_action,
+            current: update.status_id === lead.status_id,
+            updatedEmpType: update.updated_by_emp_type,
+            updatedEmpId: update.updated_by_emp_id,
+            updatedEmpPhone: update.updated_emp_phone,
+            updatedEmpName: update.updated_by_emp_name,
+          };
+        }
+
+        return {
+          label: update.status_name || `Update ${index + 1}`,
+          timestamp: date.toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            hour: "2-digit",
+            minute: "2-digit",
+            second: "2-digit",
+            hour12: true,
+          }), // Format: "Aug 21, 2025, 08:08:32 PM"
+          status:
+            update.status_id &&
+            lead.status_id &&
+            update.status_id <= lead.status_id
+              ? "completed"
+              : "pending",
+          description: update.feedback,
+          nextAction: update.next_action,
+          current: update.status_id === lead.status_id,
+          updatedEmpType: update.updated_by_emp_type,
+          updatedEmpId: update.updated_by_emp_id,
+          updatedEmpPhone: update.updated_emp_phone,
+          updatedEmpName: update.updated_by_emp_name,
+        };
+      })
     : [];
 
   return (
@@ -147,7 +220,7 @@ const ViewLeadDetails = () => {
           Loading lead updates...
         </div>
       )}
-      {error && <div className="text-center text-red-500 py-4">{error}</div>}
+      {/* {error && <div className="text-center text-red-500 py-4">{error}</div>} */}
 
       <div className="bg-white dark:bg-dark-800 rounded-lg shadow-md border border-gray-200 dark:border-gray-700 p-6 grid grid-cols-1 lg:grid-cols-2 gap-8">
         <div className="space-y-6">

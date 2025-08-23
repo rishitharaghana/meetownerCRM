@@ -2,38 +2,50 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { getLeadStatuses, updateLeadByEmployee } from "../../store/slices/leadslice";
+import { logout, isTokenExpired } from "../../store/slices/authSlice"; // Import isTokenExpired and logout
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
-import DatePicker from "../../components/form/date-picker"; // Add DatePicker import
+import DatePicker from "../../components/form/date-picker";
 import { LeadStatus } from "../../types/LeadModel";
-
+import { useParams } from "react-router";
+import toast ,{ Toaster } from "react-hot-toast";
+ 
 interface UpdateLeadModalProps {
-  leadId: number;
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
 
-const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSubmit }) => {
+const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ onClose, onSubmit }) => {
+  const { leadId } = useParams<{ leadId: string }>();
+  console.log("Lead ID:", leadId);
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { leadStatuses, loading: statusesLoading, error: statusesError } = useSelector(
     (state: RootState) => state.lead
   );
+  console.log("leadStatus,lead",leadStatuses)
 
   const [formData, setFormData] = useState({
     follow_up_feedback: "",
     next_action: "",
     status_id: "",
-    followup_date: "", // Added for Follow-up and In Progress statuses
-    action_date: "", // Added for other statuses
+    followup_date: "",
+    action_date: "",
   });
 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
+  console.log("submitSuccess",submitSuccess)
   const [submitError, setSubmitError] = useState<string | null>(null);
-
+const initialFormData = {
+    follow_up_feedback: "",
+    next_action: "",
+    status_id: "",
+    followup_date: "",
+    action_date: "",
+  };
   const statusOptions = leadStatuses?.map((status: LeadStatus) => ({
     value: status.status_id.toString(),
     label: status.status_name,
@@ -41,6 +53,13 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
 
   useEffect(() => {
     dispatch(getLeadStatuses());
+
+    // Check token validity on mount
+    const token = localStorage.getItem("token");
+    if (token && isTokenExpired(token)) {
+      dispatch(logout());
+      setSubmitError("Your session has expired. Please log in again.");
+    }
   }, [dispatch]);
 
   const handleInputChange = (field: keyof typeof formData) => (value: string) => {
@@ -57,21 +76,25 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
 
   const validateForm = (): boolean => {
     const newErrors: Record<string, string> = {};
-    const today = new Date().toISOString().split("T")[0]; // e.g., "2025-08-19"
+    const today = new Date().toISOString().split("T")[0];
 
     if (!formData.status_id) newErrors.status_id = "Status is required";
+
     if (!formData.follow_up_feedback.trim()) newErrors.follow_up_feedback = "Follow-up feedback is required";
+
     if (!formData.next_action.trim()) newErrors.next_action = "Next action is required";
+
     if ((formData.status_id === "2" || formData.status_id === "3") && !formData.followup_date.trim()) {
       newErrors.followup_date = "Follow-up date is required for Follow-up or In Progress status";
     }
+
     if ((formData.status_id === "2" || formData.status_id === "3") && formData.followup_date < today) {
       newErrors.followup_date = "Follow-up date cannot be in the past";
     }
     if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
       newErrors.action_date = "Action date is required";
     }
-    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date < today) {
+    if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date > today) {
       newErrors.action_date = "Action date cannot be in the past";
     }
 
@@ -82,15 +105,29 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
+console.log("trigger")
+    if (!leadId) {
+      setSubmitError("Invalid lead ID. Please try again.");
+      return;
+    }
+    console.log("leadId,",leadId)
 
     if (!user?.id || !user?.user_type || !user?.name || !user?.mobile) {
       setSubmitError("User information is missing. Please log in again.");
       return;
     }
 
-    setIsSubmitting(true);
-    setSubmitError(null);
-    setSubmitSuccess(null);
+    console.log("checking dataa")
+    const token = localStorage.getItem("token");
+    console.log("tokem",token)
+    console.log("Token before request:", token); // Debug token
+    if (!token || isTokenExpired(token)) {
+      dispatch(logout());
+      setSubmitError("Your session has expired. Please log in again.");
+      return;
+    }
+    console.log("hello token found" )
+
 
     try {
       const submitData = {
@@ -107,21 +144,33 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
         followup_date: (formData.status_id === "2" || formData.status_id === "3") ? formData.followup_date : undefined,
         action_date: (formData.status_id !== "2" && formData.status_id !== "3") ? formData.action_date : undefined,
       };
-
+console.log("submit",submitData)
       const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
+
+      console.log("result",result)
       setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
-      onSubmit(submitData);
-      onClose();
+        setFormData(initialFormData);
+     
+      toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`)
+   
+    setSubmitSuccess("");
+      
     } catch (error: any) {
-      setSubmitError(error.message || "Failed to update lead. Please try again.");
+
+      toast.error(error.message || "Failed to update lead. Please try again.")
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (statusesLoading) {
+    return <div>Loading statuses...</div>;
+  }
+
   return (
     <div className="pointer-events-auto">
-      <div className="bg-white/30 backdrop-blur-sm ">
+      <Toaster/>
+      <div className="bg-white/30 backdrop-blur-sm">
         <div className="relative flex items-center p-8 justify-center m-auto h-full">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
             <h2 className="text-xl font-semibold mb-4">Update Lead</h2>
@@ -130,11 +179,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
                 {submitSuccess}
               </div>
             )}
-            {submitError && (
-              <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
-                {submitError}
-              </div>
-            )}
+           
             {statusesError && (
               <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
                 {statusesError}
@@ -151,7 +196,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
                 options={statusOptions}
                 value={formData.status_id}
                 onChange={handleInputChange("status_id")}
-                placeholder={statusesLoading ? "Loading statuses..." : "Select status"}
+                placeholder="Select status"
                 error={errors.status_id}
               />
               {(formData.status_id === "2" || formData.status_id === "3") && (
@@ -161,10 +206,11 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
                     label="Follow-up Date"
                     placeholder="Select follow-up date"
                     defaultDate={formData.followup_date}
-                    minDate={new Date()} // Restrict to today or future dates
+                    minDate={new Date()}
                     onChange={(selectedDates: Date[]) => {
                       if (selectedDates.length > 0) {
-                        const date = selectedDates[0].toISOString().split("T")[0];
+                        const date = selectedDates[0].toLocaleDateString("en-CA");
+                        console.log("date",date)
                         handleInputChange("followup_date")(date);
                       } else {
                         handleInputChange("followup_date")("");
@@ -183,11 +229,11 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId, onClose, onSu
                     label="Action Date"
                     placeholder="Select action date"
                     defaultDate={formData.action_date}
-                    minDate={new Date()} // Restrict to today or future dates
+                    minDate={new Date()}
                     onChange={(selectedDates: Date[]) => {
                       if (selectedDates.length > 0) {
-                        const date = selectedDates[0].toISOString().split("T")[0];
-                        handleInputChange("action_date")(date);
+                        const date = selectedDates[0].toLocaleDateString("en-CA");
+                        handleInputChange("followup_date")(date);
                       } else {
                         handleInputChange("action_date")("");
                       }
