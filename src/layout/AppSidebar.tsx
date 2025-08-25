@@ -21,7 +21,7 @@ const navItems: NavItem[] = [
       { name: "Total Leads", path: "/leads/new/0", data: { lead_in: "Today", status: 0 } },
       { name: "Open Leads", path: "/leads/open/1", data: { lead_in: "Open", status: 1 } },
       { name: "In Progress", path: "/leads/InProgress/3", data: { lead_in: "In Progress", status: 3 } },
-      { name: "Today Folow Ups", path: "/leads/today/2", data: { lead_in: "Today", status: 2 } },
+      { name: "Today Follow Ups", path: "/leads/today/2", data: { lead_in: "Today", status: 2 } },
       { name: "Site Visit Scheduled", path: "/leads/SiteVisitScheduled/4", data: { lead_in: "Site Visit Scheduled", status: 4 } },
       { name: "Site Visit Done", path: "/leads/SiteVisitDone/5", data: { lead_in: "Site Visit done", status: 5 } },
       { name: "Won Leads", path: "/leads/WonLeads/6", data: { lead_in: "Won Leads", status: 6 } },

@@ -83,6 +83,8 @@ export interface LeadUpdate {
   lead_added_user_id: number;
   lead_added_user_type: number;
   status_name: string | null;
+  followup_date: string | null;
+  action_date: string | null;
 }
 
 export interface LeadsResponse {

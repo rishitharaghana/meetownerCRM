@@ -51,9 +51,12 @@ const LeadsType: React.FC = () => {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { leads, loading, error } = useSelector((state: RootState) => state.lead);
+
+
+  console.log("leads::::::::::::::::::::::::::::::::::::",leads)
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-console.log("user",user)
+console.log("user:::::::::::::::::::::::::::::::::::::::",user)
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
@@ -98,6 +101,7 @@ console.log("user",user)
       return null;
     }
 console.log("user",user,isAuthenticated,isBuilder)
+console.log("statusId",statusId)
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
       lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),

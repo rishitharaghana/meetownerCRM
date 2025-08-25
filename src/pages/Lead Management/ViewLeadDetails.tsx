@@ -22,9 +22,10 @@ const ViewLeadDetails = () => {
   );
   const { leads, leadUpdates, loading, error } = useSelector(
     (state: RootState) => state.lead
-  );  
-  console.log("Lead::::::::::::::::::::::", leads);
-  console.log("lead update",leadUpdates)
+  );
+
+  console.log("leadUpdates::::::::111:::::::::::::::", leadUpdates)
+
   const property = location.state?.property as Lead;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const leadSources = useSelector((state: RootState) => state.lead.leadSources);
@@ -82,7 +83,7 @@ const ViewLeadDetails = () => {
       ? leads?.find((l) => l.lead_id === property)
       : property;
 
-      console.log("lead",lead)
+
   if (!lead) {
     return (
       <div className="p-6 space-y-6">
@@ -107,71 +108,48 @@ const ViewLeadDetails = () => {
       </div>
     );
   }
+ const timeline: TimelineEvent[] = leadUpdates?.length
+  ? leadUpdates.map((update: LeadUpdate, index: number) => {
+      // Validate date and time
+      const isValidDate = (dateStr: string) =>
+        /^\d{4}-\d{2}-\d{2}/.test(dateStr);
+      const isValidTime = (timeStr: string) =>
+        /^\d{2}:\d{2}:\d{2}$/.test(timeStr);
 
-   const timeline: TimelineEvent[] = leadUpdates?.length
-    ? leadUpdates.map((update: LeadUpdate, index: number) => {
-        const isValidDate = (dateStr: string) =>
-          /^\d{4}-\d{2}-\d{2}(T.*)?$/.test(dateStr); 
-        const isValidTime = (timeStr: string) =>
-          /^\d{2}:\d{2}:\d{2}$/.test(timeStr);
+      // Extract and format update date and time
+      const updateDateRaw = update.updated_date;
+      const updateDate = updateDateRaw?.includes("T")
+        ? updateDateRaw.split("T")[0]
+        : updateDateRaw || lead?.updated_date?.split("T")[0] || "";
+      const updateTime = update.update_time || "00:00:00";
 
-        const updateDate = lead?.
-updated_date
-        
-        const updateTime = update.update_time || "00:00:00"; 
+      // Format actionDate and followupDate if they exist
+      const actionDate = update.action_date
+        ? new Date(update.action_date).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+            
+          })
+        : "";
+      const followupDate = update.followup_date
+        ? new Date(update.followup_date).toLocaleString("en-IN", {
+            timeZone: "Asia/Kolkata",
+            year: "numeric",
+            month: "short",
+            day: "2-digit",
+          
+          })
+        : "";
 
-        if (!isValidDate(updateDate) || !isValidTime(updateTime)) {
-          console.warn(
-            `Invalid date or time for update ${index + 1}: date=${updateDate}, time=${updateTime}`
-          );
-          return {
-            label: update.status_name || `Update ${index + 1}`,
-            timestamp: "Invalid date",
-            status:
-              update.status_id &&
-              lead.status_id &&
-              update.status_id <= lead.status_id
-                ? "completed"
-                : "pending",
-            description: update.feedback,
-            nextAction: update.next_action,
-            current: update.status_id === lead.status_id,
-            updatedEmpType: update.updated_by_emp_type,
-            updatedEmpId: update.updated_by_emp_id,
-            updatedEmpPhone: update.updated_emp_phone,
-            updatedEmpName: update.updated_by_emp_name,
-          };
-        }
-
+      // Create timestamp for the update
+      let timestamp = "Date not available";
+      if (updateDate && isValidDate(updateDate) && isValidTime(updateTime)) {
         const dateTimeString = `${updateDate}T${updateTime}+05:30`;
         const date = new Date(dateTimeString);
-
-        if (isNaN(date.getTime())) {
-          console.warn(
-            `Failed to parse date for update ${index + 1}: ${dateTimeString}`
-          );
-          return {
-            label: update.status_name || `Update ${index + 1}`,
-            timestamp: "Invalid date",
-            status:
-              update.status_id &&
-              lead.status_id &&
-              update.status_id <= lead.status_id
-                ? "completed"
-                : "pending",
-            description: update.feedback,
-            nextAction: update.next_action,
-            current: update.status_id === lead.status_id,
-            updatedEmpType: update.updated_by_emp_type,
-            updatedEmpId: update.updated_by_emp_id,
-            updatedEmpPhone: update.updated_emp_phone,
-            updatedEmpName: update.updated_by_emp_name,
-          };
-        }
-
-        return {
-          label: update.status_name || `Update ${index + 1}`,
-          timestamp: date.toLocaleString("en-IN", {
+        if (!isNaN(date.getTime())) {
+          timestamp = date.toLocaleString("en-IN", {
             timeZone: "Asia/Kolkata",
             year: "numeric",
             month: "short",
@@ -180,23 +158,29 @@ updated_date
             minute: "2-digit",
             second: "2-digit",
             hour12: true,
-          }), 
-          status:
-            update.status_id &&
-            lead.status_id &&
-            update.status_id <= lead.status_id
-              ? "completed"
-              : "pending",
-          description: update.feedback,
-          nextAction: update.next_action,
-          current: update.status_id === lead.status_id,
-          updatedEmpType: update.updated_by_emp_type,
-          updatedEmpId: update.updated_by_emp_id,
-          updatedEmpPhone: update.updated_emp_phone,
-          updatedEmpName: update.updated_by_emp_name,
-        };
-      })
-    : [];
+          });
+        }
+      }
+
+      return {
+        label: `${update.status_name || `Update ${index + 1}`} (by ${update.updated_by_emp_name || 'Unknown'})`,
+        timestamp,
+        status:
+          update.status_id && lead.status_id && update.status_id <= lead.status_id
+            ? "completed"
+            : "pending",
+        description: update.feedback,
+        nextAction: update.next_action,
+        current: update.status_id === lead.status_id,
+        updatedEmpType: update.updated_by_emp_type,
+        updatedEmpId: update.updated_by_emp_id,
+        updatedEmpPhone: update.updated_emp_phone,
+        updatedEmpName: update.updated_by_emp_name,
+        actionDate, // Include formatted actionDate
+        followupDate, // Include formatted followupDate
+      };
+    })
+  : [];
 
   return (
     <div className="p-6 space-y-6">
@@ -245,7 +229,18 @@ updated_date
             </p>
 
             <p>
-              <strong>Created:</strong> {lead.created_date} {lead.created_time}
+              <strong>Created:</strong>{" "}
+              {lead.created_date && lead.created_time
+                ? new Date(`${lead.created_date}T${lead.created_time}+05:30`).toLocaleString("en-IN", {
+                  year: "numeric",
+                  month: "short",
+                  day: "2-digit",
+                  hour: "2-digit",
+                  minute: "2-digit",
+                  second: "2-digit",
+                  hour12: true,
+                })
+                : "N/A"}
             </p>
             <p>
               <strong>Assigned:</strong> {lead.assigned_name} (

@@ -91,12 +91,17 @@ export default function Home() {
     loading: userLoading,
     error: userError,
   } = useSelector((state: RootState) => state.user);
+
+
+  console.log("userCounts in EcommerceMetrics:", userCounts);
+
   const {
     totalLeads,
     loading: leadLoading,
     error: leadError,
   } = useSelector((state: RootState) => state.lead);
 
+  console.log("totalLeads in EcommerceMetrics:", totalLeads);
   const typesCountParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -116,6 +121,7 @@ export default function Home() {
     }
     return null;
   }, [isAuthenticated, user]);
+  console.log("typesCountParamsqwqwq", typesCountParams)
 
   useEffect(() => {
     if (!typesCountParams) {
@@ -129,22 +135,22 @@ export default function Home() {
         .catch((err) => {
           toast.error(err || "Failed to fetch user counts");
         });
-        console.log(user?.user_type)
-console.log("type",typesCountParams)
+      console.log(user?.user_type)
+      console.log("type", typesCountParams)
       const leadParams =
         user.user_type === 2
           ? {
-              lead_added_user_id: typesCountParams.admin_user_id,
-              lead_added_user_type: typesCountParams.admin_user_type,
-            }
+            lead_added_user_id: typesCountParams.admin_user_id,
+            lead_added_user_type: typesCountParams.admin_user_type,
+          }
           : {
-              lead_added_user_id: typesCountParams.admin_user_id,
-              lead_added_user_type: typesCountParams.admin_user_type,
-              assigned_id: typesCountParams.emp_id,
-              assigned_user_type: typesCountParams.emp_user_type,
-            };
-console.log("sd",leadParams)
-     dispatch(getTotalLeads({ leadParams }))
+            lead_added_user_id: typesCountParams.admin_user_id,
+            lead_added_user_type: typesCountParams.admin_user_type,
+            assigned_id: typesCountParams.emp_id,
+            assigned_user_type: typesCountParams.emp_user_type,
+          };
+      console.log("sd", leadParams)
+      dispatch(getTotalLeads({ leadParams }))
 
         .unwrap()
         .catch((err) => {
@@ -155,22 +161,25 @@ console.log("sd",leadParams)
 
   const projectCounts =
     userCounts?.filter((item) => item.user_type === "projects") || [];
+
+
   const employeeCounts = useMemo(() => {
     const counts =
       userCounts?.filter(
         (item) =>
           item.user_type !== "projects" && item.user_type !== "today_leads"
       ) || [];
-
+console.log("counts", counts)
     const totalLeadsCard =
       user?.user_type === BUILDER_USER_TYPE || EMPLOYEE_USER_TYPES.includes(user?.user_type)
         ? { user_type: "total_leads", count: totalLeads }
         : null;
-
+console.log("totalLeadsCard", totalLeadsCard)
     const filtered = counts.filter((item) => item.user_type !== "total_leads");
 
     return totalLeadsCard ? [totalLeadsCard, ...filtered] : filtered;
   }, [userCounts, totalLeads, user?.user_type]);
+  console.log("employeeCounts", employeeCounts)
 
   if (!isAuthenticated || !user) {
     return (
@@ -314,16 +323,14 @@ console.log("sd",leadParams)
               className="group cursor-pointer transition-all duration-300 hover:-translate-y-2"
             >
               <div
-                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${
-                  cardColors[index % cardColors.length]
-                } backdrop-blur-sm border shadow-lg p-6`}
+                className={`relative overflow-hidden rounded-2xl bg-gradient-to-br ${cardColors[index % cardColors.length]
+                  } backdrop-blur-sm border shadow-lg p-6`}
               >
                 <div className="absolute top-0 right-0 w-20 h-20 bg-gradient-to-br from-white/10 to-transparent rounded-full -translate-y-10 translate-x-10"></div>
                 <div className="relative mb-6">
                   <div
-                    className={`w-12 h-12 ${
-                      iconBgColors[index % iconBgColors.length]
-                    } rounded-xl flex items-center justify-center shadow-lg`}
+                    className={`w-12 h-12 ${iconBgColors[index % iconBgColors.length]
+                      } rounded-xl flex items-center justify-center shadow-lg`}
                   >
                     <IconComponent className="w-6 h-6 text-white" />
                   </div>

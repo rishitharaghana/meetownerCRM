@@ -8,23 +8,25 @@ import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
 import DatePicker from "../../components/form/date-picker";
 import { LeadStatus } from "../../types/LeadModel";
-import { useParams } from "react-router";
-import toast ,{ Toaster } from "react-hot-toast";
- 
+import { useNavigate, useParams } from "react-router";
+import toast, { Toaster } from "react-hot-toast";
+
 interface UpdateLeadModalProps {
   onClose: () => void;
   onSubmit: (data: any) => void;
 }
 
-const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ onClose, onSubmit }) => {
-  const { leadId } = useParams<{ leadId: string }>();
-  console.log("Lead ID:", leadId);
+const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, onClose, onSubmit }) => {
+
+  const params = useParams<{ leadId: string }>();
+  const navigate = useNavigate();
+  const leadId = propLeadId ?? Number(params.leadId);
   const dispatch = useDispatch<AppDispatch>();
   const { user } = useSelector((state: RootState) => state.auth);
   const { leadStatuses, loading: statusesLoading, error: statusesError } = useSelector(
     (state: RootState) => state.lead
   );
-  console.log("leadStatus,lead",leadStatuses)
+  console.log("leadStatus,lead", leadStatuses)
 
   const [formData, setFormData] = useState({
     follow_up_feedback: "",
@@ -37,9 +39,9 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ onClose, onSubmit }) 
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  console.log("submitSuccess",submitSuccess)
+  console.log("submitSuccess", submitSuccess)
   const [submitError, setSubmitError] = useState<string | null>(null);
-const initialFormData = {
+  const initialFormData = {
     follow_up_feedback: "",
     next_action: "",
     status_id: "",
@@ -62,6 +64,14 @@ const initialFormData = {
     }
   }, [dispatch]);
 
+
+  const handleCancel = () => {
+    if (onClose) {
+      onClose();
+    } else {
+      navigate(-1);
+    }
+  };
   const handleInputChange = (field: keyof typeof formData) => (value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
 
@@ -105,28 +115,28 @@ const initialFormData = {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) return;
-console.log("trigger")
+
     if (!leadId) {
       setSubmitError("Invalid lead ID. Please try again.");
       return;
     }
-    console.log("leadId,",leadId)
+
 
     if (!user?.id || !user?.user_type || !user?.name || !user?.mobile) {
       setSubmitError("User information is missing. Please log in again.");
       return;
     }
 
-    console.log("checking dataa")
+
     const token = localStorage.getItem("token");
-    console.log("token",token)
-    console.log("Token before request:", token); 
+
     if (!token || isTokenExpired(token)) {
       dispatch(logout());
       setSubmitError("Your session has expired. Please log in again.");
+      toast.error("Your session has expired. Please log in again.");
       return;
     }
-    console.log("hello token found" )
+
 
 
     try {
@@ -144,32 +154,40 @@ console.log("trigger")
         followup_date: (formData.status_id === "2" || formData.status_id === "3") ? formData.followup_date : undefined,
         action_date: (formData.status_id !== "2" && formData.status_id !== "3") ? formData.action_date : undefined,
       };
-console.log("submit",submitData)
-      const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
 
-      console.log("result",result)
-      setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
-        setFormData(initialFormData);
-     
-      toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`)
-   
-    setSubmitSuccess("");
-      
+      const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
+      if (result?.status === "success") {
+        {
+
+          setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
+
+          toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`, {
+            duration: 4000,
+            position: "top-center",
+          });
+          setFormData(initialFormData);
+
+
+        }
+
+      } else {
+        toast.error(result?.message || "Failed to update lead. Please try again.")
+        setSubmitError(result?.message || "Failed to update lead. Please try again.")
+      }
     } catch (error: any) {
+      setSubmitError(error.message || "Failed to update lead. Please try again.");
 
       toast.error(error.message || "Failed to update lead. Please try again.")
     } finally {
       setIsSubmitting(false);
     }
-  };
-
-  if (statusesLoading) {
-    return <div>Loading statuses...</div>;
   }
+
+
 
   return (
     <div className="pointer-events-auto">
-      <Toaster/>
+      <Toaster />
       <div className="bg-white/30 backdrop-blur-sm">
         <div className="relative flex items-center p-8 justify-center m-auto h-full">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-lg max-w-lg w-full">
@@ -179,7 +197,7 @@ console.log("submit",submitData)
                 {submitSuccess}
               </div>
             )}
-           
+
             {statusesError && (
               <div className="p-3 mb-4 bg-red-100 text-red-700 rounded-md">
                 {statusesError}
@@ -210,7 +228,7 @@ console.log("submit",submitData)
                     onChange={(selectedDates: Date[]) => {
                       if (selectedDates.length > 0) {
                         const date = selectedDates[0].toLocaleDateString("en-CA");
-                        console.log("date",date)
+                        console.log("date", date)
                         handleInputChange("followup_date")(date);
                       } else {
                         handleInputChange("followup_date")("");
@@ -275,7 +293,7 @@ console.log("submit",submitData)
                 )}
               </div>
               <div className="flex justify-end gap-4 mt-6">
-                <Button variant="outline" onClick={onClose}>
+                <Button variant="outline" type="button" onClick={handleCancel}>
                   Cancel
                 </Button>
                 <Button
