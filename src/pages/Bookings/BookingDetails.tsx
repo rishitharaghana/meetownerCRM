@@ -96,7 +96,7 @@ const BookingDetails: React.FC = () => {
   return (
     <div className="">
       <div className="flex justify-end">
-        <PageBreadcrumb items={[{ label: "Bookings", link: "/bookings" }]} /> 
+        <PageBreadcrumb items={[{ label: "Bookings", link: "/bookings" }]} />
         <PageMeta title="Booking Details" />
       </div>
       <div className="relative min-h-screen p-5 space-y-6 bg-white rounded-lg shadow-md">
@@ -127,7 +127,11 @@ const BookingDetails: React.FC = () => {
 
         {/* Back button */}
         <div className="flex justify-end">
-          <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
+          <Button
+            className="bg-[#1D3A76] text-white hover:bg-[#152B5A]"
+            size="sm"
+            onClick={() => navigate(-1)}
+          >
             Back
           </Button>
         </div>
