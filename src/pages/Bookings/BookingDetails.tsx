@@ -47,12 +47,12 @@ const BookingDetails: React.FC = () => {
         },
         { label: "Project Name", value: lead.project_name || "N/A" },
         { label: "Property Subtype", value: lead.property_subtype || "N/A" },
+        { label: "City", value: lead.city || "N/A" },
+        { label: "State", value: lead.state || "N/A" },
         {
           label: "Lead Source",
           value: leadSourceMap[lead.lead_source_id] || "N/A",
         },
-        { label: "City", value: lead.city || "N/A" },
-        { label: "State", value: lead.state || "N/A" },
       ],
     },
     {
