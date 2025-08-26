@@ -8,7 +8,7 @@ import leadSlice from './slices/leadslice';
 import projectSlice from './slices/projectSlice';
 import builderReducer from './slices/builderslice';
 import notificationReducer from './slices/notificationSlice';
-
+import sidebarBucketsReducer from "./slices/sidebarBucketsSlice";
 import { initializeAuthState } from "../utils/authutils";
 
 const preloadedState = {
@@ -24,6 +24,7 @@ const store =  configureStore({
         projects:projectSlice,
         builder:builderReducer,
         notification: notificationReducer,
+            sidebarBuckets: sidebarBucketsReducer,
     },
     preloadedState,
     middleware: (getDefaultMiddleware) => getDefaultMiddleware({serializableCheck: false}),

@@ -10,6 +10,15 @@ interface AppHeaderProps {
 }
 
 const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
+
+//   const formatTo12Hour = (time24: string) => {
+//   const [h, m, s] = time24.split(":");
+//   let hour = parseInt(h, 10);
+//   const minute = m;
+//   const ampm = hour >= 12 ? "PM" : "AM";
+//   hour = hour % 12 || 12; 
+//   return `${hour}:${minute} ${ampm}`;
+// };
   const dispatch = useDispatch();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -18,6 +27,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const notifications = useSelector((state: RootState) => state.notification.notifications);
+  console.log("notification",notifications)
   const notificationCount = useSelector((state: RootState) => state.notification.notificationCount);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 

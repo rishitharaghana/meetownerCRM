@@ -29,7 +29,7 @@ const userTypeMap: { [key: number]: string } = {
   6: "Marketing Executive",
   7: "Receptionists",
   8: "BDE",
-  9:"BDM",
+  9: "BDM",
 };
 
 const LeadsType: React.FC = () => {
@@ -37,31 +37,38 @@ const LeadsType: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
-  console.log("selected lead ",selectedLeadId)
+  console.log("selected lead ", selectedLeadId);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
   const [updatedDate, setUpdatedDate] = useState<string | null>(null);
   const [selectedState, setSelectedState] = useState<string | null>(null);
   const [selectedCity, setSelectedCity] = useState<string | null>(null);
-  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<number | null>(null);
+  const [selectedLeadIdSingle, setSelectedLeadIdSingle] = useState<
+    number | null
+  >(null);
 
   const navigate = useNavigate();
   const { lead_in, status } = useParams<{ lead_in: string; status: string }>();
   const dispatch = useDispatch<AppDispatch>();
-  const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
-  const { leads, loading, error } = useSelector((state: RootState) => state.lead);
+  const { user, isAuthenticated } = useSelector(
+    (state: RootState) => state.auth
+  );
+  const { leads, loading, error } = useSelector(
+    (state: RootState) => state.lead
+  );
 
-
-  console.log("leads::::::::::::::::::::::::::::::::::::",leads)
+  console.log("leads::::::::::::::::::::::::::::::::::::", leads);
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-console.log("user:::::::::::::::::::::::::::::::::::::::",user)
+  console.log("user:::::::::::::::::::::::::::::::::::::::", user);
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
 
-  const citiesResult = citiesQuery(selectedState ? parseInt(selectedState) : undefined);
+  const citiesResult = citiesQuery(
+    selectedState ? parseInt(selectedState) : undefined
+  );
 
   useEffect(() => {
     if (citiesResult.data) {
@@ -71,7 +78,11 @@ console.log("user:::::::::::::::::::::::::::::::::::::::",user)
 
   useEffect(() => {
     if (citiesResult.isError) {
-      toast.error(`Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"}`);
+      toast.error(
+        `Failed to fetch cities: ${
+          citiesResult.error?.message || "Unknown error"
+        }`
+      );
     }
   }, [citiesResult.isError, citiesResult.error]);
 
@@ -96,18 +107,21 @@ console.log("user:::::::::::::::::::::::::::::::::::::::",user)
       !user?.id ||
       !user?.user_type ||
       statusId < 0 ||
-      (!isBuilder && (!user?.created_user_id || user?.created_user_type === undefined))
+      (!isBuilder &&
+        (!user?.created_user_id || user?.created_user_type === undefined))
     ) {
       return null;
     }
-console.log("user",user,isAuthenticated,isBuilder)
-console.log("statusId",statusId)
+    console.log("user", user, isAuthenticated, isBuilder);
+    console.log("statusId", statusId);
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
-      lead_added_user_type: isBuilder ? user.user_type : Number(user.created_user_type),
+      lead_added_user_type: isBuilder
+        ? user.user_type
+        : Number(user.created_user_type),
       status_id: statusId,
     };
-    
+
     if (!isBuilder) {
       return {
         ...params,
@@ -115,17 +129,21 @@ console.log("statusId",statusId)
         assigned_id: user.id,
       };
     }
-    
+
     return params;
   }, [isAuthenticated, user, statusId, isBuilder]);
-  
-  console.log("params",leadsParams)
+
+  console.log("params", leadsParams);
   useEffect(() => {
     if (leadsParams) {
-      console.log(leadsParams)
-      dispatch(getLeadsByUser(leadsParams)).unwrap().catch((err) => {
-        toast.error(`Failed to fetch leads: ${err.message || "Unknown error"}`);
-      });
+      console.log(leadsParams);
+      dispatch(getLeadsByUser(leadsParams))
+        .unwrap()
+        .catch((err) => {
+          toast.error(
+            `Failed to fetch leads: ${err.message || "Unknown error"}`
+          );
+        });
     } else if (isAuthenticated && user) {
       console.warn("Invalid user data:", {
         id: user.id,
@@ -147,12 +165,18 @@ console.log("statusId",statusId)
         const search = searchQuery.trim().toLowerCase();
         const matchesSearch = !search
           ? true
-          : (item.customer_name?.toLowerCase()?.includes(search) || false) ||
-            (item.customer_phone_number?.includes(search) || false) ||
-            (item.customer_email?.toLowerCase()?.includes(search) || false) ||
-            (item.interested_project_name?.toLowerCase()?.includes(search) || false) ||
-            (item.assigned_name?.toLowerCase()?.includes(search) || false) ||
-            (item.assigned_emp_number?.includes(search) || false);
+          : item.customer_name?.toLowerCase()?.includes(search) ||
+            false ||
+            item.customer_phone_number?.includes(search) ||
+            false ||
+            item.customer_email?.toLowerCase()?.includes(search) ||
+            false ||
+            item.interested_project_name?.toLowerCase()?.includes(search) ||
+            false ||
+            item.assigned_name?.toLowerCase()?.includes(search) ||
+            false ||
+            item.assigned_emp_number?.includes(search) ||
+            false;
 
         const matchesUserType = !selectedUserType
           ? true
@@ -169,16 +193,16 @@ console.log("statusId",statusId)
         const matchesState = !selectedState
           ? true
           : item.state?.toLowerCase() ===
-              states
-                ?.find((s) => s.value.toString() === selectedState)
-                ?.label.toLowerCase();
+            states
+              ?.find((s) => s.value.toString() === selectedState)
+              ?.label.toLowerCase();
 
         const matchesCity = !selectedCity
           ? true
           : citiesResult.data &&
-              citiesResult.data
-                .find((c) => c.value === selectedCity)
-                ?.label.toLowerCase() === item.city?.toLowerCase();
+            citiesResult.data
+              .find((c) => c.value === selectedCity)
+              ?.label.toLowerCase() === item.city?.toLowerCase();
 
         return (
           matchesSearch &&
@@ -209,12 +233,11 @@ console.log("statusId",statusId)
     localPage * itemsPerPage
   );
 
-
-  console.log("currentLeads",currentLeads)
+  console.log("current", currentLeads);
+  console.log("currentLeads", currentLeads);
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {
-    };
+    const handleClickOutside = (event: MouseEvent) => {};
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -268,7 +291,9 @@ console.log("statusId",statusId)
         state: {
           leadId,
           leadAddedUserId: isBuilder ? user!.id : user!.created_user_id!,
-          leadAddedUserType: isBuilder ? user!.user_type : Number(user!.created_user_type),
+          leadAddedUserType: isBuilder
+            ? user!.user_type
+            : Number(user!.created_user_type),
           propertyId: lead.interested_project_id || 2,
         },
       });
@@ -278,9 +303,9 @@ console.log("statusId",statusId)
   };
 
   const handleUpdateLead = (leadId: number) => {
-    console.log("ro")
-    navigate(`/leads/update-lead/${leadId}`)  
-  }
+    console.log("ro");
+    navigate(`/leads/update-lead/${leadId}`);
+  };
 
   const handleUserTypeChange = (value: string | null) => {
     setSelectedUserType(value);
@@ -335,7 +360,9 @@ console.log("statusId",statusId)
       toast.error("Please select a lead.");
       return;
     }
-    const lead = currentLeads.find((item) => item.lead_id === selectedLeadIdSingle);
+    const lead = currentLeads.find(
+      (item) => item.lead_id === selectedLeadIdSingle
+    );
     if (lead) handleViewHistory(lead);
   };
 
@@ -442,10 +469,16 @@ console.log("statusId",statusId)
         )}
       </div>
       <div className="space-y-6">
-        {loading && <div className="text-center text-gray-600 dark:text-gray-400 py-4">Loading leads...</div>}
+        {loading && (
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            Loading leads...
+          </div>
+        )}
         {error && <div className="text-center text-red-500 py-4">{error}</div>}
         {!loading && !error && filteredLeads.length === 0 && (
-          <div className="text-center text-gray-600 dark:text-gray-400 py-4">No leads found.</div>
+          <div className="text-center text-gray-600 dark:text-gray-400 py-4">
+            No leads found.
+          </div>
         )}
         {!loading && !error && filteredLeads.length > 0 && (
           <div className="overflow-hidden rounded-xl border border-gray-200 bg-white dark:border-white/[0.05] dark:bg-white/[0.03]">
@@ -453,31 +486,58 @@ console.log("statusId",statusId)
               <Table className="w-full">
                 <TableHeader className="border-b border-gray-100 dark:border-white/[0.05]">
                   <TableRow className="bg-blue-900 text-white">
-                    <TableCell isHeader className="text-center font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-center font-medium text-xs whitespace-nowrap"
+                    >
                       Select
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Name
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Number
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Project
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Lead Type
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Created
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Updated
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       Assigned
                     </TableCell>
-                    <TableCell isHeader className="text-left font-medium text-xs whitespace-nowrap">
+                    <TableCell
+                      isHeader
+                      className="text-left font-medium text-xs whitespace-nowrap"
+                    >
                       City
                     </TableCell>
                   </TableRow>
@@ -516,7 +576,9 @@ console.log("statusId",statusId)
                         {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
                       <TableCell className="text-left">
-                        {item.updated_date?.split("T")[0] || "N/A"}
+                        {item?.followup_date ||
+                         item?.action_date|| item.updated_date?.split("T")[0] ||
+                          "N/A"}  
                       </TableCell>
                       <TableCell className="text-left">
                         {userTypeMap[item.assigned_user_type] || "N/A"}
@@ -535,7 +597,8 @@ console.log("statusId",statusId)
           <div className="flex flex-col sm:flex-row justify-between items-center mt-4 px-4 py-2 gap-4">
             <div className="text-sm text-gray-500 dark:text-gray-400">
               Showing {(localPage - 1) * itemsPerPage + 1} to{" "}
-              {Math.min(localPage * itemsPerPage, filteredLeads.length)} of {filteredLeads.length} entries
+              {Math.min(localPage * itemsPerPage, filteredLeads.length)} of{" "}
+              {filteredLeads.length} entries
             </div>
             <div className="flex gap-2 flex-wrap justify-center">
               <Button
