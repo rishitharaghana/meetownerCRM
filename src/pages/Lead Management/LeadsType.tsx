@@ -37,7 +37,6 @@ const LeadsType: React.FC = () => {
   const [searchQuery, setSearchQuery] = useState<string>("");
   const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const [selectedLeadId, setSelectedLeadId] = useState<number | null>(null);
-  console.log("selected lead ", selectedLeadId);
   const [statusUpdated, setStatusUpdated] = useState<boolean>(false);
   const [selectedUserType, setSelectedUserType] = useState<string | null>(null);
   const [createdDate, setCreatedDate] = useState<string | null>(null);
@@ -58,10 +57,12 @@ const LeadsType: React.FC = () => {
     (state: RootState) => state.lead
   );
 
-  console.log("leads::::::::::::::::::::::::::::::::::::", leads);
+
+
   const { states } = useSelector((state: RootState) => state.property);
   const { citiesQuery } = usePropertyQueries();
-  console.log("user:::::::::::::::::::::::::::::::::::::::", user);
+
+
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;
   const itemsPerPage = 10;
   const statusId = parseInt(status || "0", 10);
@@ -79,8 +80,7 @@ const LeadsType: React.FC = () => {
   useEffect(() => {
     if (citiesResult.isError) {
       toast.error(
-        `Failed to fetch cities: ${
-          citiesResult.error?.message || "Unknown error"
+        `Failed to fetch cities: ${citiesResult.error?.message || "Unknown error"
         }`
       );
     }
@@ -112,8 +112,8 @@ const LeadsType: React.FC = () => {
     ) {
       return null;
     }
-    console.log("user", user, isAuthenticated, isBuilder);
-    console.log("statusId", statusId);
+
+
     const params = {
       lead_added_user_id: isBuilder ? user.id : user.created_user_id!,
       lead_added_user_type: isBuilder
@@ -133,7 +133,8 @@ const LeadsType: React.FC = () => {
     return params;
   }, [isAuthenticated, user, statusId, isBuilder]);
 
-  console.log("params", leadsParams);
+
+
   useEffect(() => {
     if (leadsParams) {
       console.log(leadsParams);
@@ -166,17 +167,17 @@ const LeadsType: React.FC = () => {
         const matchesSearch = !search
           ? true
           : item.customer_name?.toLowerCase()?.includes(search) ||
-            false ||
-            item.customer_phone_number?.includes(search) ||
-            false ||
-            item.customer_email?.toLowerCase()?.includes(search) ||
-            false ||
-            item.interested_project_name?.toLowerCase()?.includes(search) ||
-            false ||
-            item.assigned_name?.toLowerCase()?.includes(search) ||
-            false ||
-            item.assigned_emp_number?.includes(search) ||
-            false;
+          false ||
+          item.customer_phone_number?.includes(search) ||
+          false ||
+          item.customer_email?.toLowerCase()?.includes(search) ||
+          false ||
+          item.interested_project_name?.toLowerCase()?.includes(search) ||
+          false ||
+          item.assigned_name?.toLowerCase()?.includes(search) ||
+          false ||
+          item.assigned_emp_number?.includes(search) ||
+          false;
 
         const matchesUserType = !selectedUserType
           ? true
@@ -193,16 +194,16 @@ const LeadsType: React.FC = () => {
         const matchesState = !selectedState
           ? true
           : item.state?.toLowerCase() ===
-            states
-              ?.find((s) => s.value.toString() === selectedState)
-              ?.label.toLowerCase();
+          states
+            ?.find((s) => s.value.toString() === selectedState)
+            ?.label.toLowerCase();
 
         const matchesCity = !selectedCity
           ? true
           : citiesResult.data &&
-            citiesResult.data
-              .find((c) => c.value === selectedCity)
-              ?.label.toLowerCase() === item.city?.toLowerCase();
+          citiesResult.data
+            .find((c) => c.value === selectedCity)
+            ?.label.toLowerCase() === item.city?.toLowerCase();
 
         return (
           matchesSearch &&
@@ -233,11 +234,10 @@ const LeadsType: React.FC = () => {
     localPage * itemsPerPage
   );
 
-  console.log("current", currentLeads);
-  console.log("currentLeads", currentLeads);
+
 
   useEffect(() => {
-    const handleClickOutside = (event: MouseEvent) => {};
+    const handleClickOutside = (event: MouseEvent) => { };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
@@ -303,7 +303,6 @@ const LeadsType: React.FC = () => {
   };
 
   const handleUpdateLead = (leadId: number) => {
-    console.log("ro");
     navigate(`/leads/update-lead/${leadId}`);
   };
 
@@ -576,9 +575,9 @@ const LeadsType: React.FC = () => {
                         {item.created_date?.split("T")[0] || "N/A"}
                       </TableCell>
                       <TableCell className="text-left">
-                        {item?.followup_date ||
-                         item?.action_date|| item.updated_date?.split("T")[0] ||
-                          "N/A"}  
+                        {item?.followup_date?.split("T")[0] ||
+                          item?.action_date?.split("T")[0] || item.updated_date?.split("T")[0] ||
+                          "N/A"}
                       </TableCell>
                       <TableCell className="text-left">
                         {userTypeMap[item.assigned_user_type] || "N/A"}

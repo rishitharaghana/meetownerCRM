@@ -4,6 +4,7 @@ import { useSidebar } from "../context/SidebarContext";
 import UserDropdown from "../components/header/UserDropdown";
 import { RootState } from "../store/store";
 import { fetchLeadNotifications, clearNotification } from '../store/slices/notificationSlice'
+import { fetchSidebarBuckets } from "../store/slices/sidebarBucketsSlice";
 
 interface AppHeaderProps {
   userType: number | null;
@@ -28,7 +29,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const notifications = useSelector((state: RootState) => state.notification.notifications);
-  console.log("notification", notifications)
+
+
   const notificationCount = useSelector((state: RootState) => state.notification.notificationCount);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
@@ -49,7 +51,10 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
       toggleMobileSidebar();
     }
   };
+  useEffect(() => {
+    dispatch(fetchSidebarBuckets({ assigned_user_type: userType, assigned_id: userId }))
 
+  }, [])
   const toggleApplicationMenu = () => {
     setApplicationMenuOpen((prev) => !prev);
   };

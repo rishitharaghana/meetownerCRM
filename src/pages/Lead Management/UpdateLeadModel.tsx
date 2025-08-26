@@ -26,7 +26,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
   const { leadStatuses, loading: statusesLoading, error: statusesError } = useSelector(
     (state: RootState) => state.lead
   );
-  console.log("leadStatus,lead", leadStatuses)
+ 
 
   const [formData, setFormData] = useState({
     follow_up_feedback: "",
@@ -39,7 +39,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitSuccess, setSubmitSuccess] = useState<string | null>(null);
-  console.log("submitSuccess", submitSuccess)
+
   const [submitError, setSubmitError] = useState<string | null>(null);
   const initialFormData = {
     follow_up_feedback: "",
@@ -158,7 +158,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
       const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
       if (result?.status === "success") {
         {
-          
+
           // setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
 
           toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`, {
@@ -228,7 +228,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
                     onChange={(selectedDates: Date[]) => {
                       if (selectedDates.length > 0) {
                         const date = selectedDates[0].toLocaleDateString("en-CA");
-                        console.log("date", date)
+                        
                         handleInputChange("followup_date")(date);
                       } else {
                         handleInputChange("followup_date")("");

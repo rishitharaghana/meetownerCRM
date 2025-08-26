@@ -1,5 +1,6 @@
 import { createAsyncThunk, createSlice, PayloadAction } from "@reduxjs/toolkit";
 import axios from "axios";
+import ngrokAxiosInstance from "../../hooks/AxiosInstance";
 
 type Buckets = {
   total_today_assigned: number;
@@ -16,13 +17,13 @@ type Buckets = {
 export const fetchSidebarBuckets = createAsyncThunk(
   "sidebarBuckets/fetch",
   async ({ assigned_user_type, assigned_id }: { assigned_user_type: number; assigned_id: number }) => {
-    const { data } = await axios.get("/api/lead-notifications/sidebar-counts", {
+
+    const { data } = await ngrokAxiosInstance.get("/api/lead-notifications/sidebar-counts", {
       params: { assigned_user_type, assigned_id },
     });
     return (data?.counts ?? {}) as Partial<Buckets>;
   }
 );
-
 const initialState: Buckets = {
   total_today_assigned: 0,
   open: 0,

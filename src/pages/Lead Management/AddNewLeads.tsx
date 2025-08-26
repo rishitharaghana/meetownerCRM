@@ -243,7 +243,7 @@ const LeadForm: React.FC = () => {
           : {}),
       };
       const result = await dispatch(insertLead(leadData)).unwrap();
-      setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
+      // setSubmitSuccess(`Lead created successfully! Lead ID: ${result.lead_id}`);
       setFormData({
         name: "",
         mobile: "",

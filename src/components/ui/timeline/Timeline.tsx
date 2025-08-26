@@ -95,7 +95,7 @@ const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
           )}
           {event.updatedEmpName && event.updatedEmpPhone && (
             <p className="text-sm text-gray-600 dark:text-gray-300">
-              <span className="font-semibold">Updated By:</span> {event.updatedEmpName} | {event.updatedEmpPhone}
+              <span className="font-semibold">Updated to:</span> {event.updatedEmpName} | {event.updatedEmpPhone}
             </p>
           )}
         </li>
