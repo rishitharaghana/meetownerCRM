@@ -158,8 +158,8 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
       const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
       if (result?.status === "success") {
         {
-
-          setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
+          
+          // setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
 
           toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`, {
             duration: 4000,
