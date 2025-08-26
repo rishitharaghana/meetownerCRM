@@ -86,13 +86,11 @@ const Timeline: React.FC<{ data?: TimelineEvent[] }> = ({ data = [] }) => {
             </p>
           )}
 
-
-
-          {event.updatedEmpType && getDesignation(event.updatedEmpType) !== "Unknown Designation" && (
+          {/* {event.updatedEmpType && getDesignation(event.updatedEmpType) !== "Unknown Designation" && (
             <p className="text-sm text-gray-600 dark:text-gray-300">
               <span className="font-semibold">Designation:</span> {getDesignation(event.updatedEmpType)}
             </p>
-          )}
+          )} */}
           {event.updatedEmpName && event.updatedEmpPhone && (
             <p className="text-sm text-gray-600 dark:text-gray-300">
               <span className="font-semibold">Updated to:</span> {event.updatedEmpName} | {event.updatedEmpPhone}
