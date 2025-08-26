@@ -58,8 +58,8 @@ const iconMap: { [key: string]: any } = {
   "5": Headset,
   "6": CircleUser,
   "7": UserRound,
-  "8": User, // Added for BDE
-  "9": User, // Added for BDM
+  "8": User, 
+  "9": User, 
 };
 
 const cardColors = [
@@ -93,7 +93,7 @@ export default function Home() {
   } = useSelector((state: RootState) => state.user);
 
 
-  console.log("userCounts in EcommerceMetrics:", userCounts);
+  
 
   const {
     totalLeads,
@@ -101,7 +101,6 @@ export default function Home() {
     error: leadError,
   } = useSelector((state: RootState) => state.lead);
 
-  console.log("totalLeads in EcommerceMetrics:", totalLeads);
   const typesCountParams = useMemo(() => {
     if (!isAuthenticated || !user?.id || !user?.user_type) {
       return null;
@@ -121,7 +120,6 @@ export default function Home() {
     }
     return null;
   }, [isAuthenticated, user]);
-  console.log("typesCountParamsqwqwq", typesCountParams)
 
   useEffect(() => {
     if (!typesCountParams) {
@@ -135,8 +133,6 @@ export default function Home() {
         .catch((err) => {
           toast.error(err || "Failed to fetch user counts");
         });
-      console.log(user?.user_type)
-      console.log("type", typesCountParams)
       const leadParams =
         user.user_type === 2
           ? {
@@ -149,7 +145,6 @@ export default function Home() {
             assigned_id: typesCountParams.emp_id,
             assigned_user_type: typesCountParams.emp_user_type,
           };
-      console.log("sd", leadParams)
       dispatch(getTotalLeads({ leadParams }))
 
         .unwrap()
@@ -169,17 +164,14 @@ export default function Home() {
         (item) =>
           item.user_type !== "projects" && item.user_type !== "today_leads"
       ) || [];
-console.log("counts", counts)
     const totalLeadsCard =
       user?.user_type === BUILDER_USER_TYPE || EMPLOYEE_USER_TYPES.includes(user?.user_type)
         ? { user_type: "total_leads", count: totalLeads }
         : null;
-console.log("totalLeadsCard", totalLeadsCard)
     const filtered = counts.filter((item) => item.user_type !== "total_leads");
 
     return totalLeadsCard ? [totalLeadsCard, ...filtered] : filtered;
   }, [userCounts, totalLeads, user?.user_type]);
-  console.log("employeeCounts", employeeCounts)
 
   if (!isAuthenticated || !user) {
     return (

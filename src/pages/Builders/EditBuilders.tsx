@@ -253,7 +253,6 @@ useEffect(() => {
       formData.append('company_logo', companyLogoFile);
     }
 
-    console.log('FormData:', Object.fromEntries(formData));
 
     dispatch(updateUser({ id: selectedBuilder.id, formData }));
   };
