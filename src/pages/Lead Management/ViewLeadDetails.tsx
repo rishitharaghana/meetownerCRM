@@ -163,7 +163,7 @@ const ViewLeadDetails = () => {
       }
 
       return {
-        label: `${update.status_name || `Update ${index + 1}`} (by ${update.updated_by_emp_name || 'Unknown'})`,
+        label: `${update.status_name || `Update ${index + 1}`} `,
         timestamp,
         status:
           update.status_id && lead.status_id && update.status_id <= lead.status_id
@@ -247,13 +247,13 @@ const ViewLeadDetails = () => {
               {lead.assigned_emp_number})
             </p>
             <p>
-              <strong>Status:</strong> {lead.status_name}
+              <strong>Status:</strong> {lead.status_name || "N/A"}
             </p>
             <p>
-              <strong>city:</strong> {lead.city}
+              <strong>city:</strong> {lead.city || "N/A"}
             </p>
             <p>
-              <strong>state:</strong> {lead.state}
+              <strong>state:</strong> {lead.state || "N/A"}
             </p>
           </div>
         </div>

@@ -11,14 +11,15 @@ interface AppHeaderProps {
 
 const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
 
-//   const formatTo12Hour = (time24: string) => {
-//   const [h, m, s] = time24.split(":");
-//   let hour = parseInt(h, 10);
-//   const minute = m;
-//   const ampm = hour >= 12 ? "PM" : "AM";
-//   hour = hour % 12 || 12; 
-//   return `${hour}:${minute} ${ampm}`;
-// };
+const formatTime = (timeStr) => {
+  const [hour, minute, second] = timeStr.split(":").map(Number);
+
+  // convert to 12h format
+  const ampm = hour >= 12 ? "PM" : "AM";
+  const hours12 = hour % 12 || 12; // 0 -> 12
+  return `${hours12}:${String(minute).padStart(2, "0")} ${ampm}`;
+};
+
   const dispatch = useDispatch();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
   const [isApplicationMenuOpen, setApplicationMenuOpen] = useState(false);
@@ -27,7 +28,7 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
   const notificationRef = useRef<HTMLDivElement>(null);
 
   const notifications = useSelector((state: RootState) => state.notification.notifications);
-  console.log("notification",notifications)
+  console.log("notification", notifications)
   const notificationCount = useSelector((state: RootState) => state.notification.notificationCount);
   const userId = useSelector((state: RootState) => state.auth.user?.id);
 
@@ -160,9 +161,8 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
         </div>
 
         <div
-          className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${
-            isApplicationMenuOpen ? "block" : "hidden"
-          } lg:block shadow-theme-md`}
+          className={`application-menu flex items-center justify-between w-full gap-4 px-5 py-4 lg:flex lg:justify-end lg:px-0 lg:shadow-none ${isApplicationMenuOpen ? "block" : "hidden"
+            } lg:block shadow-theme-md`}
         >
           <div className="flex items-center gap-3">
             {canViewNotifications && (
@@ -203,8 +203,16 @@ const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
                                 <strong>{notification.project_name}</strong> ({notification.city}, {notification.state})
                               </p>
                               <p className="text-sm text-gray-500">
-                                Assigned on {notification.assigned_date} at {notification.assigned_time}
+                                Assigned on{" "}
+                                {new Date(notification?.assigned_date).toLocaleDateString("en-GB", {
+                                  day: "2-digit",
+                                  month: "2-digit",
+                                  year: "numeric",
+                                  timeZone: "Asia/Kolkata",
+                                })}{" "}
+                             at {formatTime(notification.assigned_time)}
                               </p>
+
                               <button
                                 onClick={() => handleClearNotification(notification.lead_id)}
                                 className="text-sm text-blue-500 hover:underline"
