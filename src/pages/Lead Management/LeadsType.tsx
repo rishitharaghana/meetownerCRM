@@ -57,6 +57,7 @@ const LeadsType: React.FC = () => {
     (state: RootState) => state.lead
   );
 
+ 
 
 
   const { states } = useSelector((state: RootState) => state.property);
@@ -137,7 +138,7 @@ const LeadsType: React.FC = () => {
 
   useEffect(() => {
     if (leadsParams) {
-      console.log(leadsParams);
+    
       dispatch(getLeadsByUser(leadsParams))
         .unwrap()
         .catch((err) => {

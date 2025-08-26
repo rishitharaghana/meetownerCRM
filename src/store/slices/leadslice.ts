@@ -57,13 +57,11 @@ export const fetchTodayFollowUps = createAsyncThunk<
       const endpoint = lead_source_user_id
         ? `/api/v1/leads/getLeadsChannelPartner?${queryParams}`
         : `/api/v1/getLeadsByUser?${queryParams}`;
-      console.log("Fetching today follow-ups from:", endpoint);
       const response = await ngrokAxiosInstance.get<LeadsResponse>(endpoint, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
       });
-      console.log("fetchTodayFollowUps response:", response.data);
       return response.data.results || [];
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -118,7 +116,6 @@ export const getLeadsByUser = createAsyncThunk<
           },
         }
       );
-      console.log("getLeadsByUser response:", response.data);
       return response.data.results || [];
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -145,7 +142,6 @@ export const getTotalLeads = createAsyncThunk<
 >(
   "lead/getTotalLeads",
   async ({leadParams }, { rejectWithValue }) => {
-    console.log("k",leadParams)
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -161,7 +157,6 @@ export const getTotalLeads = createAsyncThunk<
           Authorization: `Bearer ${token}`,
         },
       });
-console.log("getTotalLeads response:", response.data);
       return response.data.total;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -301,7 +296,6 @@ export const getLeadUpdatesByLeadId = createAsyncThunk<
       if (!response.data.results || response.data.results.length === 0) {
         return rejectWithValue("No lead updates found");
       }
-      console.log("response::",response)
       return response.data.results;
     } catch (error) {
       const axiosError = error as AxiosError<ErrorResponse>;
@@ -841,7 +835,6 @@ export const updateLeadByEmployee = createAsyncThunk<
   { rejectValue: string }
 >("lead/updateLeadByEmployee", async (updateData, { rejectWithValue }) => {
 
-  console.log("updateData in frontend api call:::::::::::::::",updateData)
   try {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -860,7 +853,6 @@ export const updateLeadByEmployee = createAsyncThunk<
     if (response.data.status !== "success") {
       return rejectWithValue(response.data.message || "Failed to update lead");
     }
-    console.log("response::",response)
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError<ErrorResponse>;
@@ -913,7 +905,6 @@ const leadSlice = createSlice({
         const newLeads = action.payload.filter(
           (lead) => lead.status_id === 2 && lead.followup_date === today
         );
-        console.log("New today follow-ups:", newLeads);
         state.leads = state.leads
           ? [
               ...state.leads.filter(
@@ -935,14 +926,7 @@ const leadSlice = createSlice({
         state.loading = false;
         const today = new Date().toISOString().split("T")[0];
         const newLeads = action.payload;
-        state.leads = state.leads
-          ? [
-              ...state.leads.filter(
-                (lead) => lead.status_id === 2 && lead.followup_date === today
-              ),
-              ...newLeads,
-            ]
-          : newLeads;
+        state.leads = action.payload
       })
       .addCase(getLeadsByUser.rejected, (state, action) => {
         state.loading = false;
@@ -978,7 +962,6 @@ const leadSlice = createSlice({
       })
       .addCase(getLeadUpdatesByLeadId.fulfilled, (state, action) => {
         state.loading = false;
-        console.log("action.payload", action.payload);
         state.leadUpdates = action.payload;
       })
       .addCase(getLeadUpdatesByLeadId.rejected, (state, action) => {
