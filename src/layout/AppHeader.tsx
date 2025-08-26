@@ -11,14 +11,14 @@ interface AppHeaderProps {
 
 const AppHeader: React.FC<AppHeaderProps> = ({ userType }) => {
 
-const formatTime = (timeStr) => {
-  const [hour, minute, second] = timeStr.split(":").map(Number);
+  const formatTime = (timeStr) => {
+    const [hour, minute, second] = timeStr.split(":").map(Number);
 
-  // convert to 12h format
-  const ampm = hour >= 12 ? "PM" : "AM";
-  const hours12 = hour % 12 || 12; // 0 -> 12
-  return `${hours12}:${String(minute).padStart(2, "0")} ${ampm}`;
-};
+    // convert to 12h format
+    const ampm = hour >= 12 ? "PM" : "AM";
+    const hours12 = hour % 12 || 12; // 0 -> 12
+    return `${hours12}:${String(minute).padStart(2, "0")} ${ampm}`;
+  };
 
   const dispatch = useDispatch();
   const { isMobileOpen, toggleSidebar, toggleMobileSidebar } = useSidebar();
@@ -204,13 +204,11 @@ const formatTime = (timeStr) => {
                               </p>
                               <p className="text-sm text-gray-500">
                                 Assigned on{" "}
-                                {new Date(notification?.assigned_date).toLocaleDateString("en-GB", {
-                                  day: "2-digit",
-                                  month: "2-digit",
-                                  year: "numeric",
-                                  timeZone: "Asia/Kolkata",
-                                })}{" "}
-                             at {formatTime(notification.assigned_time)}
+
+                                {notification?.
+                                  action_date
+                                }
+                                at {formatTime(notification.assigned_time)}
                               </p>
 
                               <button
