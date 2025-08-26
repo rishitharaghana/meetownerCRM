@@ -684,7 +684,7 @@ export const assignLeadToEmployee = createAsyncThunk<
       interested_project_id: assignData.interested_project_id || undefined,
       interested_project_name: assignData.interested_project_name || undefined,
     };
-console.log("payload",payload)
+
     const response = await ngrokAxiosInstance.post<AssignLeadResponse>(
       `/api/v1/leads/assignLeadToEmployee`,
       payload,
