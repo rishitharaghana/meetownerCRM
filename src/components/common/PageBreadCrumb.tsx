@@ -65,7 +65,15 @@ const PageBreadcrumb: React.FC<BreadcrumbProps> = ({ items = [] }) => {
                   />
                 </svg>
               </Link>
-            ) : (
+            ) : item.onClick ? (
+                <button
+                  onClick={item.onClick}
+                  className="inline-flex items-center gap-1.5"
+                >
+                  {item.label}
+                
+                </button>
+              ):(
               item.label
             )}
           </li>

@@ -187,8 +187,7 @@ const ViewLeadDetails = () => {
       <div className="flex justify-end">
         <PageBreadcrumb
           items={[
-            { label: "Leads", link: "/leads" },
-            { label: lead.interested_project_name || "Lead Details" },
+            { label: "Leads",  onClick: () => navigate(-1)  },
           ]}
         />
       </div>
@@ -242,10 +241,10 @@ const ViewLeadDetails = () => {
                 })
                 : "N/A"}
             </p>
-            <p>
-              <strong>Assigned:</strong> {lead.assigned_name} (
-              {lead.assigned_emp_number})
-            </p>
+           <p>
+  <strong>Assigned:</strong> {lead?.assigned_name || "N/A"}{" "}
+  {lead?.assigned_emp_number && lead?.assigned_emp_number}
+</p>      
             <p>
               <strong>Status:</strong> {lead.status_name || "N/A"}
             </p>
