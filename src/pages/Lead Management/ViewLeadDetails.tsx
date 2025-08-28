@@ -24,7 +24,8 @@ const ViewLeadDetails = () => {
     (state: RootState) => state.lead
   );
 
-  console.log("leadUpdates::::::::111:::::::::::::::", leadUpdates)
+ 
+
 
   const property = location.state?.property as Lead;
   const isBuilder = user?.user_type === BUILDER_USER_TYPE;

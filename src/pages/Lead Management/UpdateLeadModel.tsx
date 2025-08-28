@@ -2,7 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { AppDispatch, RootState } from "../../store/store";
 import { getLeadStatuses, updateLeadByEmployee } from "../../store/slices/leadslice";
-import { logout, isTokenExpired } from "../../store/slices/authSlice"; // Import isTokenExpired and logout
+import { logout, isTokenExpired } from "../../store/slices/authSlice"; 
 import Button from "../../components/ui/button/Button";
 import Select from "../../components/form/Select";
 import Input from "../../components/form/input/InputField";
@@ -56,7 +56,7 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
   useEffect(() => {
     dispatch(getLeadStatuses());
 
-    // Check token validity on mount
+    
     const token = localStorage.getItem("token");
     if (token && isTokenExpired(token)) {
       dispatch(logout());
@@ -101,12 +101,12 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
     if ((formData.status_id === "2" || formData.status_id === "3") && formData.followup_date < today) {
       newErrors.followup_date = "Follow-up date cannot be in the past";
     }
-    // if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && !formData.action_date.trim()) {
-    //   newErrors.action_date = "Action date is required";
-    // }
-    // if (formData.status_id !== "2" && formData.status_id !== "3" && formData.status_id && formData.action_date > today) {
-    //   newErrors.action_date = "Action date cannot be in the past";
-    // }
+    
+    
+    
+    
+    
+    
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -154,12 +154,11 @@ const UpdateLeadModal: React.FC<UpdateLeadModalProps> = ({ leadId: propLeadId, o
         followup_date: (formData.status_id === "2" || formData.status_id === "3") ? formData.followup_date : undefined,
         action_date: (formData.status_id !== "2" && formData.status_id !== "3") ? formData.action_date : undefined,
       };
-
       const result = await dispatch(updateLeadByEmployee(submitData)).unwrap();
       if (result?.status === "success") {
         {
 
-          // setSubmitSuccess(`Lead updated successfully! Lead ID: ${submitData.lead_id}`);
+          
 
           toast.success(`Lead updated successfully! Lead ID: ${submitData.lead_id}`, {
             duration: 4000,

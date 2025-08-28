@@ -9,8 +9,6 @@ import { RootState } from "../store/store";
 const LayoutContent: React.FC = () => {
   const { isExpanded, isHovered, isMobileOpen } = useSidebar();
   const userType = useSelector((state: RootState) => state.auth.user?.user_type ?? null);
-  console.log("userType in AppLayout:", userType);
-  console.log("Full auth state:", useSelector((state: RootState) => state.auth));
 
   return (
     <div className="min-h-screen">

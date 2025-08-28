@@ -15,7 +15,6 @@ export default function PartnerProfile() {
   const dispatch = useDispatch<AppDispatch>();
   const { user, isAuthenticated } = useSelector((state: RootState) => state.auth);
   const { selectedUser, loading, error } = useSelector((state: RootState) => state.user);
-  console.log(selectedUser+"selected user");
 
   useEffect(() => {
     if (isAuthenticated && user?.id && id) {

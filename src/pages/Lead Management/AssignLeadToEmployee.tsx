@@ -100,7 +100,6 @@ const AssignLeadEmployeePage: React.FC = () => {
       value: project.property_id.toString(),
       label: `${project.project_name} - ${project.property_type}`,
     })) || [];
-  console.log("projectOptions:", projectOptions);
 
   useEffect(() => {
     if (user?.id) {

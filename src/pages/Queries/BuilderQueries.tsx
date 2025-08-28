@@ -45,7 +45,6 @@ export default function BuilderQueries() {
   const startIndex = (currentPage - 1) * itemsPerPage;
   const endIndex = Math.min(startIndex + itemsPerPage, totalItems);
   const paginatedQueries = queries?.slice(startIndex, endIndex) || [];
-  console.log(paginatedQueries)
 
   return (
     <div className="relative min-h-screen">

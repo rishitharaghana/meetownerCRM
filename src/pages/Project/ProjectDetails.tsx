@@ -36,7 +36,6 @@ const ProjectDetailsPage = () => {
           admin_user_id: Number(user_id),
         })
       ).then((response) => {
-        console.log("Project data:", response.payload);
       });
     }
   }, [dispatch, isAuthenticated, user, property_id, posted_by, user_id]);

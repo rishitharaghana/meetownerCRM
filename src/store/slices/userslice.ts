@@ -119,7 +119,6 @@ export const insertUserNoAuth = createAsyncThunk<
   try {
     // Log FormData for debugging
     for (let [key, value] of formData.entries()) {
-      console.log(`${key}: ${value}`);
     }
 
     const response = await ngrokAxiosInstance.post<InsertUserResponse>(
@@ -252,7 +251,6 @@ export const getUsersByType = createAsyncThunk<
 >(
   "user/getUsersByType",
   async ({ admin_user_id, emp_user_type, status }, { rejectWithValue }) => {
-    console.log(status);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
