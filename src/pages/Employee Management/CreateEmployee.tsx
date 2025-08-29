@@ -50,7 +50,7 @@ interface Errors {
   address?: string;
   photo?: string;
 }
-//changes
+
 const CreateEmployee = () => {
   const dispatch = useDispatch<AppDispatch>();
   const navigate = useNavigate();
@@ -129,13 +129,14 @@ const CreateEmployee = () => {
     { value: "7", text: "Receptionists" },
     { value: "8", text: "BDE" },
     { value: "9", text: "BDM" },
-
   ];
+
   const cityOptions =
     citiesResult?.data?.map((city: any) => ({
       value: city.value,
       text: city.label,
     })) || [];
+
   const stateOptions =
     states?.map((s: any) => ({ value: s.value, text: s.label })) || [];
 
@@ -173,7 +174,7 @@ const CreateEmployee = () => {
     }
     if (!formData.designation) {
       newErrors.designation = "Select a designation";
-    } 
+    }
 
     if (!formData.password) {
       newErrors.password = "Password is required";
@@ -196,11 +197,13 @@ const CreateEmployee = () => {
     }
     if (!formData.location.trim()) newErrors.location = "Location is required";
     if (!formData.address.trim()) newErrors.address = "Address is required";
-    if (!formData.photo) newErrors.photo = "Photo is required";
+
+    // ❌ Removed photo validation here
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validateForm()) {
@@ -256,7 +259,6 @@ const CreateEmployee = () => {
     }
   };
 
-  
   return (
     <div className="min-h-screen bg-gradient-to-br from-white via-realty-50 to-white py-10 px-4">
       <div className="flex justify-end">
@@ -442,7 +444,7 @@ const CreateEmployee = () => {
               )}
             </div>
 
-            {/* Photo */}
+            {/* Photo (Optional now) */}
             <div>
               <label className="text-sm font-medium text-gray-700 flex items-center gap-1">
                 <Image size={16} /> Photo
@@ -455,9 +457,6 @@ const CreateEmployee = () => {
                 }
                 className="w-full p-3 border rounded-md"
               />
-              {errors.photo && (
-                <p className="text-red-600 text-sm mt-1">⚠️ {errors.photo}</p>
-              )}
             </div>
 
             <div className="pt-4">
